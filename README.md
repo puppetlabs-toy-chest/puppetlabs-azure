@@ -1,3 +1,6 @@
+[![Build
+Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=RqtxRv25TsPVz69Qso5L)](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure)
+
 ####Table of Contents
 
 1. [Overview](#overview)
