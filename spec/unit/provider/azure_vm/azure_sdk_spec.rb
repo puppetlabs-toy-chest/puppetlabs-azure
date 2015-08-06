@@ -16,7 +16,7 @@ describe provider_class do
     expect(provider).to be_an_instance_of Puppet::Type::Azure_vm::ProviderAzure_sdk
   end
 
-  [:manager, :list_vms, :read_only, :machine_to_hash, :prefetch].each do |method|
+  [:vm_manager, :list_vms, :read_only, :machine_to_hash, :prefetch].each do |method|
     it "should respond to the class method #{method}" do
       expect(provider_class).to respond_to(method)
     end

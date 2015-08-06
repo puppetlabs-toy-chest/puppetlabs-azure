@@ -33,22 +33,41 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 
    ~~~
    /opt/puppet/bin/gem install azure --no-ri --no-rdoc --pre
+   /opt/puppet/bin/gem install hocon --no-ri --no-rdoc
    ~~~
 
    If you are running Puppet Enterprise 2015.2.0 you need to use the
 updated path:
 
    ~~~
-   /opt/puppetlabs/puppet/bin/gem install azure --pre --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure --no-ri --no-rdoc --pre
+   /opt/puppetlabs/puppet/bin/gem install hocon --no-ri --no-rdoc
    ~~~
 
 2. Set the following environment variables specific to your Azure
    installation:
 
    ~~~
-   export AZURE_MANAGEMENT_CERTIFICATE='path-to-pem-file'
+   export AZURE_MANAGEMENT_CERTIFICATE='/path/to/pem/file'
    export AZURE_SUBSCRIPTION_ID='your-subscription-id'
    ~~~
+
+   Alternatively, you can provide the information in a configuration file. Store this as azure.conf in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html). This should be:
+
+   * nix Systems: /etc/puppetlabs/puppet
+   * Windows: C:\ProgramData\PuppetLabs\puppet\etc
+   * non-root users: ~/.puppetlabs/etc/puppet
+
+   The file format is:
+
+   ~~~
+   azure: {
+     subscription_id: "your-subscription-id"
+     management_certificate: "/path/to/pem/file"
+   }
+   ~~~
+
+   Note that you can use either the environment variables or the config file. If both are present the environment variables will be used. You cannot have some settings in environment variables and others in the config file.
 
 3. Finally install the module with:
 

@@ -12,7 +12,7 @@ module PuppetX
           end
         end
 
-        def self.manager
+        def self.vm_manager
           ::Azure.vm_management
         end
 
@@ -35,8 +35,8 @@ module PuppetX
         end
 
         private
-          def manager
-            self.class.manager
+          def vm_manager
+            self.class.vm_manager
           end
 
           # the Azure Ruby SDK has a logger module which puts all over the place
