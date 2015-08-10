@@ -36,6 +36,7 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 ###Types
 
 * `azure_vm`: Manages a virtual machine in Microsoft Azure.
+* `azure_sql_database`: Manages a SQL Database in Microsoft Azure.
 
 ###Parameters
 
@@ -108,6 +109,31 @@ A list of disks which should be attached to the virtual machine.
 
 #####`endpoints`
 A list of endpoints which should be associated with the virtual machine.
+
+####Type: azure_sql_database
+
+#####`ensure`
+
+#####`name`
+*Required* The name of the SQL database server.
+
+#####`password`
+*Required* The password required to access the database server.
+
+#####`location`
+*Required* The location where the database server will be created.
+
+#####`firewalls`
+A list of firewall rules controlling access to the database server.
+These require the following structure:
+
+~~~
+firewalls => [{
+  name             => 'rule-name'
+  start_ip_address => '0.0.0.1',
+  end_ip_address   => '0.0.0.5',
+}]
+~~~
 
 
 ##Limitations
