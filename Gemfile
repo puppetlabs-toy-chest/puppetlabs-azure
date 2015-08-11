@@ -1,6 +1,6 @@
 source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
-gem 'azure'
+gem 'azure', '>= 0.7.0.beta'
 gem 'hocon'
 
 group :test do
@@ -24,4 +24,5 @@ group :acceptance do
   gem "beaker-puppet_install_helper", :require => false
   gem 'beaker', '~> 2.0'
   gem 'master_manipulator', '~> 1.0'
+  gem 'beaker-rspec'
 end
