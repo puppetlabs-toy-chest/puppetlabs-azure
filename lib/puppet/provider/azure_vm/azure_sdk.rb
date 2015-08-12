@@ -4,6 +4,7 @@ require 'puppet_x/puppetlabs/azure/provider'
 
 Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs::Azure::Provider) do
   confine feature: :azure
+  confine feature: :azure_hocon
 
   mk_resource_methods
 
