@@ -20,7 +20,6 @@ if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
 end
 
 class PuppetManifest < Mustache
-
   def initialize(file, config)
     @template_file = File.join(Dir.getwd, 'spec', 'acceptance', 'fixtures', file)
     config.each do |key, value|
@@ -70,7 +69,7 @@ class PuppetManifest < Mustache
     @env_id ||= (
       ENV['BUILD_DISPLAY_NAME'] ||
       (ENV['USER'] + '@' + Socket.gethostname.split('.')[0])
-    ).gsub(/'/, '')
+    ).delete("'")
   end
 
   def self.rds_id
@@ -91,14 +90,14 @@ class AzureHelper
     @azure_vm_images = Azure.vm_image_management
   end
 
-  # This can return > 1 images if there is naming clashes. 
+  # This can return > 1 images if there is naming clashes.
   def get_image(name)
-    image = @azure_vm_images.list_virtual_machine_images.select { |x| x.name == name.downcase }
+    @azure_vm_images.list_virtual_machine_images.select { |x| x.name == name.downcase }
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
   def get_virtual_machine(name)
-    machine = @azure_vm.list_virtual_machines.select { |x| x.vm_name == name.downcase }
+    @azure_vm.list_virtual_machines.select { |x| x.vm_name == name.downcase }
   end
 end
 
@@ -124,7 +123,6 @@ class TestExecutor
     response = PuppetRunProxy.new.resource(cmd)
     response
   end
-
 end
 
 class PuppetRunProxy
@@ -133,7 +131,7 @@ class PuppetRunProxy
   def initialize
     @mode = if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
       :beaker
-    else
+            else
       :local
     end
   end
@@ -141,7 +139,7 @@ class PuppetRunProxy
   def apply(manifest)
     case @mode
     when :local
-      cmd = "bundle exec puppet apply --detailed-exitcodes -e \"#{manifest.gsub("\n", '')}\" --modulepath ../ --debug"
+      cmd = "bundle exec puppet apply --detailed-exitcodes -e \"#{manifest.delete("\n")}\" --modulepath ../ --debug"
       use_local_shell(cmd)
     else
       # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
@@ -177,13 +175,12 @@ class PuppetRunProxy
 
   def read_stream(stream)
     result = String.new
-    while line = stream.gets
+    while line = stream.gets # rubocop:disable Lint/AssignmentInCondition
       result << line if line.class == String
       puts line
     end
     result
   end
-
 end
 
 class BeakerLikeResponse
@@ -195,7 +192,6 @@ class BeakerLikeResponse
     @exit_code = exit.to_i
     @command = cmd
   end
-
 end
 
 
