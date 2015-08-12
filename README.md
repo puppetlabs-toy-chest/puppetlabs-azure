@@ -24,11 +24,69 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 
 ### Requirements
 
+* Puppet Enterprise 3.8 or greater
+* Azure gem 0.7.0 or greater
 
 ### Installing the Azure module
 
+1. Install the required gems with this command:
+
+   ~~~
+   /opt/puppet/bin/gem install azure --no-ri --no-rdoc --pre
+   ~~~
+
+   If you are running Puppet Enterprise 2015.2.0 you need to use the
+updated path:
+
+   ~~~
+   /opt/puppetlabs/puppet/bin/gem install azure --pre --no-ri --no-rdoc
+   ~~~
+
+2. Set the following environment variables specific to your Azure
+   installation:
+
+   ~~~
+   export AZURE_MANAGEMENT_CERTIFICATE='path-to-pem-file'
+   export AZURE_SUBSCRIPTION_ID='your-subscription-id'
+   ~~~
+
+3. Finally install the module with:
+
+   ~~~
+   puppet module install puppetlabs-msazure
+   ~~~
+
 
 ## Usage
+
+You can create Azure Virtual Machines using the following:
+
+~~~
+azure_vm { 'virtual-machine-name':
+  ensure           => present,
+  image            => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+  location         => 'West US',
+  user             => 'username',
+  private_key_file => '/path/to/private/key',
+}
+~~~
+
+In addition to describing new machines using the DSL the module also supports
+listing and managing machines via `puppet resource`:
+
+~~~
+puppet resource azure_vm
+~~~
+
+Note that this will output some information about the machines in your
+account:
+
+~~~
+azure_vm { 'virtual-machine-name':
+  ensure => 'present',
+  image  => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+}
+~~~
 
 
 ##Reference
