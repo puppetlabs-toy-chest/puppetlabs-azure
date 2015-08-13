@@ -50,7 +50,6 @@ module PuppetX
           ensure
             $stdout = real_stdout
           end
-
       end
     end
   end

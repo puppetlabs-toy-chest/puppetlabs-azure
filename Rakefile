@@ -4,20 +4,23 @@ require 'bundler/setup'
 require 'puppetlabs_spec_helper/rake_tasks'
 require 'puppet-lint/tasks/puppet-lint'
 require 'puppet-syntax/tasks/puppet-syntax'
+require 'rubocop/rake_task'
 
 # This gem isn't always present, for instance
 # on Travis with --without development
 begin
   require 'puppet_blacksmith/rake_tasks'
-rescue LoadError
+rescue LoadError # rubocop:disable Lint/HandleExceptions
 end
 
 # This gem isn't always present, for instance
-# on Travis with --without integration
+# on Travis with --without acceptance
 begin
 require 'master_manipulator'
-rescue LoadError
+rescue LoadError # rubocop:disable Lint/HandleExceptions
 end
+
+RuboCop::RakeTask.new
 
 exclude_paths = [
   "pkg/**/*",
@@ -54,5 +57,6 @@ task :test => [
   :metadata,
   :syntax,
   :lint,
+  :rubocop,
   :spec,
 ]

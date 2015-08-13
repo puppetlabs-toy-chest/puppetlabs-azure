@@ -85,7 +85,6 @@ describe PuppetX::Puppetlabs::Azure::Config do
     it 'should return the management_certificate from the config file' do
       expect(config.management_certificate).to eq(@config[:management_certificate])
     end
-
   end
 
   context 'with no environment variables and a valid config file present' do
@@ -112,7 +111,6 @@ describe PuppetX::Puppetlabs::Azure::Config do
     it 'should return the management_certificate from the config file' do
       expect(config.management_certificate).to eq(@config[:management_certificate])
     end
-
   end
 
   context 'with no environment variables or config file' do
@@ -121,9 +119,9 @@ describe PuppetX::Puppetlabs::Azure::Config do
     end
 
     it 'should raise a suitable error' do
-      expect {
+      expect do
         PuppetX::Puppetlabs::Azure::Config.new
-      }.to raise_error(Puppet::Error, /You must provide credentials in either environment variables or a config file/)
+      end.to raise_error(Puppet::Error, /You must provide credentials in either environment variables or a config file/)
     end
   end
 
@@ -134,9 +132,9 @@ describe PuppetX::Puppetlabs::Azure::Config do
     end
 
     it 'should raise an error about the missing variables' do
-      expect {
+      expect do
         PuppetX::Puppetlabs::Azure::Config.new
-      }.to raise_error(Puppet::Error, /To use this module you must provide the following settings: management_certificate/)
+      end.to raise_error(Puppet::Error, /To use this module you must provide the following settings: management_certificate/)
     end
   end
 
@@ -155,9 +153,9 @@ describe PuppetX::Puppetlabs::Azure::Config do
     end
 
     it 'should raise an error about the missing variables' do
-      expect {
+      expect do
         PuppetX::Puppetlabs::Azure::Config.new(@path)
-      }.to raise_error(Puppet::Error, /To use this module you must provide the following settings: management_certificate/)
+      end.to raise_error(Puppet::Error, /To use this module you must provide the following settings: management_certificate/)
     end
   end
 
@@ -177,10 +175,9 @@ describe PuppetX::Puppetlabs::Azure::Config do
     end
 
     it 'should raise an error about the invalid config file' do
-      expect {
+      expect do
         PuppetX::Puppetlabs::Azure::Config.new(config_file_path)
-      }.to raise_error(Puppet::Error, /Your configuration file at .+ is invalid/)
+      end.to raise_error(Puppet::Error, /Your configuration file at .+ is invalid/)
     end
   end
-
 end

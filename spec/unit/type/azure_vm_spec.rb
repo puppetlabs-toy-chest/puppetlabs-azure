@@ -3,9 +3,6 @@ require 'spec_helper'
 type_class = Puppet::Type.type(:azure_vm)
 
 describe type_class do
-
-
-
   let :params do
     [
       :name,
@@ -56,9 +53,9 @@ describe type_class do
   end
 
   it 'should require a name' do
-    expect {
+    expect do
       type_class.new({})
-    }.to raise_error(Puppet::Error, 'Title or name must be provided')
+    end.to raise_error(Puppet::Error, 'Title or name must be provided')
   end
 
   [
@@ -93,11 +90,11 @@ describe type_class do
     end
 
     it "should require #{property} to be greater than 0" do
-      expect {
+      expect do
         config = {name: 'sample'}
         config[property] = 0
         type_class.new(config)
-      }.to raise_error(Puppet::Error, /#{property} should be greater than 0/)
+      end.to raise_error(Puppet::Error, /#{property} should be greater than 0/)
     end
   end
 
@@ -137,44 +134,43 @@ describe type_class do
 
     [:label, :size].each do |key|
       it "should require disk to have a #{key} key" do
-        expect {
+        expect do
           config[:disks].delete(key)
           type_class.new(config)
-        }.to raise_error(Puppet::Error, /for disks you are missing the following keys: #{key}/)
+        end.to raise_error(Puppet::Error, /for disks you are missing the following keys: #{key}/)
       end
     end
 
     it "should require disk size to be an integer" do
-      expect {
+      expect do
         config[:disks][:size] = 'invalid'
         type_class.new(config)
-      }.to raise_error(Puppet::Error, /size for disks should be an Integer/)
+      end.to raise_error(Puppet::Error, /size for disks should be an Integer/)
     end
 
     it 'should require disk import to be true or false if set' do
-      expect {
+      expect do
         config[:disks][:import] = 'invalid'
         type_class.new(config)
-      }.to raise_error(Puppet::Error, /import for disks must be true or false/)
+      end.to raise_error(Puppet::Error, /import for disks must be true or false/)
     end
 
     [true, false].each do |bool|
       it "should allow import to be #{bool}" do
-        expect {
+        expect do
           config[:disks][:import] = bool
           type_class.new(config)
-        }.to_not raise_error
+        end.to_not raise_error
       end
     end
 
     it 'when import is true should require name to be specified for disk' do
-      expect {
+      expect do
         config[:disks][:import] = true
         config[:disks].delete(:name)
         type_class.new(config)
-      }.to raise_error(Puppet::Error, /if import is true a name must be provided for disks/)
+      end.to raise_error(Puppet::Error, /if import is true a name must be provided for disks/)
     end
-
   end
 
   context 'with an endpoint specified' do
@@ -197,22 +193,20 @@ describe type_class do
 
     [:name, :public_port, :local_port, :protocol].each do |key|
       it "should require endpoint to have a #{key} key" do
-        expect {
+        expect do
           config[:endpoints].delete(key)
           type_class.new(config)
-        }.to raise_error(Puppet::Error, /for endpoints you are missing the following keys: #{key}/)
+        end.to raise_error(Puppet::Error, /for endpoints you are missing the following keys: #{key}/)
       end
     end
 
     [:local_port, :public_port].each do |port|
       it "should require endpoint #{port} to be an integer" do
-        expect {
+        expect do
           config[:endpoints][port] = 'invalid'
           type_class.new(config)
-        }.to raise_error(Puppet::Error, /#{port} for endpoints should be an Integer/)
+        end.to raise_error(Puppet::Error, /#{port} for endpoints should be an Integer/)
       end
     end
-
   end
-
 end

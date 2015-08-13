@@ -3,12 +3,11 @@ require 'spec_helper'
 provider_class = Puppet::Type.type(:azure_vm).provider(:azure_sdk)
 
 describe provider_class do
-
-  let(:resource) {
+  let(:resource) do
     Puppet::Type.type(:azure_vm).new(
       name: 'name',
     )
-  }
+  end
 
   let(:provider) { resource.provider }
 
@@ -32,5 +31,4 @@ describe provider_class do
     expect(provider_class).to receive(:instances).and_return([])
     provider_class.prefetch({})
   end
-
 end
