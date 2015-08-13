@@ -87,17 +87,15 @@ end
 class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
-    @azure_vm_images = Azure.vm_image_management
-  end
-
-  # This can return > 1 images if there is naming clashes.
-  def get_image(name)
-    @azure_vm_images.list_virtual_machine_images.select { |x| x.name == name.downcase }
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
   def get_virtual_machine(name)
-    @azure_vm.list_virtual_machines.select { |x| x.vm_name == name.downcase }
+    @azure_vm.list_virtual_machines.select { |x| x.vm_name == name }
+  end
+
+  def destroy_virtual_machine(machine)
+    @azure_vm.delete_virtual_machine(machine.vm_name, machine.cloud_service_name)
   end
 end
 
@@ -193,5 +191,3 @@ class BeakerLikeResponse
     @command = cmd
   end
 end
-
-
