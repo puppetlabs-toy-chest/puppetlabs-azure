@@ -22,7 +22,7 @@ end
 
 group :acceptance do
   gem 'mustache'
-  gem "beaker-puppet_install_helper", :require => false
+  gem 'beaker-puppet_install_helper', :require => false
   gem 'beaker', '~> 2.0'
   gem 'master_manipulator', '~> 1.0'
   gem 'beaker-rspec'
