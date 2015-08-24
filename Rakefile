@@ -40,11 +40,6 @@ end
 
 PuppetSyntax.exclude_paths = exclude_paths
 
-desc "Run acceptance tests"
-RSpec::Core::RakeTask.new(:acceptance) do |t|
-  t.pattern = 'spec/acceptance'
-end
-
 # Use our own metadata task so we can ignore the non-SPDX PE licence
 Rake::Task[:metadata].clear
 desc "Check metadata is valid JSON"
