@@ -60,7 +60,7 @@ describe 'azure_vm' do
     before(:all) do
       @name = "CLOUD-#{SecureRandom.hex(8)}"
 
-      config = {
+      @config = {
         name: @name,
         ensure: 'present',
         optional: {
@@ -70,7 +70,7 @@ describe 'azure_vm' do
           private_key_file: @remote_private_key_path,
         }
       }
-      @manifest = PuppetManifest.new(@template, config)
+      @manifest = PuppetManifest.new(@template, @config)
       @result = @manifest.execute
       @machine = @client.get_virtual_machine(@name).first
     end
@@ -87,9 +87,33 @@ describe 'azure_vm' do
       expect(@machine).not_to eq (nil)
     end
 
+    it 'should be launched in the specified location' do
+      expect(@client.get_cloud_service(@machine).location).to eq (@config[:optional][:location])
+    end
+
     it 'should run a second time without changes' do
       second_result = @manifest.execute
       expect(second_result.exit_code).to eq 0
+    end
+
+    context 'when looked for using puppet resource' do
+      before(:all) do
+        @result = PuppetRunProxy.resource('azure_vm', {:name => @name})
+      end
+
+      it 'should not return an error' do
+        expect(@result.stderr).not_to match(/\b/)
+      end
+
+      it 'should report the correct ensure value' do
+        regex = /(ensure)(\s*)(=>)(\s*)('present')/
+        expect(@result.stdout).to match(regex)
+      end
+
+      it 'should report the correct location value' do
+        regex = /(location)(\s*)(=>)(\s*)('#{@config[:optional][:location]}')/
+        expect(@result.stdout).to match(regex)
+      end
     end
   end
 

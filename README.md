@@ -143,8 +143,9 @@ account:
 
 ~~~
 azure_vm { 'virtual-machine-name':
-  ensure => 'present',
-  image  => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+  ensure   => 'present',
+  image    => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+  location => 'West US',
 }
 ~~~
 
@@ -170,7 +171,10 @@ Specifies the basic state of the virtual machine. Valid values are
 Name of the image to use to create the virtual machine. This can be either a VM Image or an OS Image. When specifying a VM Image, `user`, `password`, and `private_key_file` are not used.
 
 #####`location`
-The location where the virtual machine will be created.
+*Required* The location where the virtual machine will be created. Details of
+available values can be found on the [Azure
+regions documentation](http://azure.microsoft.com/en-gb/regions/).
+Location is read-only once the VM has been created.
 
 #####`user`
 The name of the user to be created on the virtual machine. Required for Linux guests.

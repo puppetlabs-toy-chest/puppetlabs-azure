@@ -6,6 +6,7 @@ describe provider_class do
   let(:resource) do
     Puppet::Type.type(:azure_vm).new(
       name: 'name',
+      location: 'West US',
     )
   end
 

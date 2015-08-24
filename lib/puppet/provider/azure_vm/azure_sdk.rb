@@ -8,6 +8,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
+  read_only(:location)
+
   def self.instances
     begin
       list_vms.collect do |machine|
@@ -31,10 +33,13 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
   end
 
   def self.machine_to_hash(machine)
+    cloud_service = get_cloud_service(machine.cloud_service_name)
     {
       name: machine.vm_name,
       image: machine.image,
       ensure: :present,
+      location: cloud_service.location,
+      cloud_service_object: cloud_service,
       object: machine,
     }
   end

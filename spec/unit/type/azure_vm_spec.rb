@@ -10,13 +10,13 @@ describe type_class do
       :user,
       :password,
       :private_key_file,
-      :location,
     ]
   end
 
   let :properties do
     [
       :ensure,
+      :location,
       :storage_account,
       :winrm_transport,
       :winrm_https_port,
@@ -135,6 +135,7 @@ describe type_class do
       {
         ensure: :present,
         name: 'image-test',
+        location: 'West US',
         image: 'image-name',
       }
     end
@@ -151,11 +152,53 @@ describe type_class do
     end
   end
 
+  context 'with a location' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'West US',
+      }
+    end
+
+    it 'should be valid' do
+      expect { type_class.new(config) }.to_not raise_error
+    end
+  end
+
+  context 'with a blank location' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: '',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+    end
+  end
+
+  context 'with no location' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+    end
+  end
+
   context 'with a disk specified' do
     let :config do
       {
         ensure: :present,
         name: 'disk-test',
+        location: 'West US',
         disks: {
           label: 'disk-label',
           size: 100,
@@ -215,6 +258,7 @@ describe type_class do
       {
         ensure: :present,
         name: 'endpoint-test',
+        location: 'West US',
         endpoints: {
           name: 'ep-1',
           public_port: 996,

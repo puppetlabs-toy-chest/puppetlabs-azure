@@ -105,6 +105,7 @@ end
 class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
+    @azure_cloud_service = Azure.cloud_service_management
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
@@ -114,6 +115,10 @@ class AzureHelper
 
   def destroy_virtual_machine(machine)
     @azure_vm.delete_virtual_machine(machine.vm_name, machine.cloud_service_name)
+  end
+
+  def get_cloud_service(machine)
+    @azure_cloud_service.get_cloud_service(machine.cloud_service_name)
   end
 end
 
