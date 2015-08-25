@@ -1,40 +1,40 @@
 require 'azure'
+require 'beaker-rspec'
 require 'mustache'
 require 'open3'
+require 'master_manipulator'
 
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
 
-if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
-  require 'beaker-rspec'
-  unless ENV['BEAKER_provision'] == 'no'
-    # require 'beaker/puppet_install_helper'
-    install_pe
+if ENV['BEAKER_provision'] == 'yes'
+  install_pe
 
-    hosts.each do |host|
-      on(host, 'apt-get install zlib1g-dev')
-      on(host, 'apt-get install patch')
-
-      path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
-      on(host, "#{path}/gem install azure")
-    end
-  end
-
-  proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   hosts.each do |host|
-    # set :target_module_path manually to work around beaker-rspec bug that does not
-    # persist distmoduledir across runs with reused nodes
-    # TODO: ticket up this bug for beaker-rspec
-    install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
-  end
+    on(host, 'apt-get install zlib1g-dev')
+    on(host, 'apt-get install patch')
 
-  # Deploy Azure credentials to all hosts
-  if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-    hosts.each do |host|
-      scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
-    end
+    path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
+    on(host, "#{path}/gem install azure")
   end
 end
+
+proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+hosts.each do |host|
+  # set :target_module_path manually to work around beaker-rspec bug that does not
+  # persist distmoduledir across runs with reused nodes
+  # TODO: ticket up this bug for beaker-rspec
+  install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
+end
+
+# Deploy Azure credentials to all hosts
+if ENV['AZURE_MANAGEMENT_CERTIFICATE']
+  hosts.each do |host|
+    scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
+  end
+end
+
+
 
 class PuppetManifest < Mustache
   def initialize(file, config)
@@ -46,8 +46,8 @@ class PuppetManifest < Mustache
     end
   end
 
-  def apply
-    PuppetRunProxy.apply(self.render)
+  def execute
+    PuppetRunProxy.execute(self.render)
   end
 
   def self.to_generalized_data(val)
@@ -116,30 +116,6 @@ class AzureHelper
   end
 end
 
-class TestExecutor
-  # build and apply complex puppet resource commands
-  # the arguement resource is the type of the resource
-  # the opts hash must include a key 'name'
-  def self.puppet_resource(resource, opts = {}, command_flags = '')
-    raise 'A name for the resource must be specified' unless opts[:name]
-    cmd = "puppet resource #{resource} "
-    options = String.new
-    opts.each do |k,v|
-      if k.to_s == 'name'
-        @name = v
-      else
-        options << "#{k.to_s}=#{v.to_s} "
-      end
-    end
-    cmd << "#{@name} "
-    cmd << options
-    cmd << " #{command_flags}"
-    # apply the command
-    response = PuppetRunProxy.resource(cmd)
-    response
-  end
-end
-
 # This is a prototype to emulate a "local" hypervisor in beaker, and at the same time
 # provide a way to use a single set of "commands" to either run puppet agent against a master
 # or puppet apply standalone.
@@ -150,12 +126,22 @@ class PuppetRunProxy
     runner.send(*args)
   end
 
+  def self.create_runner(mode)
+    case mode
+      when 'apply' then
+        BeakerApplyRunner.new
+      when 'agent' then
+        BeakerAgentRunner.new
+      when 'local'
+        LocalRunner.new
+      else
+        # Exception as the switch supplied is invalid
+        raise ArgumentException.new "Unknown PUPPET_AZURE_BEAKER_MODE supplied '#{mode}''"
+      end
+  end
+
   def self.runner
-    @runner ||= if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
-                  BeakerApplyRunner.new
-                else
-                  LocalRunner.new
-                end
+    @runner ||= create_runner(ENV['PUPPET_AZURE_BEAKER_MODE'] || 'apply')
   end
 end
 
@@ -175,13 +161,32 @@ class LocalRunner
     BeakerLikeResponse.success
   end
 
-  def apply(manifest)
+  def execute(manifest)
     cmd = "bundle exec puppet apply --detailed-exitcodes -e \"#{manifest.delete("\n")}\" --modulepath ../ --debug --trace"
     use_local_shell(cmd)
   end
 
-  def resource(cmd)
-    use_local_shell('bundle exec ' + cmd)
+  # build and apply complex puppet resource commands
+  # the arguement resource is the type of the resource
+  # the opts hash must include a key 'name'
+  def resource(type, opts = {}, command_flags = '')
+    raise 'A name for the resource must be specified' unless opts[:name]
+    cmd = "bundle exec puppet resource #{type}"
+    options = String.new
+    opts.each do |k,v|
+      if k.to_s == 'name'
+        @name = v
+      else
+        options << "#{k.to_s}=#{v.to_s} "
+      end
+    end
+    cmd << "#{@name} "
+    cmd << options
+    cmd << " --modulepath ../"
+    cmd << " #{command_flags}"
+
+    # apply the command
+    use_local_shell(cmd)
   end
 
   def shell_ex(cmd)
@@ -209,6 +214,9 @@ class LocalRunner
 end
 
 class BeakerRunnerBase
+  include Beaker::DSL
+  include MasterManipulator::Site
+
   def create_remote_file_ex(file_path, file_content, options={})
     hosts.each do |host|
       mode = options[:mode] || '0644'
@@ -227,20 +235,44 @@ class BeakerRunnerBase
   def shell_ex(cmd)
     shell(cmd)
   end
+
+  def resource(type, opts = {}, command_flags = '')
+    raise 'A name for the resource must be specified' unless opts[:name]
+    cmd = "resource #{type}"
+    options = String.new
+    opts.each do |k,v|
+      if k.to_s == 'name'
+        @name = v
+      else
+        options << "#{k.to_s}=#{v.to_s} "
+      end
+    end
+    cmd << "#{@name} "
+    cmd << options
+    cmd << " #{command_flags}"
+
+    puppet(cmd)
+  end
 end
 
 class BeakerAgentRunner < BeakerRunnerBase
-  def apply(manifest)
-    # TODO: insert greg's code here
-  end
+  def execute(manifest)
+    environment_base_path = on(master, puppet('config', 'print', 'environmentpath')).stdout.rstrip
+    prod_env_site_pp_path = File.join(environment_base_path, 'production', 'manifests', 'site.pp')
+    site_pp = create_site_pp(master, :manifest => manifest)
+    inject_site_pp(master, prod_env_site_pp_path, site_pp)
 
-  def resource(cmd)
-    # TODO: insert greg's code here
+    on(default, puppet('agent', '-t', '--environment production'),
+      :environment => {
+        'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
+        'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+        },
+      :acceptable_exit_codes => (0...256))
   end
 end
 
 class BeakerApplyRunner < BeakerRunnerBase
-  def apply(manifest)
+  def execute(manifest)
     # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
     # make our own assertions about the responses
     apply_manifest(manifest, {
@@ -253,14 +285,6 @@ class BeakerApplyRunner < BeakerRunnerBase
         'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
       },
       })
-  end
-
-  def resource(cmd)
-    # beaker has a puppet helper to run puppet on the remote system so we remove the explicit puppet part of the command
-    cmd = "#{cmd.split('puppet ').join}"
-    # when running under beaker we install the module via the package, so need to use the default module path
-    cmd ="#{cmd.split(/--modulepath \S*/).join}"
-    on(default, puppet(cmd))
   end
 end
 
