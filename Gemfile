@@ -10,6 +10,8 @@ group :test do
   gem 'puppetlabs_spec_helper'
   gem 'metadata-json-lint'
   gem 'rubocop', require: false
+  gem 'simplecov'
+  gem 'simplecov-console'
 end
 
 group :development do

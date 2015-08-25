@@ -5,3 +5,4 @@ spec/fixtures
 .bundle
 vendor
 Gemfile.lock
+coverage
