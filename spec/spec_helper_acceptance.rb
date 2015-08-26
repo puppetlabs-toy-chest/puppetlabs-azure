@@ -2,6 +2,9 @@ require 'azure'
 require 'mustache'
 require 'open3'
 
+# cheapest as of 2015-08
+CHEAPEST_AZURE_LOCATION="East US"
+
 if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
   require 'beaker-rspec'
   unless ENV['BEAKER_provision'] == 'no'
@@ -101,17 +104,15 @@ end
 class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
-    @azure_vm_images = Azure.vm_image_management
-  end
-
-  # This can return > 1 images if there is naming clashes.
-  def get_image(name)
-    @azure_vm_images.list_virtual_machine_images.select { |x| x.name == name.downcase }
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
   def get_virtual_machine(name)
-    @azure_vm.list_virtual_machines.select { |x| x.vm_name == name.downcase }
+    @azure_vm.list_virtual_machines.select { |x| x.vm_name == name }
+  end
+
+  def destroy_virtual_machine(machine)
+    @azure_vm.delete_virtual_machine(machine.vm_name, machine.cloud_service_name)
   end
 end
 
@@ -160,6 +161,11 @@ end
 
 # local commands use bundler to isolate the ruby runtime environment
 class LocalRunner
+  def scp_to_ex(from, to)
+    FileUtils.cp(from, to)
+    BeakerLikeResponse.success
+  end
+
   def apply(manifest)
     cmd = "bundle exec puppet apply --detailed-exitcodes -e \"#{manifest.delete("\n")}\" --modulepath ../ --debug --trace"
     use_local_shell(cmd)
@@ -189,7 +195,15 @@ class LocalRunner
     end
 end
 
-class BeakerAgentRunner
+class BeakerRunnerBase
+  def scp_to_ex(from, to)
+    hosts.each do |host|
+      scp_to host, from, to
+    end
+  end
+end
+
+class BeakerAgentRunner < BeakerRunnerBase
   def apply(manifest)
     # TODO: insert greg's code here
   end
@@ -199,7 +213,7 @@ class BeakerAgentRunner
   end
 end
 
-class BeakerApplyRunner
+class BeakerApplyRunner < BeakerRunnerBase
   def apply(manifest)
     # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
     # make our own assertions about the responses
@@ -239,5 +253,3 @@ class BeakerLikeResponse
     @command = cmd
   end
 end
-
-
