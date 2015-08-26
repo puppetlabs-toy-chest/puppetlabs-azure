@@ -4,18 +4,25 @@ require 'open3'
 
 if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
   require 'beaker-rspec'
-  require 'beaker/puppet_install_helper'
   unless ENV['BEAKER_provision'] == 'no'
+    # require 'beaker/puppet_install_helper'
     install_pe
 
-    proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    puppet_module_install(:source => proj_root, :module_name => 'azure')
     agents.each do |agent|
+      on(agent, 'apt-get install zlib1g-dev')
+      on(agent, 'apt-get install patch')
+
       path = agent.file_exist?("#{agent['privatebindir']}/gem") ? agent['privatebindir'] : agent['puppetbindir']
-      on(master, 'apt-get install zlib1g-dev')
-      on(master, 'apt-get install patch')
-      on(master, "#{path}/gem install azure")
+      on(agent, "#{path}/gem install azure")
     end
+  end
+
+  proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+  agents.each do |agent|
+    # set :target_module_path manually to work around beaker-rspec bug that does not
+    # persist distmoduledir across runs with reused nodes
+    # TODO: ticket up this bug for beaker-rspec
+    install_dev_puppet_module_on(agent, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
   end
 end
 
