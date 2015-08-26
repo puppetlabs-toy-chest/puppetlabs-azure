@@ -25,23 +25,21 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 ### Requirements
 
 * Puppet Enterprise 3.8 or greater
-* Azure gem 0.7.0 or greater
+* [Azure gem](https://rubygems.org/gems/azure) 0.7.0 or greater
 
 ### Installing the Azure module
 
 1. Install the required gems with this command:
 
    ~~~
-   /opt/puppet/bin/gem install azure --no-ri --no-rdoc --pre
-   /opt/puppet/bin/gem install hocon --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure hocon --no-ri --no-rdoc
    ~~~
 
    If you are running Puppet Enterprise 2015.2.0 you need to use the
 updated path:
 
    ~~~
-   /opt/puppetlabs/puppet/bin/gem install azure --no-ri --no-rdoc --pre
-   /opt/puppetlabs/puppet/bin/gem install hocon --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure hocon --no-ri --no-rdoc
    ~~~
 
 2. Set the following environment variables specific to your Azure

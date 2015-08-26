@@ -1,6 +1,6 @@
 source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
-gem 'azure', :git => 'https://github.com/Azure/azure-sdk-for-ruby.git', :tag => 'v0.7.0.pre2'
+gem 'azure', '~> 0.7.0'
 gem 'hocon'
 
 group :test do
