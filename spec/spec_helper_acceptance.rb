@@ -207,11 +207,16 @@ class PuppetRunProxy
 end
 
 class BeakerLikeResponse
-  attr_reader :stdout , :stderr, :exit_code, :command
+  def self.success
+    BeakerLikeResponse.new('', '', 0, '')
+  end
+
+  attr_reader :stdout , :stderr, :output, :exit_code, :command
 
   def initialize(standard_out, standard_error, exit, cmd)
     @stdout = standard_out
     @stderr = standard_error
+    @output = standard_out + "\n" + standard_error
     @exit_code = exit.to_i
     @command = cmd
   end
