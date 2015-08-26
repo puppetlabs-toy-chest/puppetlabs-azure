@@ -18,7 +18,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
         end
       end.compact
     rescue StandardError => e
-      raise PuppetX::Puppetlabs::Azure::PrefetchError.new(self.resource_type.name.to_s, e.message)
+      raise PuppetX::Puppetlabs::Azure::PrefetchError.new(self.resource_type.name.to_s, e)
     end
   end
 
