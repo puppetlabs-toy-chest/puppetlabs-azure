@@ -52,8 +52,12 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'Name of the virtual machine.'
   end
 
-  newproperty(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'Name of the disk image to use to create the virtual machine.'
+  newparam(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'Name of the image to use to create the virtual machine.'
+    validate do |value|
+      super value
+      fail("the image name must not be empty") if value.empty?
+    end
   end
 
   newparam(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do

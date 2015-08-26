@@ -124,7 +124,7 @@ Specifies the basic state of the virtual machine. Valid values are
 *Required* The name of the virtual machine.
 
 #####`image`
-Name of the disk image to use to create the virtual machine.
+Name of the image to use to create the virtual machine. This can be either a VM Image or an OS Image. When specifying a VM Image, `user`, `password`, and `private_key_file` are not used.
 
 #####`location`
 The location where the virtual machine will be created.
