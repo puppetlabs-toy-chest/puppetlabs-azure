@@ -56,20 +56,20 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'Name of the disk image to use to create the virtual machine.'
   end
 
-  newproperty(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'User name for the virtual machine.'
+  newparam(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'User name for the virtual machine. This value is only used when creating the VM initially.'
   end
 
   newparam(:password, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The password for the virtual machine.'
+    desc 'The password for the virtual machine. This value is only used when creating the VM initially.'
   end
 
-  newparam(:private_key_file) do
-    desc 'Path to the private key file.'
+  newparam(:private_key_file, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'Path to the private key file. This value is only used when creating the VM initially.'
   end
 
-  newproperty(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The location where the virtual machine will be created.'
+  newparam(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The location where the virtual machine will be created. This value is only used when creating the VM initially.'
   end
 
   newproperty(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do

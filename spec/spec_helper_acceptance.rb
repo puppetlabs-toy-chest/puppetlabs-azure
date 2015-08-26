@@ -161,6 +161,15 @@ end
 
 # local commands use bundler to isolate the ruby runtime environment
 class LocalRunner
+  def create_remote_file_ex(file_path, file_content, options={})
+    File.open(file_path, 'w') { |file| file.write(file_content) }
+    if options[:mode]
+      use_local_shell("chmod #{options[:mode]} '#{file_path}'")
+    else
+      BeakerLikeResponse.success
+    end
+  end
+
   def scp_to_ex(from, to)
     FileUtils.cp(from, to)
     BeakerLikeResponse.success
@@ -173,6 +182,10 @@ class LocalRunner
 
   def resource(cmd)
     use_local_shell('bundle exec ' + cmd)
+  end
+
+  def shell_ex(cmd)
+    use_local_shell(cmd)
   end
 
   private
@@ -196,10 +209,26 @@ class LocalRunner
 end
 
 class BeakerRunnerBase
+  def create_remote_file_ex(file_path, file_content, **options)
+    hosts.each do |host|
+      if !options[:mode] or options[:mode] == '0644'
+        scp_to host, from, to
+      elsif options[:mode]
+        file_content.gsub!(/\\/, '\\')
+        file_content.gsub!(/\n/, '\\n')
+        apply_manifest "file { '#{file_path}': ensure => present, content => '#{file_content}', mode => '#{options[:mode]}' }", :catch_failures => true
+      end
+    end
+  end
+
   def scp_to_ex(from, to)
     hosts.each do |host|
       scp_to host, from, to
     end
+  end
+
+  def shell_ex(cmd)
+    shell(cmd)
   end
 end
 
