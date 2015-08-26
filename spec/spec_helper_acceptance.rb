@@ -11,27 +11,27 @@ if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
     # require 'beaker/puppet_install_helper'
     install_pe
 
-    agents.each do |agent|
-      on(agent, 'apt-get install zlib1g-dev')
-      on(agent, 'apt-get install patch')
+    hosts.each do |host|
+      on(host, 'apt-get install zlib1g-dev')
+      on(host, 'apt-get install patch')
 
-      path = agent.file_exist?("#{agent['privatebindir']}/gem") ? agent['privatebindir'] : agent['puppetbindir']
-      on(agent, "#{path}/gem install azure")
+      path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
+      on(host, "#{path}/gem install azure")
     end
   end
 
   proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-  agents.each do |agent|
+  hosts.each do |host|
     # set :target_module_path manually to work around beaker-rspec bug that does not
     # persist distmoduledir across runs with reused nodes
     # TODO: ticket up this bug for beaker-rspec
-    install_dev_puppet_module_on(agent, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
+    install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
   end
 
-  # Deploy Azure credentials to all agents
+  # Deploy Azure credentials to all hosts
   if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-    agents.each do |agent|
-      scp_to(agent, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
+    hosts.each do |host|
+      scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
     end
   end
 end
