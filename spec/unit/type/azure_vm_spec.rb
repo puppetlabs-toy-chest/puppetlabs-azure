@@ -6,8 +6,10 @@ describe type_class do
   let :params do
     [
       :name,
+      :user,
       :password,
       :private_key_file,
+      :location,
     ]
   end
 
@@ -15,8 +17,6 @@ describe type_class do
     [
       :ensure,
       :image,
-      :user,
-      :location,
       :storage_account,
       :winrm_transport,
       :winrm_https_port,
@@ -63,6 +63,7 @@ describe type_class do
     'image',
     'user',
     'password',
+    'private_key_file',
     'location',
     'storage_account',
     'winrm_transport',

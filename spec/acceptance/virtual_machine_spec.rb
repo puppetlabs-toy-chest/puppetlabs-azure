@@ -45,4 +45,50 @@ describe 'azure_vm' do
       expect(second_result.exit_code).to eq 0
     end
   end
+
+  context 'when configuring a admin user on a linux guest' do
+    # default initialisation; creating a VM
+    before(:all) do
+      @name = "CLOUD-#{SecureRandom.hex(8)}"
+      @config = {
+        :name     => @name,
+        :ensure   => 'present',
+        :optional => {
+          :image        => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+          :location     => CHEAPEST_AZURE_LOCATION,
+          :user         => 'specuser',
+          :password     => 'SpecPass123!@#$%',
+          :private_key_file => '/tmp/id_rsa'
+        }
+      }
+      PuppetManifest.new(@template, @config).apply
+      @machine = @client.get_virtual_machine(@name).first
+      @ip = @machine.ipaddress
+    end
+
+    # init helper scripts on default node
+    before (:all) do
+      # Thanks to André Frimberger from http://andre.frimberger.de/index.php/linux/reading-ssh-password-from-stdin-the-openssh-5-6p1-compatible-way/ for a example implementation of this.
+      PuppetRunProxy.create_remote_file_ex('/tmp/ssh_passer.sh', '#!/bin/sh\\necho $SSH_PASS\\n', {mode: '0755'})
+    end
+
+    after(:all) do
+      @client.destroy_virtual_machine(@machine)
+    end
+
+    it 'is accessible using the password' do
+      result = PuppetRunProxy.shell_ex "SSH_ASKPASS=/tmp/ssh_passer.sh SSH_PASS='SpecPass123!@#$%' DISPLAY=:0 setsid ssh -aknTvx -i /dev/null -l specuser -o 'CheckHostIP no' -o 'StrictHostKeyChecking no' #{@ip} true"
+      expect(result.exit_code).to eq 0
+    end
+
+    it 'is accessible using the private key' do
+      result = PuppetRunProxy.shell_ex "setsid ssh -aknTvx -i /tmp/id_rsa -l specuser -o 'CheckHostIP no' -o 'StrictHostKeyChecking no' #{@ip} true"
+      expect(result.exit_code).to eq 0
+    end
+
+    it 'is able to use sudo to root' do
+      result = PuppetRunProxy.shell_ex "setsid ssh -aknTvx -i /tmp/id_rsa -l specuser -o 'CheckHostIP no' -o 'StrictHostKeyChecking no' #{@ip} sudo true"
+      expect(result.exit_code).to eq 0
+    end
+  end
 end

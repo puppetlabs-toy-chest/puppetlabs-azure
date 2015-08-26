@@ -46,13 +46,15 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   def create
     Puppet.info("Creating #{name}")
-    create_vm({
+    params = {
       vm_name: name,
       image: resource[:image],
       location: resource[:location],
       vm_user: resource[:user],
+      password: resource[:password],
       private_key_file: resource[:private_key_file],
-    })
+    }
+    create_vm(params)
   end
 
   def destroy
