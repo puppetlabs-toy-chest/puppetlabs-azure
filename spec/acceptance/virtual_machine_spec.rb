@@ -6,6 +6,28 @@ describe 'azure_vm' do
     @template = 'azure_vm.pp.tmpl'
   end
 
+  context 'when an error occurs' do
+    before(:all) do
+      @name = "CLOUD-#{SecureRandom.hex(8)}"
+      config = {
+        name: @name,
+        ensure: 'present',
+        optional: {
+          image: 'INVALID_IMAGE_NAME',
+        }
+      }
+      @result = PuppetManifest.new(@template, config).apply
+    end
+
+    it 'reports errors from the API' do
+      expect(@result.output).to match /Failed to create virtual machine.*:.*The virtual machine image source is not valid\./
+    end
+
+    it 'reports the error in the exit code' do
+      expect(@result.exit_code).to eq 4
+    end
+  end
+
   context 'when creating a new machine' do
     before(:all) do
       @name = "CLOUD-#{SecureRandom.hex(8)}"
