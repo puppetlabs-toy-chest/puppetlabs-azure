@@ -44,7 +44,7 @@ class PuppetManifest < Mustache
   end
 
   def apply
-    PuppetRunProxy.new.apply(self.render)
+    PuppetRunProxy.apply(self.render)
   end
 
   def self.to_generalized_data(val)
@@ -134,75 +134,93 @@ class TestExecutor
     cmd << options
     cmd << " #{command_flags}"
     # apply the command
-    response = PuppetRunProxy.new.resource(cmd)
+    response = PuppetRunProxy.resource(cmd)
     response
   end
 end
 
+# This is a prototype to emulate a "local" hypervisor in beaker, and at the same time
+# provide a way to use a single set of "commands" to either run puppet agent against a master
+# or puppet apply standalone.
+# this is deliberately not done as a proper top-level DSL to make usage of this easily greppable
 class PuppetRunProxy
-  attr_accessor :mode
-
-  def initialize
-    @mode = if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
-      :beaker
-            else
-      :local
-    end
+  # proxy all other calls through to the runner
+  def self.method_missing(*args)
+    runner.send(*args)
   end
 
+  def self.runner
+    @runner ||= if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
+                  BeakerApplyRunner.new
+                else
+                  LocalRunner.new
+                end
+  end
+end
+
+# local commands use bundler to isolate the ruby runtime environment
+class LocalRunner
   def apply(manifest)
-    case @mode
-    when :local
-      cmd = "bundle exec puppet apply --detailed-exitcodes -e \"#{manifest.delete("\n")}\" --modulepath ../ --debug --trace"
-      use_local_shell(cmd)
-    else
-      # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
-      # make our own assertions about the responses
-      apply_manifest(manifest, {
-        :acceptable_exit_codes => (0...256),
-        :expect_changes => true,
-        :debug => true,
-        :trace => true,
-        :environment => {
-          'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
-          'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
-        },
-        })
-    end
+    cmd = "bundle exec puppet apply --detailed-exitcodes -e \"#{manifest.delete("\n")}\" --modulepath ../ --debug --trace"
+    use_local_shell(cmd)
   end
 
   def resource(cmd)
-    case @mode
-    when :local
-      # local commands use bundler to isolate the  puppet environment
-      cmd.prepend('bundle exec ')
-      use_local_shell(cmd)
-    else
-      # beaker has a puppet helper to run puppet on the remote system so we remove the explicit puppet part of the command
-      cmd = "#{cmd.split('puppet ').join}"
-      # when running under beaker we install the module via the package, so need to use the default module path
-      cmd ="#{cmd.split(/--modulepath \S*/).join}"
-      on(default, puppet(cmd))
-    end
+    use_local_shell('bundle exec ' + cmd)
   end
 
   private
-  def use_local_shell(cmd)
-    Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
-      @out = read_stream(stdout)
-      @error = read_stream(stderr)
-      @code = /(exit)(\s)(\d+)/.match(wait_thr.value.to_s)[3]
+    def use_local_shell(cmd)
+      Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
+        @out = read_stream(stdout)
+        @error = read_stream(stderr)
+        @code = /(exit)(\s)(\d+)/.match(wait_thr.value.to_s)[3]
+      end
+      BeakerLikeResponse.new(@out, @error, @code, cmd)
     end
-    BeakerLikeResponse.new(@out, @error, @code, cmd)
+
+    def read_stream(stream)
+      result = String.new
+      while line = stream.gets # rubocop:disable Lint/AssignmentInCondition
+        result << line if line.class == String
+        puts line
+      end
+      result
+    end
+end
+
+class BeakerAgentRunner
+  def apply(manifest)
+    # TODO: insert greg's code here
   end
 
-  def read_stream(stream)
-    result = String.new
-    while line = stream.gets # rubocop:disable Lint/AssignmentInCondition
-      result << line if line.class == String
-      puts line
-    end
-    result
+  def resource(cmd)
+    # TODO: insert greg's code here
+  end
+end
+
+class BeakerApplyRunner
+  def apply(manifest)
+    # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
+    # make our own assertions about the responses
+    apply_manifest(manifest, {
+      :acceptable_exit_codes => (0...256),
+      :expect_changes => true,
+      :debug => true,
+      :trace => true,
+      :environment => {
+        'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
+        'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+      },
+      })
+  end
+
+  def resource(cmd)
+    # beaker has a puppet helper to run puppet on the remote system so we remove the explicit puppet part of the command
+    cmd = "#{cmd.split('puppet ').join}"
+    # when running under beaker we install the module via the package, so need to use the default module path
+    cmd ="#{cmd.split(/--modulepath \S*/).join}"
+    on(default, puppet(cmd))
   end
 end
 
