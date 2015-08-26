@@ -24,6 +24,13 @@ if ENV['PUPPET_AZURE_USE_BEAKER'] and ENV['PUPPET_AZURE_USE_BEAKER'] == 'yes'
     # TODO: ticket up this bug for beaker-rspec
     install_dev_puppet_module_on(agent, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
   end
+
+  # Deploy Azure credentials to all agents
+  if ENV['AZURE_MANAGEMENT_CERTIFICATE']
+    agents.each do |agent|
+      scp_to(agent, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
+    end
+  end
 end
 
 class PuppetManifest < Mustache
@@ -151,7 +158,16 @@ class PuppetRunProxy
     else
       # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
       # make our own assertions about the responses
-      apply_manifest(manifest, {:acceptable_exit_codes => (0...256), :expect_changes => true, :debug => true, :trace => true})
+      apply_manifest(manifest, {
+        :acceptable_exit_codes => (0...256),
+        :expect_changes => true,
+        :debug => true,
+        :trace => true,
+        :environment => {
+          'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
+          'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+        },
+        })
     end
   end
 
