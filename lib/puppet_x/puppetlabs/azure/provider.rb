@@ -23,8 +23,10 @@ module PuppetX
         def create_vm(args)
           param_names = [:vm_name, :image, :location, :vm_user, :password]
           params = (args.keys & param_names).each_with_object({}) { |k,h| h.update(k=>args.delete(k)) }
+          sanitised_params = params.delete_if { |k, v| v.nil? }
+          sanitised_args = args.delete_if { |k, v| v.nil? }
           capture_stdout do
-            vm_manager.create_virtual_machine(params, args)
+            vm_manager.create_virtual_machine(sanitised_params, sanitised_args)
           end
         end
 

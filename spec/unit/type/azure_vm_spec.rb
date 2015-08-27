@@ -115,6 +115,21 @@ describe type_class do
     end
   end
 
+  context 'with a password and a private key file' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'image-test',
+        password: 'no-a-real-password',
+        private_key_file: '/not/a/real/private.key',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You can only provide either a password or a private_key_file for an Azure VM/)
+    end
+  end
+
   context 'with a image specified' do
     let :config do
       {

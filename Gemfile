@@ -25,6 +25,8 @@ end
 
 group :acceptance do
   gem 'mustache'
+  gem 'ssh-exec'
+  gem 'retries'
   gem "beaker-puppet_install_helper", :require => false
   gem 'beaker', '~> 2.0'
   gem 'master_manipulator', '~> 1.0'

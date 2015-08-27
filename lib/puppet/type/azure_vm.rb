@@ -48,6 +48,12 @@ Puppet::Type.newtype(:azure_vm) do
 
   ensurable
 
+  validate do
+    if self[:password] and self[:private_key_file]
+      fail 'You can only provide either a password or a private_key_file for an Azure VM'
+    end
+  end
+
   newparam(:name, namevar: true, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the virtual machine.'
   end
