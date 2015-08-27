@@ -10,6 +10,13 @@ PE_RELEASES = {
   '2015.2' => 'http://enterprise.delivery.puppetlabs.net/2015.2/preview/',
 }
 
+desc "Run acceptance tests"
+RSpec::Core::RakeTask.new(:acceptance) do |t|
+  ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES['2015.2']
+  ENV['BEAKER_set'] = ENV['BEAKER_set'] || 'vagrant/ubuntu1404'
+  t.pattern = 'spec/acceptance'
+end
+
 namespace :acceptance do
   {
     :vagrant => [
@@ -36,10 +43,10 @@ namespace :acceptance do
     namespace ns.to_sym do
       configs.each do |config|
         PE_RELEASES.each do |version, pe_dir|
-          ENV['BEAKER_PE_DIR'] = pe_dir
-          ENV['BEAKER_set'] = "acceptance/nodesets/#{ns}/#{config}.yml"
           desc "Run accpetance tests for #{config} on #{ns} with PE #{version}"
           RSpec::Core::RakeTask.new("#{config}_#{version}".to_sym) do |t|
+            ENV['BEAKER_PE_DIR'] = pe_dir
+            ENV['BEAKER_set'] = "#{ns}/#{config}"
             t.pattern = 'spec/acceptance'
           end
         end
@@ -48,9 +55,4 @@ namespace :acceptance do
   end
 end
 
-desc "Run acceptance tests"
-RSpec::Core::RakeTask.new(:acceptance) do |t|
-  ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES['2015.2']
-  ENV['BEAKER_set'] = ENV['BEAKER_set'] || 'acceptance/nodesets/vagrant/ubuntu1404.yml'
-  t.pattern = 'spec/acceptance'
-end
+
