@@ -6,3 +6,4 @@ spec/fixtures
 vendor
 Gemfile.lock
 coverage
+/log

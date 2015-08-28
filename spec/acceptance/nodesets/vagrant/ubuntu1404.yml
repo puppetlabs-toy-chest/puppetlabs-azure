@@ -13,5 +13,5 @@ HOSTS:
 CONFIG:
   consoleport: 443
   vagrant_memsize: 2048
-  forge_host: api-module-staging.puppetlabs.com
   color: false
+  log_level: verbose

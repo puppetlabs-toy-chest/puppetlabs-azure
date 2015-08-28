@@ -48,28 +48,38 @@ Puppet::Type.newtype(:azure_vm) do
 
   ensurable
 
+  validate do
+    if self[:password] and self[:private_key_file]
+      fail 'You can only provide either a password or a private_key_file for an Azure VM'
+    end
+  end
+
   newparam(:name, namevar: true, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the virtual machine.'
   end
 
-  newproperty(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'Name of the disk image to use to create the virtual machine.'
+  newparam(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'Name of the image to use to create the virtual machine.'
+    validate do |value|
+      super value
+      fail("the image name must not be empty") if value.empty?
+    end
   end
 
-  newproperty(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'User name for the virtual machine.'
+  newparam(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'User name for the virtual machine. This value is only used when creating the VM initially.'
   end
 
   newparam(:password, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The password for the virtual machine.'
+    desc 'The password for the virtual machine. This value is only used when creating the VM initially.'
   end
 
-  newparam(:private_key_file) do
-    desc 'Path to the private key file.'
+  newparam(:private_key_file, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'Path to the private key file. This value is only used when creating the VM initially.'
   end
 
-  newproperty(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The location where the virtual machine will be created.'
+  newparam(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The location where the virtual machine will be created. This value is only used when creating the VM initially.'
   end
 
   newproperty(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
