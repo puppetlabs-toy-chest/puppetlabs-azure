@@ -68,6 +68,7 @@ describe 'azure_vm' do
           location: CHEAPEST_AZURE_LOCATION,
           user: 'foo',
           deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
+          cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
           private_key_file: @remote_private_key_path,
         }
       }
@@ -90,6 +91,10 @@ describe 'azure_vm' do
 
     it 'should have the correct deployment name' do
       expect(@machine.deployment_name).to eq(@config[:optional][:deployment])
+    end
+
+    it 'should have the correct cloud service name' do
+      expect(@machine.cloud_service_name).to eq(@config[:optional][:cloud_service])
     end
 
     it 'should have the correct image' do
@@ -126,6 +131,11 @@ describe 'azure_vm' do
 
       it 'should report the correct deployment name' do
         regex = /(deployment)(\s*)(=>)(\s*)('#{@config[:optional][:deployment]}')/
+        expect(@result.stdout).to match(regex)
+      end
+
+      it 'should report the correct cloud service name' do
+        regex = /(cloud_service)(\s*)(=>)(\s*)('#{@config[:optional][:cloud_service]}')/
         expect(@result.stdout).to match(regex)
       end
 
