@@ -127,6 +127,7 @@ azure_vm { 'virtual-machine-name':
   image            => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
   location         => 'West US',
   user             => 'username',
+  size             => 'Medium',
   private_key_file => '/path/to/private/key',
 }
 ~~~
@@ -152,6 +153,7 @@ azure_vm { 'virtual-machine-name':
   location      => 'West US',
   media_link    => 'http://xxx.blob.core.windows.net/vhds/disk_2015_08_28_07_49_34_868.vhd',
   os_type       => 'Linux',
+  size          => 'Medium',
 }
 ~~~
 
@@ -213,8 +215,10 @@ The name for the deployment.
 #####`ssh_port`
 The port number for SSH.
 
-#####`vm_size`
-The size of the virtual machine instance.
+#####`size`
+The size of the virtual machine instance. See the Azure documentation
+for a [full list of
+sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
 #####`affinity_group`
 The affinity group to be used for the cloud service and the storage account if these do not exist.

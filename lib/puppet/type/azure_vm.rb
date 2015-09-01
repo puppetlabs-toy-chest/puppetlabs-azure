@@ -16,7 +16,7 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #   tcp_endpoints         => '80,3389:3390',
 #   private_key_file      => './private_key.key', # required for ssh
 #   ssh_port              => 2222,
-#   vm_size               => 'Small',
+#   size                  => 'Small',
 #   affinity_group_name   => 'affinity1',
 #   virtual_network_name  => 'xplattestvnet',
 #   subnet_name           => 'subnet1',
@@ -123,7 +123,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The port number for SSH.'
   end
 
-  newproperty(:vm_size, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:size, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The size of the virtual machine instance.'
   end
 

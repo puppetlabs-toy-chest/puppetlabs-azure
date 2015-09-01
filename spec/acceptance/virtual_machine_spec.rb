@@ -101,6 +101,10 @@ describe 'azure_vm' do
       expect(@machine.image).to eq(@config[:optional][:image])
     end
 
+    it 'should have the default size' do
+      expect(@machine.role_size).to eq('Small')
+    end
+
     it 'should be launched in the specified location' do
       expect(@client.get_cloud_service(@machine).location).to eq (@config[:optional][:location])
     end
@@ -144,6 +148,11 @@ describe 'azure_vm' do
         expect(@result.stdout).to match(regex)
       end
 
+      it 'should report the default size' do
+        regex = /(size)(\s*)(=>)(\s*)('Small')/
+        expect(@result.stdout).to match(regex)
+      end
+
       [
         'os_type',
         'ipaddress',
@@ -153,6 +162,55 @@ describe 'azure_vm' do
           regex = /(#{read_only_property})(\s*)(=>)(\s*)/
           expect(@result.stdout).to match(regex)
         end
+      end
+    end
+  end
+
+  context 'when creating a medium sized machine' do
+    before(:all) do
+      @name = "CLOUD-#{SecureRandom.hex(8)}"
+
+      @config = {
+        name: @name,
+        ensure: 'present',
+        optional: {
+          image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+          location: CHEAPEST_AZURE_LOCATION,
+          user: 'foo',
+          size: 'Medium',
+          private_key_file: @remote_private_key_path,
+        }
+      }
+      @manifest = PuppetManifest.new(@template, @config)
+      @result = @manifest.apply
+      @machine = @client.get_virtual_machine(@name).first
+    end
+
+    after(:all) do
+      @client.destroy_virtual_machine(@machine)
+    end
+
+    it 'should run without errors' do
+      expect(@result.exit_code).to eq 2
+    end
+
+    it 'should run a second time without changes' do
+      second_result = @manifest.apply
+      expect(second_result.exit_code).to eq 0
+    end
+
+    it 'should have the correct size' do
+      expect(@machine.role_size).to eq(@config[:optional][:size])
+    end
+
+    context 'when looked for using puppet resource' do
+      before(:all) do
+        @result = TestExecutor.puppet_resource('azure_vm', {:name => @name}, '--modulepath ../')
+      end
+
+      it 'should report the correct size' do
+        regex = /(size)(\s*)(=>)(\s*)('#{@config[:optional][:size]}')/
+        expect(@result.stdout).to match(regex)
       end
     end
   end
