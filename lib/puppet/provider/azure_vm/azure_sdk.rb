@@ -8,7 +8,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
-  read_only(:location)
+  read_only(:location, :deployment)
 
   def self.instances
     begin
@@ -39,6 +39,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       image: machine.image,
       ensure: :present,
       location: cloud_service.location,
+      deployment: machine.deployment_name,
       cloud_service_object: cloud_service,
       object: machine,
     }
@@ -58,6 +59,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       vm_user: resource[:user],
       password: resource[:password],
       private_key_file: resource[:private_key_file],
+      deployment_name: resource[:deployment],
     }
     create_vm(params)
   end

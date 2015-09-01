@@ -67,6 +67,7 @@ describe 'azure_vm' do
           image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
           location: CHEAPEST_AZURE_LOCATION,
           user: 'foo',
+          deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
           private_key_file: @remote_private_key_path,
         }
       }
@@ -85,6 +86,10 @@ describe 'azure_vm' do
 
     it 'should exist after the first run' do
       expect(@machine).not_to eq (nil)
+    end
+
+    it 'should have the correct deployment name' do
+      expect(@machine.deployment_name).to eq(@config[:optional][:deployment])
     end
 
     it 'should be launched in the specified location' do
@@ -112,6 +117,11 @@ describe 'azure_vm' do
 
       it 'should report the correct location value' do
         regex = /(location)(\s*)(=>)(\s*)('#{@config[:optional][:location]}')/
+        expect(@result.stdout).to match(regex)
+      end
+
+      it 'should report the correct deployment name' do
+        regex = /(deployment)(\s*)(=>)(\s*)('#{@config[:optional][:deployment]}')/
         expect(@result.stdout).to match(regex)
       end
     end
