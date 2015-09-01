@@ -8,7 +8,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
-  read_only(:location, :deployment)
+  read_only(:location, :deployment, :image)
 
   def self.instances
     begin
@@ -50,7 +50,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
     @property_hash[:ensure] and @property_hash[:ensure] != :absent
   end
 
-  def create
+  def create # rubocop:disable Metrics/AbcSize
     Puppet.info("Creating #{name}")
     params = {
       vm_name: name,

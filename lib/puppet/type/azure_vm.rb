@@ -67,7 +67,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'Name of the virtual machine.'
   end
 
-  newparam(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the image to use to create the virtual machine.'
     validate do |value|
       super value

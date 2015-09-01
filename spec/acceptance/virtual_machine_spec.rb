@@ -92,6 +92,10 @@ describe 'azure_vm' do
       expect(@machine.deployment_name).to eq(@config[:optional][:deployment])
     end
 
+    it 'should have the correct image' do
+      expect(@machine.image).to eq(@config[:optional][:image])
+    end
+
     it 'should be launched in the specified location' do
       expect(@client.get_cloud_service(@machine).location).to eq (@config[:optional][:location])
     end
@@ -122,6 +126,11 @@ describe 'azure_vm' do
 
       it 'should report the correct deployment name' do
         regex = /(deployment)(\s*)(=>)(\s*)('#{@config[:optional][:deployment]}')/
+        expect(@result.stdout).to match(regex)
+      end
+
+      it 'should report the correct image' do
+        regex = /(image)(\s*)(=>)(\s*)('#{@config[:optional][:image]}')/
         expect(@result.stdout).to match(regex)
       end
     end

@@ -6,7 +6,6 @@ describe type_class do
   let :params do
     [
       :name,
-      :image,
       :user,
       :password,
       :private_key_file,
@@ -16,6 +15,7 @@ describe type_class do
   let :properties do
     [
       :ensure,
+      :image,
       :location,
       :storage_account,
       :winrm_transport,
