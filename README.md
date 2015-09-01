@@ -146,8 +146,12 @@ azure_vm { 'virtual-machine-name':
   ensure        => 'present',
   cloud_service => 'cloud-service-uptjy',
   deployment    => 'cloud-service-uptjy',
+  hostname      => 'garethr',
   image         => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+  ipaddress     => 'xxx.xx.xxx.xx',
   location      => 'West US',
+  media_link    => 'http://xxx.blob.core.windows.net/vhds/disk_2015_08_28_07_49_34_868.vhd',
+  os_type       => 'Linux',
 }
 ~~~
 
@@ -232,6 +236,19 @@ A list of disks which should be attached to the virtual machine.
 
 #####`endpoints`
 A list of endpoints which should be associated with the virtual machine.
+
+#####`os_type`
+_Read Only_. The operating system type for the virtual machine.
+
+#####`ipaddress`
+_Read Only_. The IP address assigned to the virtual machine.
+
+#####`hostname`
+_Read Only_. The hostname of the running virtual machine.
+
+#####`media_link`
+_Read Only_. The link to the underlying disk image for the virtual
+machine.
 
 
 ##Limitations

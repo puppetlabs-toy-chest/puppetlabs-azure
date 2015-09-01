@@ -41,6 +41,10 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       location: cloud_service.location,
       deployment: machine.deployment_name,
       cloud_service: machine.cloud_service_name,
+      os_type: machine.os_type,
+      ipaddress: machine.ipaddress,
+      hostname: machine.hostname,
+      media_link: machine.media_link,
       cloud_service_object: cloud_service,
       object: machine,
     }

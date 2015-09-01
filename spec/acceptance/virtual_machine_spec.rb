@@ -143,6 +143,17 @@ describe 'azure_vm' do
         regex = /(image)(\s*)(=>)(\s*)('#{@config[:optional][:image]}')/
         expect(@result.stdout).to match(regex)
       end
+
+      [
+        'os_type',
+        'ipaddress',
+        'media_link',
+      ].each do |read_only_property|
+        it "#{read_only_property} is reported" do
+          regex = /(#{read_only_property})(\s*)(=>)(\s*)/
+          expect(@result.stdout).to match(regex)
+        end
+      end
     end
   end
 

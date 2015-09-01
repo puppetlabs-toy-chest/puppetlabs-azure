@@ -219,7 +219,12 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  [].each do |property|
+  [
+    'os_type',
+    'ipaddress',
+    'hostname',
+    'media_link',
+  ].each do |property|
     newproperty(property, :parent => PuppetX::PuppetLabs::Azure::Property::ReadOnly) do
     end
   end

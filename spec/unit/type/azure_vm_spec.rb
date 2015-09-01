@@ -36,7 +36,12 @@ describe type_class do
   end
 
   let :read_only_properties do
-    []
+    [
+      :os_type,
+      :ipaddress,
+      :hostname,
+      :media_link,
+    ]
   end
 
   it 'should have expected properties' do
@@ -109,6 +114,10 @@ describe type_class do
   end
 
   [
+    :os_type,
+    :ipaddress,
+    :hostname,
+    :media_link,
   ].each do |property|
     it "should require #{property} to be read only" do
       expect(type_class).to be_read_only(property)
