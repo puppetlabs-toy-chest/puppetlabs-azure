@@ -7,6 +7,7 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 2. [Description - What the module does and why it is useful](#module-description)
 3. [Setup](#setup)
   * [Requirements](#requirements)
+  * [Getting Azure credentials](#getting-azure-credentials)
   * [Installing the Azure module](#installing-the-azure-module)
 4. [Usage - Configuration options and additional functionality](#usage)
 5. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
@@ -26,6 +27,48 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 
 * Puppet Enterprise 3.8 or greater
 * [Azure gem](https://rubygems.org/gems/azure) 0.7.0 or greater
+
+### Getting Azure credentials
+
+In order to use the Azure module you'll need an Azure account. If you
+already have one you can skip this section, but otherwise you can sign
+up for a [Free Trial](http://azure.microsoft.com/en-gb/).
+
+You then need to install the Azure CLI. This is required to
+generate the certificate that we will use later for the Puppet module
+but it's also a useful way of interacting with Azure. Follow this
+[installation
+guide](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-install/)
+on how to get the CLI setup.
+
+Next you need to register the CLI with your Azure account. You can do
+this by following this [guide from
+Microsoft](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-connect/).
+The basic steps are:
+
+~~~
+azure account download
+azure account import <path to your .publishsettings file>
+~~~
+
+Once you have the account created you can export the PEM certificate file
+using the following command:
+
+~~~
+azure account cert export
+~~~
+
+And finally you can get the subscription ID using the `account list` command
+like so:
+
+~~~
+$ azure account list
+info:    Executing command account list
+data:    Name                    Id                                     Tenant Id  Current
+data:    ----------------------  -------------------------------------  ---------  -------
+data:    Pay-As-You-Go           xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx  undefined  true
+info:    account list command OK
+~~~
 
 ### Installing the Azure module
 
