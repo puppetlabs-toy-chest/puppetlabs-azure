@@ -44,7 +44,7 @@ describe 'azure_vm' do
           image: 'INVALID_IMAGE_NAME',
         }
       }
-      @result = PuppetManifest.new(@template, config).apply
+      @result = PuppetManifest.new(@template, config).execute
     end
 
     it 'reports errors from the API' do
@@ -71,7 +71,7 @@ describe 'azure_vm' do
         }
       }
       @manifest = PuppetManifest.new(@template, config)
-      @result = @manifest.apply
+      @result = @manifest.execute
       @machine = @client.get_virtual_machine(@name).first
     end
 
@@ -88,7 +88,7 @@ describe 'azure_vm' do
     end
 
     it 'should run a second time without changes' do
-      second_result = @manifest.apply
+      second_result = @manifest.execute
       expect(second_result.exit_code).to eq 0
     end
   end
@@ -106,7 +106,7 @@ describe 'azure_vm' do
           :private_key_file => @remote_private_key_path,
         }
       }
-      PuppetManifest.new(@template, @config).apply
+      PuppetManifest.new(@template, @config).execute
       @machine = @client.get_virtual_machine(@name).first
       @ip = @machine.ipaddress
     end
@@ -139,7 +139,7 @@ describe 'azure_vm' do
           :password     => 'SpecPass123!@#$%',
         }
       }
-      PuppetManifest.new(@template, @config).apply
+      PuppetManifest.new(@template, @config).execute
       @machine = @client.get_virtual_machine(@name).first
       @ip = @machine.ipaddress
     end
