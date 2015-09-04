@@ -4,6 +4,11 @@ require 'net/ssh'
 require 'ssh-exec'
 require 'retries'
 
+def expect_failed_apply(config)
+  result = PuppetManifest.new(@template, config).execute
+  expect(result.exit_code).not_to eq 0
+end
+
 def run_command_over_ssh(command, auth_method)
   # We retry failed attempts as although the VM has booted it takes some
   # time to start and expose SSH. This mirrors the behaviour of a typical SSH client
@@ -204,6 +209,24 @@ describe 'azure_vm' do
     it 'is accessible using the password' do
       result = run_command_over_ssh('true', 'password')
       expect(result.exit_status).to eq 0
+    end
+
+    context 'which has read-only properties' do
+      read_only = [
+        :location,
+        :deployment,
+        :cloud_service,
+        :size,
+        :image,
+      ]
+
+      read_only.each do |new_config_value|
+        it "should prevent change to read-only property #{new_config_value}" do
+          config_clone = Marshal.load(Marshal.dump(@config))
+          config_clone[:optional][new_config_value.to_sym] = 'foo'
+          expect_failed_apply(config_clone)
+        end
+      end
     end
 
     context 'when looked for using puppet resource' do
