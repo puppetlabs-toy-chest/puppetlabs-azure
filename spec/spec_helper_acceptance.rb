@@ -172,7 +172,7 @@ class LocalRunner
   # the opts hash must include a key 'name'
   def resource(type, opts = {}, command_flags = '')
     raise 'A name for the resource must be specified' unless opts[:name]
-    cmd = "bundle exec puppet resource #{type}"
+    cmd = "bundle exec puppet resource #{type} "
     options = String.new
     opts.each do |k,v|
       if k.to_s == 'name'
@@ -239,7 +239,7 @@ class BeakerRunnerBase
 
   def resource(type, opts = {}, command_flags = '')
     raise 'A name for the resource must be specified' unless opts[:name]
-    cmd = "resource #{type}"
+    cmd = "resource #{type} "
     options = String.new
     opts.each do |k,v|
       if k.to_s == 'name'
