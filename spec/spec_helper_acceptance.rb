@@ -1,40 +1,41 @@
 require 'azure'
-require 'beaker-rspec'
 require 'mustache'
 require 'open3'
 require 'master_manipulator'
+require 'beaker'
 
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
 
-if ENV['BEAKER_provision'] == 'yes'
-  install_pe
+unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
+  require 'beaker-rspec'
+  unless ENV['BEAKER_provision'] == 'no'
+    install_pe
 
+    hosts.each do |host|
+      on(host, 'apt-get install zlib1g-dev')
+      on(host, 'apt-get install patch')
+
+      path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
+      on(host, "#{path}/gem install azure")
+    end
+  end
+
+  proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   hosts.each do |host|
-    on(host, 'apt-get install zlib1g-dev')
-    on(host, 'apt-get install patch')
+    # set :target_module_path manually to work around beaker-rspec bug that does not
+    # persist distmoduledir across runs with reused nodes
+    # TODO: ticket up this bug for beaker-rspec
+    install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
+  end
 
-    path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
-    on(host, "#{path}/gem install azure")
+  # Deploy Azure credentials to all hosts
+  if ENV['AZURE_MANAGEMENT_CERTIFICATE']
+    hosts.each do |host|
+      scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
+    end
   end
 end
-
-proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-hosts.each do |host|
-  # set :target_module_path manually to work around beaker-rspec bug that does not
-  # persist distmoduledir across runs with reused nodes
-  # TODO: ticket up this bug for beaker-rspec
-  install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
-end
-
-# Deploy Azure credentials to all hosts
-if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-  hosts.each do |host|
-    scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
-  end
-end
-
-
 
 class PuppetManifest < Mustache
   def initialize(file, config)
