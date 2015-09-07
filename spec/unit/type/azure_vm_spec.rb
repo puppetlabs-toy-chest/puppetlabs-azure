@@ -63,6 +63,7 @@ describe type_class do
     end.to raise_error(Puppet::Error, 'Title or name must be provided')
   end
 
+
   [
     'name',
     'image',
@@ -124,11 +125,70 @@ describe type_class do
     end
   end
 
+  it 'should default ensure to present' do
+    machine = type_class.new(name: 'sample', location: 'West US')
+    expect(machine[:ensure]).to eq(:present)
+  end
+
+  context 'with a minimal set of properties' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'image-test',
+        location: 'West US',
+        image: 'image-name',
+        user: 'admin',
+        private_key_file: '/not/a/real/private.key',
+      }
+    end
+
+    let :machine do
+      type_class.new(config)
+    end
+
+    it 'should be vald' do
+      expect { machine }.not_to raise_error
+    end
+
+    it 'should alias running to present for ensure values' do
+      expect(machine.property(:ensure).insync?(:running)).to be true
+    end
+
+    context 'when out of sync' do
+      it 'should report actual state if desired state is present, as present is overloaded' do
+        expect(machine.property(:ensure).change_to_s(:running, :present)).to eq(:running)
+      end
+
+      it 'if current and desired are the same then should report value' do
+        expect(machine.property(:ensure).change_to_s(:stopped, :stopped)).to eq(:stopped)
+      end
+
+      it 'if current and desired are different should report change' do
+        expect(machine.property(:ensure).change_to_s(:stopped, :running)).to eq('changed stopped to running')
+      end
+    end
+  end
+
+  context 'with ensure set to stopped' do
+    let :config do
+      {
+        ensure: :stopped,
+        name: 'image-test',
+        location: 'West US',
+      }
+    end
+
+    it 'should acknowledge stopped machines to be present' do
+      expect(type_class.new(config).property(:ensure).insync?(:stopped)).to be true
+    end
+  end
+
   context 'with a password and a private key file' do
     let :config do
       {
         ensure: :present,
         name: 'image-test',
+        location: 'West US',
         password: 'no-a-real-password',
         private_key_file: '/not/a/real/private.key',
       }
@@ -160,6 +220,7 @@ describe type_class do
       end.to raise_error(Puppet::Error, /the image name must not be empty/)
     end
   end
+
 
   context 'with a location' do
     let :config do

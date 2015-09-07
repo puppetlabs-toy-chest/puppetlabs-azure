@@ -31,6 +31,11 @@ module PuppetX
           @services[service_name]
         end
 
+        def find_vm(name)
+          server = vm_manager.list_virtual_machines.select { |x| x.vm_name == name }
+          server.first
+        end
+
         def create_vm(args)
           param_names = [:vm_name, :image, :location, :vm_user, :password]
           params = (args.keys & param_names).each_with_object({}) { |k,h| h.update(k=>args.delete(k)) }
@@ -44,6 +49,18 @@ module PuppetX
         def delete_vm(machine)
           capture_stdout do
             vm_manager.delete_virtual_machine(machine.vm_name, machine.cloud_service_name)
+          end
+        end
+
+        def stop_vm(machine)
+          capture_stdout do
+            vm_manager.shutdown_virtual_machine(machine.vm_name, machine.cloud_service_name)
+          end
+        end
+
+        def start_vm(machine)
+          capture_stdout do
+            vm_manager.start_virtual_machine(machine.vm_name, machine.cloud_service_name)
           end
         end
 

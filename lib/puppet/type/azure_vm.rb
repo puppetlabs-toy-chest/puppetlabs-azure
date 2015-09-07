@@ -46,8 +46,6 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 Puppet::Type.newtype(:azure_vm) do
   @doc = 'Type representing a virtual machine in Microsoft Azure.'
 
-  ensurable
-
   validate do
     if self[:password] and self[:private_key_file]
       fail 'You can only provide either a password or a private_key_file for an Azure VM'
@@ -60,6 +58,41 @@ Puppet::Type.newtype(:azure_vm) do
       if self[property.to_sym].nil? and self.provider.send(property.to_sym) == :absent
         fail "You must provide a #{property}"
       end
+    end
+  end
+
+  newproperty(:ensure) do
+    defaultto :present
+    newvalue(:present) do
+      provider.create unless provider.exists?
+    end
+    newvalue(:absent) do
+      provider.destroy if provider.exists?
+    end
+    newvalue(:running) do
+      if provider.exists?
+        provider.start unless provider.running?
+      else
+        provider.create
+      end
+    end
+    newvalue(:stopped) do
+      if provider.exists?
+        provider.stop unless provider.stopped?
+      else
+        provider.create
+        provider.stop
+      end
+    end
+    def change_to_s(current, desired)
+      current = :running if current == :present
+      desired = current if desired == :present and current != :absent
+      current == desired ? current : "changed #{current} to #{desired}"
+    end
+    def insync?(is)
+      is.to_s == should.to_s or
+        (is.to_s == 'running' and should.to_s == 'present') or
+        (is.to_s == 'stopped' and should.to_s == 'present')
     end
   end
 
