@@ -127,6 +127,7 @@ azure_vm { 'virtual-machine-name':
   image            => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
   location         => 'West US',
   user             => 'username',
+  size             => 'Medium',
   private_key_file => '/path/to/private/key',
 }
 ~~~
@@ -143,8 +144,16 @@ account:
 
 ~~~
 azure_vm { 'virtual-machine-name':
-  ensure => 'present',
-  image  => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+  ensure        => 'present',
+  cloud_service => 'cloud-service-uptjy',
+  deployment    => 'cloud-service-uptjy',
+  hostname      => 'garethr',
+  image         => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+  ipaddress     => 'xxx.xx.xxx.xx',
+  location      => 'West US',
+  media_link    => 'http://xxx.blob.core.windows.net/vhds/disk_2015_08_28_07_49_34_868.vhd',
+  os_type       => 'Linux',
+  size          => 'Medium',
 }
 ~~~
 
@@ -170,7 +179,10 @@ Specifies the basic state of the virtual machine. Valid values are
 Name of the image to use to create the virtual machine. This can be either a VM Image or an OS Image. When specifying a VM Image, `user`, `password`, and `private_key_file` are not used.
 
 #####`location`
-The location where the virtual machine will be created.
+*Required* The location where the virtual machine will be created. Details of
+available values can be found on the [Azure
+regions documentation](http://azure.microsoft.com/en-gb/regions/).
+Location is read-only once the VM has been created.
 
 #####`user`
 The name of the user to be created on the virtual machine. Required for Linux guests.
@@ -203,8 +215,10 @@ The name for the deployment.
 #####`ssh_port`
 The port number for SSH.
 
-#####`vm_size`
-The size of the virtual machine instance.
+#####`size`
+The size of the virtual machine instance. See the Azure documentation
+for a [full list of
+sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
 #####`affinity_group`
 The affinity group to be used for the cloud service and the storage account if these do not exist.
@@ -226,6 +240,19 @@ A list of disks which should be attached to the virtual machine.
 
 #####`endpoints`
 A list of endpoints which should be associated with the virtual machine.
+
+#####`os_type`
+_Read Only_. The operating system type for the virtual machine.
+
+#####`ipaddress`
+_Read Only_. The IP address assigned to the virtual machine.
+
+#####`hostname`
+_Read Only_. The hostname of the running virtual machine.
+
+#####`media_link`
+_Read Only_. The link to the underlying disk image for the virtual
+machine.
 
 
 ##Limitations

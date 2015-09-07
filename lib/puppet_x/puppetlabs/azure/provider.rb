@@ -16,8 +16,19 @@ module PuppetX
           ::Azure.vm_management
         end
 
+        def self.cloud_service_manager
+          ::Azure.cloud_service_management
+        end
+
         def self.list_vms
           vm_manager.list_virtual_machines
+        end
+
+        def self.get_cloud_service(service_name)
+          @services ||= Hash.new do |h, key|
+            h[key] = cloud_service_manager.get_cloud_service(key) if key
+          end
+          @services[service_name]
         end
 
         def create_vm(args)

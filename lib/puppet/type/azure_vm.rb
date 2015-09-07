@@ -16,7 +16,7 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #   tcp_endpoints         => '80,3389:3390',
 #   private_key_file      => './private_key.key', # required for ssh
 #   ssh_port              => 2222,
-#   vm_size               => 'Small',
+#   size                  => 'Small',
 #   affinity_group_name   => 'affinity1',
 #   virtual_network_name  => 'xplattestvnet',
 #   subnet_name           => 'subnet1',
@@ -52,13 +52,22 @@ Puppet::Type.newtype(:azure_vm) do
     if self[:password] and self[:private_key_file]
       fail 'You can only provide either a password or a private_key_file for an Azure VM'
     end
+    required_properties = [
+      'location'
+    ]
+    required_properties.each do |property|
+      # We check for both places so as to cover the puppet resource path as well
+      if self[property.to_sym].nil? and self.provider.send(property.to_sym) == :absent
+        fail "You must provide a #{property}"
+      end
+    end
   end
 
   newparam(:name, namevar: true, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the virtual machine.'
   end
 
-  newparam(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the image to use to create the virtual machine.'
     validate do |value|
       super value
@@ -78,8 +87,12 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'Path to the private key file. This value is only used when creating the VM initially.'
   end
 
-  newparam(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The location where the virtual machine will be created. This value is only used when creating the VM initially.'
+  newproperty(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The location where the virtual machine will be created.'
+    validate do |value|
+      super value
+      fail 'the location must not be empty' if value.empty?
+    end
   end
 
   newproperty(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -110,7 +123,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The port number for SSH.'
   end
 
-  newproperty(:vm_size, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:size, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The size of the virtual machine instance.'
   end
 
@@ -206,7 +219,12 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  [].each do |property|
+  [
+    'os_type',
+    'ipaddress',
+    'hostname',
+    'media_link',
+  ].each do |property|
     newproperty(property, :parent => PuppetX::PuppetLabs::Azure::Property::ReadOnly) do
     end
   end

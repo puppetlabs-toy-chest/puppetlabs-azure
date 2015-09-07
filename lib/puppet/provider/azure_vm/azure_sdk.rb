@@ -8,6 +8,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
+  read_only(:location, :deployment, :image, :cloud_service, :size)
+
   def self.instances
     begin
       list_vms.collect do |machine|
@@ -31,10 +33,20 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
   end
 
   def self.machine_to_hash(machine)
+    cloud_service = get_cloud_service(machine.cloud_service_name)
     {
       name: machine.vm_name,
       image: machine.image,
       ensure: :present,
+      location: cloud_service.location,
+      deployment: machine.deployment_name,
+      cloud_service: machine.cloud_service_name,
+      os_type: machine.os_type,
+      ipaddress: machine.ipaddress,
+      hostname: machine.hostname,
+      media_link: machine.media_link,
+      size: machine.role_size,
+      cloud_service_object: cloud_service,
       object: machine,
     }
   end
@@ -44,15 +56,18 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
     @property_hash[:ensure] and @property_hash[:ensure] != :absent
   end
 
-  def create
+  def create # rubocop:disable Metrics/AbcSize
     Puppet.info("Creating #{name}")
     params = {
       vm_name: name,
       image: resource[:image],
       location: resource[:location],
+      vm_size: resource[:size],
       vm_user: resource[:user],
       password: resource[:password],
       private_key_file: resource[:private_key_file],
+      deployment_name: resource[:deployment],
+      cloud_service_name: resource[:cloud_service],
     }
     create_vm(params)
   end

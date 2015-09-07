@@ -105,6 +105,7 @@ end
 class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
+    @azure_cloud_service = Azure.cloud_service_management
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
@@ -114,6 +115,10 @@ class AzureHelper
 
   def destroy_virtual_machine(machine)
     @azure_vm.delete_virtual_machine(machine.vm_name, machine.cloud_service_name)
+  end
+
+  def get_cloud_service(machine)
+    @azure_cloud_service.get_cloud_service(machine.cloud_service_name)
   end
 end
 
@@ -172,7 +177,7 @@ class LocalRunner
   # the opts hash must include a key 'name'
   def resource(type, opts = {}, command_flags = '')
     raise 'A name for the resource must be specified' unless opts[:name]
-    cmd = "bundle exec puppet resource #{type}"
+    cmd = "bundle exec puppet resource #{type} "
     options = String.new
     opts.each do |k,v|
       if k.to_s == 'name'
@@ -218,6 +223,13 @@ class BeakerRunnerBase
   include Beaker::DSL
   include MasterManipulator::Site
 
+  def remote_environment
+    @env ||= {
+      'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
+      'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+    }
+  end
+
   def create_remote_file_ex(file_path, file_content, options={})
     hosts.each do |host|
       mode = options[:mode] || '0644'
@@ -237,9 +249,9 @@ class BeakerRunnerBase
     shell(cmd)
   end
 
-  def resource(type, opts = {}, command_flags = '')
+  def resource(type, opts = {}, command_flags = '') # rubocop:disable Metrics/AbcSize
     raise 'A name for the resource must be specified' unless opts[:name]
-    cmd = "resource #{type}"
+    cmd = "resource #{type} "
     options = String.new
     opts.each do |k,v|
       if k.to_s == 'name'
@@ -252,7 +264,11 @@ class BeakerRunnerBase
     cmd << options
     cmd << " #{command_flags}"
 
-    puppet(cmd)
+    on(default,
+      puppet(cmd),
+      :environment => remote_environment,
+      :acceptable_exit_codes => (0...256),
+      )
   end
 end
 
@@ -263,12 +279,11 @@ class BeakerAgentRunner < BeakerRunnerBase
     site_pp = create_site_pp(master, :manifest => manifest)
     inject_site_pp(master, prod_env_site_pp_path, site_pp)
 
-    on(default, puppet('agent', '-t', '--environment production'),
-      :environment => {
-        'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
-        'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
-        },
-      :acceptable_exit_codes => (0...256))
+    on(default,
+      puppet('agent', '-t', '--environment production'),
+      :environment => remote_environment,
+      :acceptable_exit_codes => (0...256),
+      )
   end
 end
 
@@ -276,16 +291,14 @@ class BeakerApplyRunner < BeakerRunnerBase
   def execute(manifest)
     # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
     # make our own assertions about the responses
-    apply_manifest(manifest, {
-      :acceptable_exit_codes => (0...256),
+    apply_manifest(
+      manifest,
       :expect_changes => true,
       :debug => true,
       :trace => true,
-      :environment => {
-        'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
-        'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
-      },
-      })
+      :environment => remote_environment,
+      :acceptable_exit_codes => (0...256),
+    )
   end
 end
 
