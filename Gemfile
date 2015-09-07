@@ -10,7 +10,7 @@ group :test do
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
   gem 'puppetlabs_spec_helper'
   gem 'metadata-json-lint'
-  gem 'rubocop', require: false
+  gem 'rubocop', '0.33.0', require: false
   gem 'simplecov'
   gem 'simplecov-console'
 end
