@@ -4,6 +4,8 @@ AllCops:
     - '**/*.erb'
     # Ignore vendored gems
     - 'vendor/**/*'
+    # Ignore ruby account management scripts
+    - 'scripts/*.rb'
 
 Lint/ConditionPosition:
   Enabled: true
