@@ -1,9 +1,41 @@
 require 'rake'
+require 'parallel_tests'
 
 # We clear the Beaker rake tasks from spec_helper as they assume
 # rspec-puppet and a certain filesystem layout
 Rake::Task[:beaker_nodes].clear
 Rake::Task[:beaker].clear
+
+module ParallelTests
+  module Tasks
+    def self.parse_args(args)
+      args = [args[:count], args[:options]]
+
+      # count given or empty ?
+      # parallel:spec[2,options]
+      # parallel:spec[,options]
+      count = args.shift if args.first.to_s =~ /^\d*$/
+      num_processes = count.to_i unless count.to_s.empty?
+      options = args.shift
+
+      [num_processes, options.to_s]
+    end
+  end
+end
+
+namespace :parallel do
+  desc "Run acceptance in parallel with parallel:acceptance[num_cpus]"
+  task :acceptance, [:count, :options] do |t, args|
+    ENV['PUPPET_AZURE_BEAKER_MODE'] = 'local'
+    count, options = ParallelTests::Tasks.parse_args(args)
+    executable = 'parallel_test'
+    command = "#{executable} spec --type rspec " \
+      "-n #{count} "                 \
+      "--pattern 'spec/acceptance' " \
+      "--test-options '#{options}'"
+    abort unless system(command)
+  end
+end
 
 PE_RELEASES = {
   '3.8.1' => 'http://pe-releases.puppetlabs.lan/3.8.1/',
@@ -43,7 +75,7 @@ namespace :acceptance do
     namespace ns.to_sym do
       configs.each do |config|
         PE_RELEASES.each do |version, pe_dir|
-          desc "Run accpetance tests for #{config} on #{ns} with PE #{version}"
+          desc "Run acceptance tests for #{config} on #{ns} with PE #{version}"
           RSpec::Core::RakeTask.new("#{config}_#{version}".to_sym) do |t|
             ENV['BEAKER_PE_DIR'] = pe_dir
             ENV['BEAKER_set'] = "#{ns}/#{config}"
@@ -54,5 +86,3 @@ namespace :acceptance do
     end
   end
 end
-
-
