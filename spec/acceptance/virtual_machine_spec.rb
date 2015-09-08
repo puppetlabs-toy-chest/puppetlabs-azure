@@ -155,15 +155,76 @@ describe 'azure_vm' do
       expect(result.exit_status).to eq 0
     end
 
+    context 'stopping the machine' do
+      before(:all) do
+        new_config = @config.update({:ensure => 'stopped'})
+        @manifest = PuppetManifest.new(@template, new_config)
+        @result = @manifest.execute
+        @stopped_machine = @client.get_virtual_machine(@name).first
+      end
+
+      it_behaves_like 'an idempotent resource'
+
+      it 'should be stopped' do
+        expect(@stopped_machine.status).to eq('StoppedDeallocated')
+      end
+
+      context 'restarting the machine' do
+        before(:all) do
+          new_config = @config.update({:ensure => 'running'})
+          @manifest = PuppetManifest.new(@template, new_config)
+          @result = @manifest.execute
+          @started_machine = @client.get_virtual_machine(@name).first
+        end
+
+        it_behaves_like 'an idempotent resource'
+
+        it 'should not be stopped' do
+          # Machines first enter an unknown state (RoleStateUnknown) before being
+          # marked as ready (ReadyRole). This can take time so rather than always
+          # wait for ready we're happy that we've changed the machine from stopped.
+          expect(@started_machine.status).not_to eq('StoppedDeallocated')
+        end
+      end
+    end
+
     context 'when looked for using puppet resource' do
       include_context 'a puppet resource run'
-      puppet_resource_should_show('ensure', 'present')
+      puppet_resource_should_show('ensure', 'running')
       puppet_resource_should_show('location')
       puppet_resource_should_show('size', 'Small')
       puppet_resource_should_show('image')
       puppet_resource_should_show('os_type')
       puppet_resource_should_show('ipaddress')
       puppet_resource_should_show('media_link')
+    end
+  end
+
+  context 'when creating a new machine in a stopped state' do
+    before(:all) do
+      @name = "CLOUD-#{SecureRandom.hex(8)}"
+
+      @config = {
+        name: @name,
+        ensure: 'stopped',
+        optional: {
+          image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+          location: CHEAPEST_AZURE_LOCATION,
+          user: 'specuser',
+          private_key_file: @remote_private_key_path,
+        }
+      }
+      @manifest = PuppetManifest.new(@template, @config)
+      @result = @manifest.execute
+      @machine = @client.get_virtual_machine(@name).first
+    end
+
+    it_behaves_like 'an idempotent resource'
+
+    include_context 'destroys created resources after use'
+
+    it 'should be stopped' do
+      expect(@machine.status).to eq('StoppedDeallocated')
     end
   end
 

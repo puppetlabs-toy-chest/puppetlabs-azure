@@ -33,11 +33,17 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
   end
 
   def self.machine_to_hash(machine)
+    status = case machine.status
+             when 'StoppedDeallocated', 'Stopped'
+               :stopped
+             else
+               :running
+             end
     cloud_service = get_cloud_service(machine.cloud_service_name)
     {
       name: machine.vm_name,
       image: machine.image,
-      ensure: :present,
+      ensure: status,
       location: cloud_service.location,
       deployment: machine.deployment_name,
       cloud_service: machine.cloud_service_name,
@@ -74,7 +80,39 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   def destroy
     Puppet.info("Deleting #{name}")
-    delete_vm(@property_hash[:object])
+    delete_vm(machine)
     @property_hash[:ensure] = :absent
+  end
+
+  def stop
+    Puppet.info("Stopping #{name}")
+    stop_vm(machine)
+    @property_hash[:ensure] = :stopped
+  end
+
+  def start
+    Puppet.info("Starting #{name}")
+    start_vm(machine)
+    @property_hash[:ensure] = :running
+  end
+
+  def running?
+    !stopped?
+  end
+
+  def stopped?
+    ['StoppedDeallocated', 'Stopped'].include? machine.status
+  end
+
+  private
+  def machine
+    vm = if @property_hash[:object]
+           @property_hash[:object]
+         else
+           Puppet.debug("Looking up #{name}")
+           find_vm(name)
+         end
+    raise Puppet::Error, "No virtual machine called #{name}" unless vm
+    vm
   end
 end

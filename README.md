@@ -169,8 +169,19 @@ azure_vm { 'virtual-machine-name':
 ####Type: azure_vm
 
 #####`ensure`
-Specifies the basic state of the virtual machine. Valid values are
-'present' and 'absent'. Defaults to 'present'.
+Specifies the basic state of the virtual machine. Valid values are 'present',
+'running', stopped', and 'absent'. Defaults to 'present'.
+
+Values have the following effects:
+
+* 'present': Ensure that the VM exists in either the running or stopped
+  state. If the VM doesn't yet exist, a new one is created.
+* 'running': Ensures that the VM is up and running. If the VM
+  doesn't yet exist, a new one is created.
+* 'stopped': Ensures that the VM is created, but is not running. This
+  can be used to shut down running VMs, as well as for creating VMs without
+  having them running immediately.
+* 'absent': Ensures that the VM doesn't exist on Azure..
 
 #####`name`
 *Required* The name of the virtual machine.
