@@ -45,16 +45,19 @@ describe type_class do
   end
 
   it 'should have expected properties' do
-    all_properties = properties + read_only_properties
-    all_properties.each do |property|
-      expect(type_class.properties.map(&:name)).to be_include(property)
-    end
+    expect(type_class.properties.map(&:name)).to include(*(properties + read_only_properties))
   end
 
   it 'should have expected parameters' do
-    params.each do |param|
-      expect(type_class.parameters).to be_include(param)
-    end
+    expect(type_class.parameters).to include(*params)
+  end
+
+  it 'should not have unexpected properties' do
+    expect(properties + read_only_properties).to include(*type_class.properties.map(&:name))
+  end
+
+  it 'should not have unexpected parameters' do
+    expect(params + [:provider]).to include(*type_class.parameters)
   end
 
   it 'should require a name' do
