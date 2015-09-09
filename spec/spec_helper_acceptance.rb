@@ -3,6 +3,12 @@ require 'mustache'
 require 'open3'
 require 'master_manipulator'
 require 'beaker'
+require 'net/ssh'
+require 'ssh-exec'
+require 'retries'
+
+# automatically load any shared examples or contexts
+Dir["./spec/support/**/*.rb"].sort.each { |f| require f}
 
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
@@ -134,16 +140,16 @@ class PuppetRunProxy
 
   def self.create_runner(mode)
     case mode
-      when 'apply' then
-        BeakerApplyRunner.new
-      when 'agent' then
-        BeakerAgentRunner.new
-      when 'local'
-        LocalRunner.new
-      else
-        # Exception as the switch supplied is invalid
-        raise ArgumentException.new "Unknown PUPPET_AZURE_BEAKER_MODE supplied '#{mode}''"
-      end
+    when 'apply' then
+      BeakerApplyRunner.new
+    when 'agent' then
+      BeakerAgentRunner.new
+    when 'local'
+      LocalRunner.new
+    else
+      # Exception as the switch supplied is invalid
+      raise ArgumentException.new "Unknown PUPPET_AZURE_BEAKER_MODE supplied '#{mode}''"
+    end
   end
 
   def self.runner
@@ -315,5 +321,44 @@ class BeakerLikeResponse
     @output = standard_out + "\n" + standard_error
     @exit_code = exit.to_i
     @command = cmd
+  end
+end
+
+def expect_failed_apply(config)
+  result = PuppetManifest.new(@template, config).execute
+  expect(result.exit_code).not_to eq 0
+end
+
+def run_command_over_ssh(command, auth_method)
+  # We retry failed attempts as although the VM has booted it takes some
+  # time to start and expose SSH. This mirrors the behaviour of a typical SSH client
+  with_retries(:max_tries => 10,
+               :base_sleep_seconds => 20,
+               :max_sleep_seconds => 20,
+               :rescue => [Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::ETIMEDOUT]) do
+    Net::SSH.start(@ip,
+                   @config[:optional][:user],
+                   :password => @config[:optional][:password],
+                   :keys => [@local_private_key_path],
+                   :auth_methods => [auth_method],
+                   :verbose => :info) do |ssh|
+      SshExec.ssh_exec!(ssh, command)
+    end
+  end
+end
+
+def puppet_resource_should_show(property_name, value=nil)
+  it "should report the correct #{property_name} value" do
+    # this overloading allows for passing either a key or a key and value
+    # and naively picks the key from @config if it exists. This is because
+    # @config is only available in the context of a test, and not in the context
+    # of describe or context
+    real_value = @config[:optional][property_name.to_sym] || value
+    regex = if real_value.nil?
+              /(#{property_name})(\s*)(=>)(\s*)/
+            else
+              /(#{property_name})(\s*)(=>)(\s*)('#{real_value}'|#{real_value})/
+            end
+    expect(@result.stdout).to match(regex)
   end
 end

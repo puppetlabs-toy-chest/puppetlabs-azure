@@ -13,6 +13,7 @@ group :test do
   gem 'rubocop', '0.33.0', require: false
   gem 'simplecov'
   gem 'simplecov-console'
+  gem 'parallel_tests'
 end
 
 group :development do
