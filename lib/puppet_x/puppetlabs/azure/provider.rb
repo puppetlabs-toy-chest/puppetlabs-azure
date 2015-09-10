@@ -3,7 +3,24 @@ require 'stringio'
 module PuppetX
   module Puppetlabs
     module Azure
+      class LoggerAdapter
+        def info(msg)
+          Puppet.info("azure-sdk: " + msg)
+        end
+
+        def warn(msg)
+          Puppet.warning("azure-sdk: " + msg)
+        end
+
+        def error(msg)
+          Puppet.err("azure-sdk: " + msg)
+        end
+      end
+
       class Provider < Puppet::Provider
+        # re-route azure's messages to puppet
+        ::Azure::Core::Logger.initialize_external_logger(LoggerAdapter.new)
+
         def self.read_only(*methods)
           methods.each do |method|
             define_method("#{method}=") do |v|
@@ -32,8 +49,7 @@ module PuppetX
         end
 
         def find_vm(name)
-          server = vm_manager.list_virtual_machines.select { |x| x.vm_name == name }
-          server.first
+          Provider.vm_manager.list_virtual_machines.find { |x| x.vm_name == name }
         end
 
         def create_vm(args)
@@ -41,45 +57,22 @@ module PuppetX
           params = (args.keys & param_names).each_with_object({}) { |k,h| h.update(k=>args.delete(k)) }
           sanitised_params = params.delete_if { |k, v| v.nil? }
           sanitised_args = args.delete_if { |k, v| v.nil? }
-          capture_stdout do
-            vm_manager.create_virtual_machine(sanitised_params, sanitised_args)
-          end
+          Provider.vm_manager.create_virtual_machine(sanitised_params, sanitised_args)
         end
 
         def delete_vm(machine)
-          capture_stdout do
-            vm_manager.delete_virtual_machine(machine.vm_name, machine.cloud_service_name)
-          end
+          Provider.vm_manager.delete_virtual_machine(machine.vm_name, machine.cloud_service_name)
+        end
+
         end
 
         def stop_vm(machine)
-          capture_stdout do
-            vm_manager.shutdown_virtual_machine(machine.vm_name, machine.cloud_service_name)
-          end
+          Provider.vm_manager.shutdown_virtual_machine(machine.vm_name, machine.cloud_service_name)
         end
 
         def start_vm(machine)
-          capture_stdout do
-            vm_manager.start_virtual_machine(machine.vm_name, machine.cloud_service_name)
-          end
+          Provider.vm_manager.start_virtual_machine(machine.vm_name, machine.cloud_service_name)
         end
-
-        private
-          def vm_manager
-            self.class.vm_manager
-          end
-
-          # the Azure Ruby SDK has a logger module which puts all over the place
-          # The following prevents that output being displayed in the Puppet log
-          # unless you are running in debug mode
-          def capture_stdout
-            real_stdout = $stdout
-            $stdout = StringIO.new unless Puppet[:debug]
-            yield
-            $stdout.string unless Puppet[:debug]
-          ensure
-            $stdout = real_stdout
-          end
       end
     end
   end
