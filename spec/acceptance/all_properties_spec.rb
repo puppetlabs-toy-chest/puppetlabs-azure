@@ -4,6 +4,7 @@ describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
   include_context 'with a known name and storage account name'
   include_context 'with known network'
+  include_context 'with temporary affinity group'
 
   before(:all) do
     @custom_data_file = '/tmp/needle'
@@ -11,7 +12,7 @@ describe 'azure_vm when creating a machine with all available properties' do
       name: @name,
       ensure: 'present',
       optional: {
-        image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+        image: UBUNTU_IMAGE,
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
@@ -27,6 +28,8 @@ describe 'azure_vm when creating a machine with all available properties' do
         affinity_group: @affinity_group_name,
         availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
         ssh_port: 2222,
+        affinity_group: @affinity_group_name,
+        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
       }
     }
     @manifest = <<PP #PuppetManifest.new(@template, @config)
@@ -49,6 +52,8 @@ azure_vm {
   affinity_group       => '#{@config[:optional][:affinity_group]}',
   availability_set     => '#{@config[:optional][:availability_set]}',
   ssh_port             => '#{@config[:optional][:ssh_port]}',
+  affinity_group       => '#{@config[:optional][:affinity_group]}',
+  availability_set     => '#{@config[:optional][:availability_set]}',
 }
 PP
     @result = PuppetRunProxy.execute(@manifest)
@@ -118,6 +123,16 @@ PP
     expect(ssh_endpoint[:public_port].to_i).to eq(@config[:optional][:ssh_port])
   end
 
+  it 'should have the correct availability set' do
+    expect(@machine.availability_set_name).to eq(@config[:optional][:availability_set])
+  end
+
+  it 'should be in the correct affinity group' do
+    affinity_group = @client.get_affinity_group(@affinity_group_name)
+    associated_services = affinity_group.hosted_services.map { |service| service[:service_name] }
+    expect(associated_services).to include(@machine.cloud_service_name)
+  end
+
   context 'which has read-only properties' do
     read_only = [
       :location,
@@ -126,6 +141,7 @@ PP
       :size,
       :image,
       :virtual_network,
+      :availability_set,
     ]
 
     read_only.each do |new_config_value|
@@ -142,6 +158,7 @@ PP
     puppet_resource_should_show('size')
     puppet_resource_should_show('deployment')
     puppet_resource_should_show('cloud_service')
+    puppet_resource_should_show('availability_set')
   end
 
   it_behaves_like 'a removable resource'
