@@ -9,6 +9,7 @@ describe type_class do
       :user,
       :password,
       :private_key_file,
+      :affinity_group,
     ]
   end
 
@@ -25,7 +26,6 @@ describe type_class do
       :deployment,
       :ssh_port,
       :size,
-      :affinity_group,
       :virtual_network,
       :subnet,
       :availability_set,

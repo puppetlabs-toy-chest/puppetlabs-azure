@@ -13,6 +13,8 @@ Dir["./spec/support/**/*.rb"].sort.each { |f| require f}
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
 
+UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB'
+
 unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
   require 'beaker-rspec'
   unless ENV['BEAKER_provision'] == 'no'
@@ -111,6 +113,7 @@ end
 class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
+    @azure_affinity_group = Azure.base_management
     @azure_cloud_service = Azure.cloud_service_management
   end
 
@@ -125,6 +128,18 @@ class AzureHelper
 
   def get_cloud_service(machine)
     @azure_cloud_service.get_cloud_service(machine.cloud_service_name)
+  end
+
+  def get_affinity_group(name)
+    @azure_affinity_group.get_affinity_group(name)
+  end
+
+  def create_affinity_group(name)
+    @azure_affinity_group.create_affinity_group(name, CHEAPEST_AZURE_LOCATION, 'Temporary group for acceptance tests')
+  end
+
+  def destroy_affinity_group(name)
+    @azure_affinity_group.delete_affinity_group(name)
   end
 end
 

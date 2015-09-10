@@ -2,6 +2,7 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
+  include_context 'with temporary affinity group'
 
   before(:all) do
     @name = "CLOUD-#{SecureRandom.hex(8)}"
@@ -10,13 +11,15 @@ describe 'azure_vm when creating a machine with all available properties' do
       name: @name,
       ensure: 'present',
       optional: {
-        image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+        image: UBUNTU_IMAGE,
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
         size: 'Medium',
         deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
+        affinity_group: @affinity_group_name,
+        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
       }
     }
     @manifest = PuppetManifest.new(@template, @config)
@@ -46,6 +49,16 @@ describe 'azure_vm when creating a machine with all available properties' do
     expect(result.exit_status).to eq 0
   end
 
+  it 'should have the correct availability set' do
+    expect(@machine.availability_set_name).to eq(@config[:optional][:availability_set])
+  end
+
+  it 'should be in the correct affinity group' do
+    affinity_group = @client.get_affinity_group(@affinity_group_name)
+    associated_services = affinity_group.hosted_services.map { |service| service[:service_name] }
+    expect(associated_services).to include(@machine.cloud_service_name)
+  end
+
   context 'which has read-only properties' do
     read_only = [
       :location,
@@ -53,6 +66,7 @@ describe 'azure_vm when creating a machine with all available properties' do
       :cloud_service,
       :size,
       :image,
+      :availability_set,
     ]
 
     read_only.each do |new_config_value|
@@ -69,5 +83,6 @@ describe 'azure_vm when creating a machine with all available properties' do
     puppet_resource_should_show('size')
     puppet_resource_should_show('deployment')
     puppet_resource_should_show('cloud_service')
+    puppet_resource_should_show('availability_set')
   end
 end

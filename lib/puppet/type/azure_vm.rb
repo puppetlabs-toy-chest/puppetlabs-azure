@@ -160,8 +160,8 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The size of the virtual machine instance.'
   end
 
-  newproperty(:affinity_group, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The affinity group to be used for the cloud service and the storage account if these do not exist.'
+  newparam(:affinity_group, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The affinity group to be used for the cloud service and the storage account. Must already exist in your account.'
   end
 
   newproperty(:virtual_network, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
