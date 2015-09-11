@@ -108,14 +108,10 @@ describe type_class do
     end
   end
 
-  [
-    'disks',
-    'endpoints',
-  ].each do |param|
-    it "should require #{param}' to be a hash" do
-      expect(type_class).to require_hash_for(param)
-    end
-  end
+  include_examples "array properties", [
+    :disks,
+    :endpoints,
+  ]
 
   [
     :os_type,
@@ -149,7 +145,7 @@ describe type_class do
       type_class.new(config)
     end
 
-    it 'should be vald' do
+    it 'should be valid' do
       expect { machine }.not_to raise_error
     end
 
@@ -168,6 +164,17 @@ describe type_class do
 
       it 'if current and desired are different should report change' do
         expect(machine.property(:ensure).change_to_s(:stopped, :running)).to eq('changed stopped to running')
+      end
+    end
+
+    [
+      :location,
+    ].each do |key|
+      context "when missing the #{key} property" do
+        it "should fail" do
+          config.delete(key)
+          expect { machine }.to raise_error Puppet::Error
+        end
       end
     end
   end
@@ -272,12 +279,12 @@ describe type_class do
         ensure: :present,
         name: 'disk-test',
         location: 'West US',
-        disks: {
+        disks: [{
           label: 'disk-label',
           size: 100,
           import: false,
           name: 'disk-name',
-        }
+        }],
       }
     end
 
@@ -288,7 +295,7 @@ describe type_class do
     [:label, :size].each do |key|
       it "should require disk to have a #{key} key" do
         expect do
-          config[:disks].delete(key)
+          config[:disks].first.delete(key)
           type_class.new(config)
         end.to raise_error(Puppet::Error, /for disks you are missing the following keys: #{key}/)
       end
@@ -296,14 +303,14 @@ describe type_class do
 
     it "should require disk size to be an integer" do
       expect do
-        config[:disks][:size] = 'invalid'
+        config[:disks].first[:size] = 'invalid'
         type_class.new(config)
       end.to raise_error(Puppet::Error, /size for disks should be an Integer/)
     end
 
     it 'should require disk import to be true or false if set' do
       expect do
-        config[:disks][:import] = 'invalid'
+        config[:disks].first[:import] = 'invalid'
         type_class.new(config)
       end.to raise_error(Puppet::Error, /import for disks must be true or false/)
     end
@@ -311,7 +318,7 @@ describe type_class do
     [true, false].each do |bool|
       it "should allow import to be #{bool}" do
         expect do
-          config[:disks][:import] = bool
+          config[:disks].first[:import] = bool
           type_class.new(config)
         end.to_not raise_error
       end
@@ -319,8 +326,8 @@ describe type_class do
 
     it 'when import is true should require name to be specified for disk' do
       expect do
-        config[:disks][:import] = true
-        config[:disks].delete(:name)
+        config[:disks].first[:import] = true
+        config[:disks].first.delete(:name)
         type_class.new(config)
       end.to raise_error(Puppet::Error, /if import is true a name must be provided for disks/)
     end
@@ -337,7 +344,7 @@ describe type_class do
           public_port: 996,
           local_port: 998,
           protocol: 'TCP',
-        }
+        },
       }
     end
 

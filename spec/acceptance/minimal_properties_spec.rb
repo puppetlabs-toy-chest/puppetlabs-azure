@@ -24,7 +24,7 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
 
   it_behaves_like 'an idempotent resource'
 
-  include_context 'destroys created resources after use'
+  include_context 'destroy left-over created resources after use'
 
   it 'should have the correct image' do
     expect(@machine.image).to eq(@config[:optional][:image])

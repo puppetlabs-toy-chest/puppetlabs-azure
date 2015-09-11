@@ -41,6 +41,18 @@ RSpec::Matchers.define :require_hash_for do |property|
   end
 end
 
+RSpec.shared_examples "array properties" do |properties|
+  properties.each do |property|
+    it "should require #{property} to be an Array" do
+      config = {name: 'name'}
+      config[property] = 2
+      expect do
+        type_class.new(config)
+      end.to raise_error(Puppet::Error, /#{property} should be an Array/)
+    end
+  end
+end
+
 RSpec::Matchers.define :require_integer_for do |property|
   match do |type_class|
     config = {name: 'name'}

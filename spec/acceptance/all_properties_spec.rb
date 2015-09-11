@@ -27,7 +27,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   it_behaves_like 'an idempotent resource'
 
-  include_context 'destroys created resources after use'
+  include_context 'destroy left-over created resources after use'
 
   it 'should have the correct size' do
     expect(@machine.role_size).to eq(@config[:optional][:size])
