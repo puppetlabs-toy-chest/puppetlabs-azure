@@ -2,9 +2,9 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
+  include_context 'with a known name and storage account name'
 
   before(:all) do
-    @name = "CLOUD-#{SecureRandom.hex(8)}"
     @custom_data_file = '/tmp/needle'
 
     @config = {
@@ -21,6 +21,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         data_disk_size_gb: 53,
         purge_disk_on_delete: true,
         custom_data: "touch #{@custom_data_file}",
+        storage_account: @storage_account_name,
       }
     }
     @manifest = <<PP #PuppetManifest.new(@template, @config)
@@ -37,6 +38,7 @@ azure_vm {
   data_disk_size_gb    => #{@config[:optional][:data_disk_size_gb]},
   purge_disk_on_delete => #{@config[:optional][:purge_disk_on_delete]},
   custom_data          => #{@config[:optional][:custom_data]},
+  storage_account      => '#{@config[:optional][:storage_account]}',
 }
 PP
     @result = PuppetRunProxy.execute(@manifest)
@@ -86,6 +88,11 @@ PP
       sleep 10
     end
     expect(@result.exit_status).to eq 0
+  end
+
+  it 'should be in the correct storage account' do
+    storage_account = @client.get_storage_account(@config[:optional][:storage_account])
+    expect(storage_account.label).to eq(@config[:optional][:cloud_service])
   end
 
   context 'which has read-only properties' do

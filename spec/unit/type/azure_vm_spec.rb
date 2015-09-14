@@ -11,6 +11,7 @@ describe 'azure_vm', :type => :type do
       :private_key_file,
       :purge_disk_on_delete,
       :custom_data,
+      :storage_account,
     ]
   end
 
@@ -19,7 +20,6 @@ describe 'azure_vm', :type => :type do
       :ensure,
       :image,
       :location,
-      :storage_account,
       :winrm_transport,
       :winrm_https_port,
       :winrm_http_port,

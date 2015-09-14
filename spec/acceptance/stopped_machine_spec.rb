@@ -2,10 +2,9 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a new machine in a stopped state' do
   include_context 'with certificate copied to system under test'
+  include_context 'with a known name and storage account name'
 
   before(:all) do
-    @name = "CLOUD-#{SecureRandom.hex(8)}"
-
     @config = {
       name: @name,
       ensure: 'stopped',
@@ -14,6 +13,7 @@ describe 'azure_vm when creating a new machine in a stopped state' do
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         private_key_file: @remote_private_key_path,
+        storage_account: @storage_account_name, # required in order to tidy up created storage groups
       }
     }
     @manifest = PuppetManifest.new(@template, @config)
