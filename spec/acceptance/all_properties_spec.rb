@@ -20,6 +20,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
         affinity_group: @affinity_group_name,
         availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
+        ssh_port: 2222,
       }
     }
     @manifest = PuppetManifest.new(@template, @config)
@@ -45,7 +46,7 @@ describe 'azure_vm when creating a machine with all available properties' do
   end
 
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password')
+    result = run_command_over_ssh('true', 'password', @config[:optional][:ssh_port])
     expect(result.exit_status).to eq 0
   end
 
@@ -57,6 +58,11 @@ describe 'azure_vm when creating a machine with all available properties' do
     affinity_group = @client.get_affinity_group(@affinity_group_name)
     associated_services = affinity_group.hosted_services.map { |service| service[:service_name] }
     expect(associated_services).to include(@machine.cloud_service_name)
+  end
+
+  it 'should have the correct SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
+    expect(ssh_endpoint[:public_port].to_i).to eq(@config[:optional][:ssh_port])
   end
 
   context 'which has read-only properties' do

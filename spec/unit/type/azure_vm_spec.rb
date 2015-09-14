@@ -10,6 +10,10 @@ describe type_class do
       :password,
       :private_key_file,
       :affinity_group,
+      :winrm_transport,
+      :winrm_https_port,
+      :winrm_http_port,
+      :ssh_port,
     ]
   end
 
@@ -19,12 +23,8 @@ describe type_class do
       :image,
       :location,
       :storage_account,
-      :winrm_transport,
-      :winrm_https_port,
-      :winrm_http_port,
       :cloud_service,
       :deployment,
-      :ssh_port,
       :size,
       :virtual_network,
       :subnet,
