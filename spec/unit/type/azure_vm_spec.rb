@@ -9,6 +9,7 @@ describe type_class do
       :user,
       :password,
       :private_key_file,
+      :storage_account,
     ]
   end
 
@@ -17,7 +18,6 @@ describe type_class do
       :ensure,
       :image,
       :location,
-      :storage_account,
       :winrm_transport,
       :winrm_https_port,
       :winrm_http_port,

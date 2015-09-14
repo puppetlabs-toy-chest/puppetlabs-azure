@@ -74,6 +74,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       private_key_file: resource[:private_key_file],
       deployment_name: resource[:deployment],
       cloud_service_name: resource[:cloud_service],
+      storage_account_name: resource[:storage_account],
     }
     create_vm(params)
   end

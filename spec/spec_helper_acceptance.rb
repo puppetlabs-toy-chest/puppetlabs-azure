@@ -112,6 +112,7 @@ class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
     @azure_cloud_service = Azure.cloud_service_management
+    @azure_cloud_storage = Azure.storage_management
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
@@ -125,6 +126,14 @@ class AzureHelper
 
   def get_cloud_service(machine)
     @azure_cloud_service.get_cloud_service(machine.cloud_service_name)
+  end
+
+  def get_storage_account(name)
+    @azure_cloud_storage.get_storage_account(name)
+  end
+
+  def destroy_storage_account(name)
+    @azure_cloud_storage.delete_storage_account(name)
   end
 end
 
