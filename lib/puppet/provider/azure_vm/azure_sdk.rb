@@ -99,6 +99,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       cloud_service_name: resource[:cloud_service],
       data_disk_size_gb: resource[:data_disk_size_gb],
       custom_data: custom_data,
+      storage_account_name: resource[:storage_account],
     }
     create_vm(params)
   end

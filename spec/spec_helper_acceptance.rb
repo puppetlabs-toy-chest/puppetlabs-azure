@@ -146,6 +146,10 @@ class AzureHelper
       @azure_disk.delete_virtual_machine_disk(name)
     end
   end
+
+  def destroy_storage_account(name)
+    @azure_storage.delete_storage_account(name)
+  end
 end
 
 # This is a prototype to emulate a "local" hypervisor in beaker, and at the same time

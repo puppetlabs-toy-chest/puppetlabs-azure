@@ -206,7 +206,9 @@ Path to the private key file for accessing a Linux guest as the above
 user.
 
 #####`storage_account`
-The storage account to associate the virtual machine with.
+The name of the storage account to create for the virtual machine.
+Note that if the source image is a 'user' image, the storage account
+for the user image is used instead of the one provided here.
 
 #####`winrm_transport`
 A list of transport protocols for WINRM.
