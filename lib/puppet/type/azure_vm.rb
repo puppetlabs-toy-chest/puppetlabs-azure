@@ -180,6 +180,10 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The name of the reserved IP to associate with the virtual machine.'
   end
 
+  newparam(:custom_data, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'A script to be executed on launch by Cloud-Init. Linux guests only.'
+  end
+
   # Could also be represented by a separate type. Best approach still to be determined.
   # disks => [{
   #  'label'  => 'disk-label',

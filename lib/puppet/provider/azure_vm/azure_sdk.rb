@@ -1,3 +1,5 @@
+require 'base64'
+
 require 'puppet_x/puppetlabs/azure/prefetch_error'
 require 'puppet_x/puppetlabs/azure/provider'
 
@@ -64,6 +66,14 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   def create # rubocop:disable Metrics/AbcSize
     Puppet.info("Creating #{name}")
+    custom_data = unless resource[:custom_data].nil?
+      # Azure won't execute scripts without providing a shebang line. Puppet will allow multi-line strings
+      # to be passed to properties, but it's purely formatting so the linebreaks don't come through in
+      # the resource hash. This data munging allows for simple one liners to be encoded in Puppet
+      # without the use of a template.
+      data = resource[:custom_data].include?("\n") ? resource[:custom_data] : "#!/bin/bash\n#{resource[:custom_data]}"
+      Base64.encode64(data)
+    end
     params = {
       vm_name: name,
       image: resource[:image],
@@ -74,6 +84,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       private_key_file: resource[:private_key_file],
       deployment_name: resource[:deployment],
       cloud_service_name: resource[:cloud_service],
+      custom_data: custom_data,
     }
     create_vm(params)
   end

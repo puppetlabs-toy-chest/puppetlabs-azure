@@ -9,6 +9,7 @@ describe type_class do
       :user,
       :password,
       :private_key_file,
+      :custom_data,
     ]
   end
 
@@ -81,6 +82,7 @@ describe type_class do
     'subnet',
     'availability_set',
     'reserved_ip',
+    'custom_data',
   ].each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)

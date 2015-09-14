@@ -5,6 +5,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   before(:all) do
     @name = "CLOUD-#{SecureRandom.hex(8)}"
+    @custom_data_file = '/tmp/needle'
 
     @config = {
       name: @name,
@@ -17,6 +18,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         size: 'Medium',
         deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
+        custom_data: "touch #{@custom_data_file}",
       }
     }
     @manifest = PuppetManifest.new(@template, @config)
@@ -43,6 +45,11 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   it 'is accessible using the password' do
     result = run_command_over_ssh('true', 'password')
+    expect(result.exit_status).to eq 0
+  end
+
+  it 'should have run the custom data script' do
+    result = run_command_over_ssh("test -f #{@custom_data_file}", 'password')
     expect(result.exit_status).to eq 0
   end
 

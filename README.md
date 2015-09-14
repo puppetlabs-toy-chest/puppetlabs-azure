@@ -246,6 +246,12 @@ The availability set for the virtual machine.
 #####`reserved_ip`
 The name of the reserved IP to associate with the virtual machine.
 
+#####`custom_data`
+A script to be executed on launch by cloud-init on Linux hosts. This can
+either be a single-line command (for example `touch /tmp/some-file`) which
+will be run under bash, or a multi-line file (for instance from a
+template) which can be any format supported by cloud-init.
+
 #####`disks`
 A list of disks which should be attached to the virtual machine.
 
