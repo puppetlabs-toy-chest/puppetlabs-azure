@@ -253,6 +253,12 @@ can only grow. If this value is not set, puppet will not touch the data disks fo
 #####`purge_disk_on_delete`
 Whether or not the attached data disk should be deleted when the VM is deleted. Defaults to false.
 
+#####`custom_data`
+A script to be executed on launch by cloud-init on Linux hosts. This can
+either be a single-line command (for example `touch /tmp/some-file`) which
+will be run under bash, or a multi-line file (for instance from a
+template) which can be any format supported by cloud-init.
+
 #####`endpoints`
 A list of endpoints which should be associated with the virtual machine.
 

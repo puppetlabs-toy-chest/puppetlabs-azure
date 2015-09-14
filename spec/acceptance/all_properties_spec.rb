@@ -5,6 +5,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   before(:all) do
     @name = "CLOUD-#{SecureRandom.hex(8)}"
+    @custom_data_file = '/tmp/needle'
 
     @config = {
       name: @name,
@@ -19,6 +20,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
         data_disk_size_gb: 53,
         purge_disk_on_delete: true,
+        custom_data: "touch #{@custom_data_file}",
       }
     }
     @manifest = <<PP #PuppetManifest.new(@template, @config)
@@ -34,6 +36,7 @@ azure_vm {
   cloud_service        => '#{@config[:optional][:cloud_service]}',
   data_disk_size_gb    => #{@config[:optional][:data_disk_size_gb]},
   purge_disk_on_delete => #{@config[:optional][:purge_disk_on_delete]},
+  custom_data          => #{@config[:optional][:custom_data]},
 }
 PP
     @result = PuppetRunProxy.execute(@manifest)
@@ -73,6 +76,17 @@ PP
   end
 
   pending 'should be able to grow the disk on the fly'
+
+  it 'should have run the custom data script' do
+    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
+    # so we retry this a few times
+    5.times do
+      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', @config[:optional][:ssh_port])
+      break if @result.exit_status == 0
+      sleep 10
+    end
+    expect(@result.exit_status).to eq 0
+  end
 
   context 'which has read-only properties' do
     read_only = [
