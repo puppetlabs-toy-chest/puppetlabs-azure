@@ -38,6 +38,11 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
     expect(@client.get_cloud_service(@machine).location).to eq (@config[:optional][:location])
   end
 
+  it 'should have the default SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
+    expect(ssh_endpoint[:public_port]).to eq('22')
+  end
+
   it 'is accessible using the private key' do
     result = run_command_over_ssh('true', 'publickey')
     expect(result.exit_status).to eq 0

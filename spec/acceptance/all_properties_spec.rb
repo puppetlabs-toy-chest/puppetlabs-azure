@@ -24,6 +24,9 @@ describe 'azure_vm when creating a machine with all available properties' do
         storage_account: @storage_account_name,
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
+        affinity_group: @affinity_group_name,
+        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
+        ssh_port: 2222,
       }
     }
     @manifest = <<PP #PuppetManifest.new(@template, @config)
@@ -43,6 +46,9 @@ azure_vm {
   storage_account      => '#{@config[:optional][:storage_account]}',
   virtual_network      => '#{@config[:optional][:virtual_network]}',
   subnet               => '#{@config[:optional][:subnet]}',
+  affinity_group       => '#{@config[:optional][:affinity_group]}',
+  availability_set     => '#{@config[:optional][:availability_set]}',
+  ssh_port             => '#{@config[:optional][:ssh_port]}',
 }
 PP
     @result = PuppetRunProxy.execute(@manifest)
@@ -85,7 +91,7 @@ PP
   end
 
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password')
+    result = run_command_over_ssh('true', 'password', @config[:optional][:ssh_port])
     expect(result.exit_status).to eq 0
   end
 
@@ -105,6 +111,11 @@ PP
   it 'should be in the correct storage account' do
     storage_account = @client.get_storage_account(@config[:optional][:storage_account])
     expect(storage_account.label).to eq(@config[:optional][:cloud_service])
+  end
+
+  it 'should have the correct SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
+    expect(ssh_endpoint[:public_port].to_i).to eq(@config[:optional][:ssh_port])
   end
 
   context 'which has read-only properties' do

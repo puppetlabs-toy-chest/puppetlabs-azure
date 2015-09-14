@@ -54,11 +54,12 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     cloud_service = get_cloud_service(machine.cloud_service_name)
+    location = cloud_service.location || cloud_service.extended_properties["ResourceLocation"]
     {
       name: machine.vm_name,
       image: machine.image,
       ensure: ensure_from(machine.status),
-      location: cloud_service.location,
+      location: location,
       deployment: machine.deployment_name,
       cloud_service: machine.cloud_service_name,
       os_type: machine.os_type,
@@ -105,6 +106,12 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       storage_account_name: resource[:storage_account],
       subnet_name: resource[:subnet],
       reserved_ip_name: resource[:reserved_ip],
+      availability_set_name: resource[:availability_set],
+      affinity_group_name: resource[:affinity_group],
+      winrm_https_port: resource[:winrm_https_port],
+      winrm_http_port: resource[:winrm_http_port],
+      winrm_transport: resource[:winrm_transport],
+      ssh_port: resource[:ssh_port],
     }
     create_vm(params)
   end
