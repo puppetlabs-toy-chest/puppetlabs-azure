@@ -18,10 +18,10 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #   ssh_port              => 2222,
 #   size                  => 'Small',
 #   affinity_group_name   => 'affinity1',
-#   virtual_network_name  => 'xplattestvnet',
-#   subnet_name           => 'subnet1',
+#   virtual_network       => 'xplattestvnet',
+#   subnet                => 'subnet1',
 #   availability_set_name => 'availabiltyset1',
-#   reserved_ip_name      => 'reservedipname'
+#   reserved_ip           => 'reservedipname'
 #   endpoints             => [{
 #     :name        => 'ep-1',
 #     :public_port => 996,
@@ -49,6 +49,9 @@ Puppet::Type.newtype(:azure_vm) do
   validate do
     if self[:password] and self[:private_key_file]
       fail 'You can only provide either a password or a private_key_file for an Azure VM'
+    end
+    if self[:subnet] and !self[:virtual_network]
+      fail 'When specifying a subnet you must also specify a virtual network'
     end
     required_properties = [
       'location'
@@ -176,7 +179,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The availability set for the virtual machine.'
   end
 
-  newproperty(:reserved_ip, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:reserved_ip, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the reserved IP to associate with the virtual machine.'
   end
 

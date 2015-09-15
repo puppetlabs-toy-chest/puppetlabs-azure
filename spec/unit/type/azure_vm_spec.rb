@@ -9,6 +9,7 @@ describe type_class do
       :user,
       :password,
       :private_key_file,
+      :reserved_ip,
     ]
   end
 
@@ -29,7 +30,6 @@ describe type_class do
       :virtual_network,
       :subnet,
       :availability_set,
-      :reserved_ip,
       :disks,
       :endpoints,
     ]
@@ -62,7 +62,6 @@ describe type_class do
       type_class.new({})
     end.to raise_error(Puppet::Error, 'Title or name must be provided')
   end
-
 
   [
     'name',
@@ -221,13 +220,43 @@ describe type_class do
     end
   end
 
-
   context 'with a location' do
     let :config do
       {
         ensure: :present,
         name: 'disk-test',
         location: 'West US',
+      }
+    end
+
+    it 'should be valid' do
+      expect { type_class.new(config) }.to_not raise_error
+    end
+  end
+
+  context 'with a subnet but without a virtual network' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'West US',
+        subnet: 'subnet-name',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+    end
+  end
+
+  context 'with a subnet and a virtual network' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'West US',
+        subnet: 'subnet-name',
+        virtual_network: 'network-name',
       }
     end
 
