@@ -8,7 +8,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
-  read_only(:location, :deployment, :image, :cloud_service, :size)
+  read_only(:location, :deployment, :image, :cloud_service, :size, :virtual_network, :subnet, :reserved_ip)
 
   def self.instances
     begin
@@ -32,7 +32,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
     end
   end
 
-  def self.machine_to_hash(machine)
+  def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     status = case machine.status
              when 'StoppedDeallocated', 'Stopped'
                :stopped
@@ -52,6 +52,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       hostname: machine.hostname,
       media_link: machine.media_link,
       size: machine.role_size,
+      virtual_network: machine.virtual_network_name,
+      subnet: machine.subnet,
       cloud_service_object: cloud_service,
       object: machine,
     }
@@ -73,7 +75,10 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       password: resource[:password],
       private_key_file: resource[:private_key_file],
       deployment_name: resource[:deployment],
+      virtual_network_name: resource[:virtual_network],
       cloud_service_name: resource[:cloud_service],
+      subnet_name: resource[:subnet],
+      reserved_ip_name: resource[:reserved_ip],
     }
     create_vm(params)
   end
