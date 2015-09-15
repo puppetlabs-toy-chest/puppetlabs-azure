@@ -12,6 +12,7 @@ describe 'azure_vm', :type => :type do
       :purge_disk_on_delete,
       :custom_data,
       :storage_account,
+      :reserved_ip,
     ]
   end
 
@@ -31,7 +32,6 @@ describe 'azure_vm', :type => :type do
       :virtual_network,
       :subnet,
       :availability_set,
-      :reserved_ip,
       :data_disk_size_gb,
       :endpoints,
     ]
@@ -67,7 +67,6 @@ describe 'azure_vm', :type => :type do
       type_class.new({})
     end.to raise_error(Puppet::Error, 'Title or name must be provided')
   end
-
 
   [
     'name',
@@ -245,13 +244,43 @@ describe 'azure_vm', :type => :type do
     end
   end
 
-
   context 'with a location' do
     let :config do
       {
         ensure: :present,
         name: 'disk-test',
         location: 'West US',
+      }
+    end
+
+    it 'should be valid' do
+      expect { type_class.new(config) }.to_not raise_error
+    end
+  end
+
+  context 'with a subnet but without a virtual network' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'West US',
+        subnet: 'subnet-name',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+    end
+  end
+
+  context 'with a subnet and a virtual network' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'West US',
+        subnet: 'subnet-name',
+        virtual_network: 'network-name',
       }
     end
 
