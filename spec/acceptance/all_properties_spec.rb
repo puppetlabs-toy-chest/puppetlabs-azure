@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'azure_vm when creating a machine with all available properties' do
+describe 'azure_vm_classic when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
   include_context 'with a known name and storage account name'
   include_context 'with known network'

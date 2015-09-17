@@ -1,6 +1,6 @@
 shared_context 'a puppet resource run' do
   before(:all) do
-    @result = PuppetRunProxy.resource('azure_vm', {:name => @name})
+    @result = PuppetRunProxy.resource('azure_vm_classic', {:name => @name})
   end
 
   it 'should not return an error' do

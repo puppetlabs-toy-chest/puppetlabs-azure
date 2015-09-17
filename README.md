@@ -70,28 +70,46 @@ data:    Pay-As-You-Go           xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx  undefine
 info:    account list command OK
 ~~~
 
+For using the Resource Manager API instead you require a service
+principal on the Active Directory. The [official documentation covers creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
+
 ### Installing the Azure module
 
 1. Install the required gems with this command:
 
    ~~~
    /opt/puppet/bin/gem install azure hocon retries --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network hocon retries --no-ri --no-rdoc
    ~~~
 
    If you are running Puppet Enterprise 2015.2.0 you need to use the
 updated path:
 
    ~~~
-   /opt/puppetlabs/puppet/bin/gem install azure hocon retries --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network  hocon retries --no-ri --no-rdoc
    ~~~
 
 2. Set the following environment variables specific to your Azure
    installation:
 
+   For using the Classic API you need to provide:
+
    ~~~
    export AZURE_MANAGEMENT_CERTIFICATE='/path/to/pem/file'
    export AZURE_SUBSCRIPTION_ID='your-subscription-id'
    ~~~
+
+   For using the Resource Management API you need to provide:
+
+   ~~~
+   export AZURE_SUBSCRIPTION_ID='your-subscription-id'
+   export AZURE_TENANT_ID='your-tenant-id'
+   export AZURE_CLIENT_ID='your-client-id'
+   export AZURE_CLIENT_SECRET='your-client-secret'
+   ~~~
+
+   Note that you can provide all of the above credentials if you are
+   working with both Resource Manager and Classic virtual machines.
 
    Alternatively, you can provide the information in a configuration file. Store this as azure.conf in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html). This should be:
 
@@ -105,6 +123,17 @@ updated path:
    azure: {
      subscription_id: "your-subscription-id"
      management_certificate: "/path/to/pem/file"
+   }
+   ~~~
+
+   Or with the Resource Management API:
+
+   ~~~
+   azure: {
+     subscription_id: "your-subscription-id"
+     tenant_id: 'your-tenant-id'
+     client_id: 'your-client-id'
+     client_secret: 'your-client-secret'
    }
    ~~~
 
@@ -122,7 +151,7 @@ updated path:
 You can create Azure Virtual Machines using the following:
 
 ~~~
-azure_vm { 'virtual-machine-name':
+azure_vm_classic { 'virtual-machine-name':
   ensure           => present,
   image            => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
   location         => 'West US',
@@ -136,14 +165,14 @@ In addition to describing new machines using the DSL the module also supports
 listing and managing machines via `puppet resource`:
 
 ~~~
-puppet resource azure_vm
+puppet resource azure_vm_classic
 ~~~
 
 Note that this will output some information about the machines in your
 account:
 
 ~~~
-azure_vm { 'virtual-machine-name':
+azure_vm_classic { 'virtual-machine-name':
   ensure        => 'present',
   cloud_service => 'cloud-service-uptjy',
   deployment    => 'cloud-service-uptjy',
@@ -162,11 +191,11 @@ azure_vm { 'virtual-machine-name':
 
 ###Types
 
-* `azure_vm`: Manages a virtual machine in Microsoft Azure.
+* `azure_vm_classic`: Manages a virtual machine in Microsoft Azure.
 
 ###Parameters
 
-####Type: azure_vm
+####Type: azure_vm_classic
 
 #####`ensure`
 Specifies the basic state of the virtual machine. Valid values are 'present',

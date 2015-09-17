@@ -1,4 +1,5 @@
 require 'stringio'
+require 'puppet_x/puppetlabs/azure/config'
 
 require 'puppet_x/puppetlabs/azure/not_finished'
 
@@ -47,6 +48,36 @@ module PuppetX
               fail "#{method} property is read-only once #{resource.type} created."
             end
           end
+        end
+
+        def self.config
+          PuppetX::Puppetlabs::Azure::Config.new
+        end
+
+        def self.arm_credentials
+          token_provider = ::MsRestAzure::ApplicationTokenProvider.new(config.tenant_id, config.client_id, config.client_secret)
+          ::MsRest::TokenCredentials.new(token_provider)
+        end
+
+        def self.with_subscription_id(client)
+          client.subscription_id = config.subscription_id
+          client
+        end
+
+        def self.arm_compute_client
+          @arm_compute_client ||= with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(arm_credentials)
+        end
+
+        def self.arm_network_client
+          @arm_network_client ||= with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(arm_credentials)
+        end
+
+        def self.arm_storage_client
+         @arm_storage_client ||= with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(arm_credentials)
+        end
+
+        def self.arm_resource_client
+          @arm_resource_client ||= with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(arm_credentials)
         end
 
         def self.vm_manager

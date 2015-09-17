@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'azure_vm when providing an invalid image' do
+describe 'azure_vm_classic when providing an invalid image' do
   include_context 'with certificate copied to system under test'
 
   before(:all) do

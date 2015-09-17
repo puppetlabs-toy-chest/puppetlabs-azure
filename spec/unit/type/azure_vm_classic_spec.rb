@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe 'azure_vm', :type => :type do
-  let(:type_class) { Puppet::Type.type(:azure_vm) }
+describe 'azure_vm_classic', :type => :type do
+  let(:type_class) { Puppet::Type.type(:azure_vm_classic) }
 
   let :params do
     [

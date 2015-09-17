@@ -7,14 +7,14 @@ module PuppetX
           envs: ['AZURE_MANAGEMENT_CERTIFICATE', 'AZURE_SUBSCRIPTION_ID'],
         }
 
-        attr_reader :subscription_id, :management_certificate
+        attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret
 
         def default_config_file
           Puppet.initialize_settings unless Puppet[:confdir]
           File.join(Puppet[:confdir], 'azure.conf')
         end
 
-        def initialize(config_file=nil)
+        def initialize(config_file=nil) # rubocop:disable Metrics/AbcSize
           settings = process_environment_variables || process_config_file(config_file || default_config_file)
           if settings.nil?
             raise Puppet::Error, 'You must provide credentials in either environment variables or a config file.'
@@ -23,6 +23,9 @@ module PuppetX
             check_settings(settings)
             @subscription_id = settings[:subscription_id]
             @management_certificate = settings[:management_certificate]
+            @tenant_id = settings[:tenant_id]
+            @client_id = settings[:client_id]
+            @client_secret = settings[:client_secret]
           end
         end
 
@@ -44,6 +47,9 @@ module PuppetX
             {
               subscription_id: azure_config['subscription_id'],
               management_certificate: azure_config['management_certificate'],
+              tenant_id: azure_config['tenant_id'],
+              client_id: azure_config['client_id'],
+              client_secret: azure_config['client_secret'],
             }
           end
         end
@@ -68,6 +74,9 @@ module PuppetX
             {
               subscription_id: ENV['AZURE_SUBSCRIPTION_ID'],
               management_certificate: ENV['AZURE_MANAGEMENT_CERTIFICATE'],
+              tenant_id: ENV['AZURE_TENANT_ID'],
+              client_id: ENV['AZURE_CLIENT_ID'],
+              client_secret: ENV['AZURE_CLIENT_SECRET'],
             }
           end
         end

@@ -4,7 +4,7 @@ require_relative '../../puppet_x/puppetlabs/azure/property/read_only'
 require_relative '../../puppet_x/puppetlabs/azure/property/positive_integer'
 require_relative '../../puppet_x/puppetlabs/azure/property/string'
 
-# azure_vm { 'sample':
+# azure_vm_classic { 'sample':
 #   user             => 'azureuser',
 #   image            => '5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-63APR20130415',
 #   password         => 'Password',
@@ -41,7 +41,7 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #   purge_disk_on_delete => false,
 # }
 
-Puppet::Type.newtype(:azure_vm) do
+Puppet::Type.newtype(:azure_vm_classic) do
   @doc = 'Type representing a virtual machine in Microsoft Azure.'
 
   validate do
