@@ -222,6 +222,23 @@ describe 'azure_vm', :type => :type do
     end
   end
 
+  context 'with a virtual_network and an affinity group' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'image-test',
+        location: 'West US',
+        affinity_group: 'real-affinity-set',
+        virtual_network: 'real-network',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You can only provide either a virtual_network or an affinity_group for an Azure VM/)
+    end
+  end
+
+
   context 'with a image specified' do
     let :config do
       {

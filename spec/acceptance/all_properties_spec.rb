@@ -4,7 +4,6 @@ describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
   include_context 'with a known name and storage account name'
   include_context 'with known network'
-  include_context 'with temporary affinity group'
 
   before(:all) do
     @custom_data_file = '/tmp/needle'
@@ -26,7 +25,6 @@ describe 'azure_vm when creating a machine with all available properties' do
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
         ssh_port: 2222,
-        affinity_group: @affinity_group_name,
         availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
       }
     }
@@ -101,12 +99,6 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   it 'should have the correct availability set' do
     expect(@machine.availability_set_name).to eq(@config[:optional][:availability_set])
-  end
-
-  it 'should be in the correct affinity group' do
-    affinity_group = @client.get_affinity_group(@affinity_group_name)
-    associated_services = affinity_group.hosted_services.map { |service| service[:service_name] }
-    expect(associated_services).to include(@machine.cloud_service_name)
   end
 
   context 'which has read-only properties' do
