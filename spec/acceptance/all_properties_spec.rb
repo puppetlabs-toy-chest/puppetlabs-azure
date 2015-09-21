@@ -2,10 +2,9 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
+  include_context 'with a known name and storage account name'
 
   before(:all) do
-    @name = "CLOUD-#{SecureRandom.hex(8)}"
-
     @config = {
       name: @name,
       ensure: 'present',
@@ -17,6 +16,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         size: 'Medium',
         deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
+        storage_account: @storage_account_name,
       }
     }
     @manifest = PuppetManifest.new(@template, @config)
@@ -44,6 +44,11 @@ describe 'azure_vm when creating a machine with all available properties' do
   it 'is accessible using the password' do
     result = run_command_over_ssh('true', 'password')
     expect(result.exit_status).to eq 0
+  end
+
+  it 'should be in the correct storage account' do
+    storage_account = @client.get_storage_account(@config[:optional][:storage_account])
+    expect(storage_account.label).to eq(@config[:optional][:cloud_service])
   end
 
   context 'which has read-only properties' do

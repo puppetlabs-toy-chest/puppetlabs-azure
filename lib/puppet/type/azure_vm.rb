@@ -128,8 +128,8 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  newproperty(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The storage account to associate the virtual machine with.'
+  newparam(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The storage account to create for the virtual machine.'
   end
 
   newproperty(:winrm_transport, :parent => PuppetX::PuppetLabs::Azure::Property::String, :array_matching => :all) do
