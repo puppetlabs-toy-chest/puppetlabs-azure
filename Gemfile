@@ -2,6 +2,7 @@ source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
 gem 'azure', '~> 0.7.0'
 gem 'hocon'
+gem 'retries'
 
 group :test do
   gem 'rake'
@@ -27,7 +28,6 @@ end
 group :acceptance do
   gem 'mustache'
   gem 'ssh-exec'
-  gem 'retries'
   gem "beaker-puppet_install_helper", :require => false
   gem 'beaker', '~> 2.0'
   gem 'master_manipulator', '~> 1.0'

@@ -17,17 +17,33 @@ describe 'azure_vm when creating a machine with all available properties' do
         size: 'Medium',
         deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
+        data_disk_size_gb: 53,
+        purge_disk_on_delete: true,
       }
     }
-    @manifest = PuppetManifest.new(@template, @config)
-    @result = @manifest.execute
+    @manifest = <<PP #PuppetManifest.new(@template, @config)
+azure_vm {
+'#{@name}':
+  ensure    => present,
+  image     => '#{@config[:optional][:image]}',
+  location  => '#{@config[:optional][:location]}',
+  user      => '#{@config[:optional][:user]}',
+  password  => '#{@config[:optional][:password]}',
+  size      => '#{@config[:optional][:size]}',
+  deployment           => '#{@config[:optional][:deployment]}',
+  cloud_service        => '#{@config[:optional][:cloud_service]}',
+  data_disk_size_gb    => #{@config[:optional][:data_disk_size_gb]},
+  purge_disk_on_delete => #{@config[:optional][:purge_disk_on_delete]},
+}
+PP
+    @result = PuppetRunProxy.execute(@manifest)
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress
   end
 
   it_behaves_like 'an idempotent resource'
 
-  include_context 'destroys created resources after use'
+  include_context 'destroy left-over created resources after use'
 
   it 'should have the correct size' do
     expect(@machine.role_size).to eq(@config[:optional][:size])
@@ -41,10 +57,22 @@ describe 'azure_vm when creating a machine with all available properties' do
     expect(@machine.cloud_service_name).to eq(@config[:optional][:cloud_service])
   end
 
+  describe 'the data disk' do
+    it 'should be attached' do
+      expect(@machine.data_disks.count).to eq 1
+    end
+
+    it 'should have the correct size' do
+      expect(@machine.data_disks.first[:size_in_gb].to_i).to eq @config[:optional][:data_disk_size_gb]
+    end
+  end
+
   it 'is accessible using the password' do
     result = run_command_over_ssh('true', 'password')
     expect(result.exit_status).to eq 0
   end
+
+  pending 'should be able to grow the disk on the fly'
 
   context 'which has read-only properties' do
     read_only = [
@@ -70,4 +98,6 @@ describe 'azure_vm when creating a machine with all available properties' do
     puppet_resource_should_show('deployment')
     puppet_resource_should_show('cloud_service')
   end
+
+  it_behaves_like 'a removable resource'
 end

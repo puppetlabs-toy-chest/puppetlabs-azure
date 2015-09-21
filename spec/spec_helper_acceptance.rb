@@ -6,9 +6,13 @@ require 'beaker'
 require 'net/ssh'
 require 'ssh-exec'
 require 'retries'
+require 'shellwords'
 
 # automatically load any shared examples or contexts
-Dir["./spec/support/**/*.rb"].sort.each { |f| require f}
+Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
+
+# Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
+require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
@@ -112,6 +116,8 @@ class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
     @azure_cloud_service = Azure.cloud_service_management
+    @azure_storage = Azure.storage_management
+    @azure_disk = Azure.vm_disk_management
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
@@ -125,6 +131,20 @@ class AzureHelper
 
   def get_cloud_service(machine)
     @azure_cloud_service.get_cloud_service(machine.cloud_service_name)
+  end
+
+  def get_storage_account(name)
+    @azure_storage.get_storage_account(name)
+  end
+
+  def get_disk(name)
+    @azure_disk.get_virtual_machine_disk(name)
+  end
+
+  def destroy_disk(name)
+    if @azure_disk.get_virtual_machine_disk(name)
+      @azure_disk.delete_virtual_machine_disk(name)
+    end
   end
 end
 
@@ -174,7 +194,7 @@ class LocalRunner
   end
 
   def execute(manifest)
-    cmd = "bundle exec puppet apply --detailed-exitcodes -e \"#{manifest.delete("\n")}\" --modulepath ../ --debug --trace"
+    cmd = "bundle exec puppet apply --detailed-exitcodes -e #{manifest.delete("\n").shellescape} --modulepath ../ --debug --trace"
     use_local_shell(cmd)
   end
 

@@ -1,3 +1,5 @@
+require 'puppet/parameter/boolean'
+
 require_relative '../../puppet_x/puppetlabs/azure/property/read_only'
 require_relative '../../puppet_x/puppetlabs/azure/property/positive_integer'
 require_relative '../../puppet_x/puppetlabs/azure/property/string'
@@ -35,12 +37,8 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #     :load_balancer_name => 'lb-ep2',
 #     :load_balancer      => {:protocol => 'http', :path => 'hello'},
 #   }],
-#    disks                => [{
-#     'label'  => 'disk-label',
-#     'size'   => 100, #In GB
-#     'import' => false,
-#     'name'   => 'Disk name', #Required when import is true
-#   }],
+#   data_disk_size_gb     => '100',
+#   purge_disk_on_delete  => false,
 # }
 
 Puppet::Type.newtype(:azure_vm) do
@@ -51,11 +49,11 @@ Puppet::Type.newtype(:azure_vm) do
       fail 'You can only provide either a password or a private_key_file for an Azure VM'
     end
     required_properties = [
-      'location'
+      :location,
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
-      if self[property.to_sym].nil? and self.provider.send(property.to_sym) == :absent
+      if self[property].nil? and self.provider.send(property) == :absent
         fail "You must provide a #{property}"
       end
     end
@@ -180,37 +178,13 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The name of the reserved IP to associate with the virtual machine.'
   end
 
-  # Could also be represented by a separate type. Best approach still to be determined.
-  # disks => [{
-  #  'label'  => 'disk-label',
-  #  'size'   => 100,
-  #  'import' => false,
-  #  'name'   => 'Disk name', #Required when import is true
-  # }],
-  newproperty(:disks, :array_matching => :all) do
-    desc 'A list of disks which should be attached to the virtual machine.'
-    validate do |value|
-      fail 'disks should be a Hash' unless value.is_a? Hash
-      stringified_value = Hash.new
-      value.each{|k,v| stringified_value[k.to_s] = v}
-      required = ['label', 'size']
-      missing = required - stringified_value.keys.map(&:to_s)
-      unless missing.empty?
-        fail "for disks you are missing the following keys: #{missing.join(',')}"
-      end
-      ['label', 'name'].each do |key|
-        if stringified_value[key]
-          fail "#{key} for disks should be a String" unless stringified_value[key].is_a? String
-        end
-      end
-      fail 'size for disks should be an Integer' unless stringified_value['size'].to_i.to_s == stringified_value['size'].to_s
-      if stringified_value.keys.include? 'import'
-        fail 'import for disks must be true or false' unless stringified_value['import'].to_s =~ /^true|false$/
-        if stringified_value['import'].to_s == 'true'
-          fail 'if import is true a name must be provided for disks' unless stringified_value.keys.include?('name')
-        end
-      end
-    end
+  newproperty(:data_disk_size_gb, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
+    desc 'The size of the data disk for this virtual machine, specified in gigabytes.'
+  end
+
+  newparam(:purge_disk_on_delete, :parent => Puppet::Parameter::Boolean) do
+    desc 'Whether or not the attached data disk should be deleted when the VM is deleted.'
+    defaultto false
   end
 
   # Could also be represented by a separate type. Best approach still to be determined.
@@ -230,7 +204,7 @@ Puppet::Type.newtype(:azure_vm) do
   newproperty(:endpoints, :array_matching => :all) do
     desc 'A list of endpoints which should be associated with the virtual machine.'
     validate do |value|
-      fail 'endpoints should be a Hash' unless value.is_a? Hash
+      fail "endpoints should be an Array of Hashes, but contains a #{value.class}" unless value.is_a? Hash
       stringified_value = Hash.new
       value.each{|k,v| stringified_value[k.to_s] = v}
       required = ['name', 'public_port', 'local_port', 'protocol']

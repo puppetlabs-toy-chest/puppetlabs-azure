@@ -24,7 +24,7 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
 
   it_behaves_like 'an idempotent resource'
 
-  include_context 'destroys created resources after use'
+  include_context 'destroy left-over created resources after use'
 
   it 'should have the correct image' do
     expect(@machine.image).to eq(@config[:optional][:image])
@@ -47,6 +47,16 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
     result = run_command_over_ssh('sudo true', 'publickey')
     expect(result.exit_status).to eq 0
   end
+
+  # this primarily tests that the image we use for testing does not add its own data disks,
+  # which could confuse the other tests for data_disk_size_gb
+  describe 'the image' do
+    it 'has no data disk' do
+      expect(@machine.data_disks).to be_empty
+    end
+  end
+
+  pending 'should be able to attach a disk on the fly'
 
   context 'stopping the machine' do
     before(:all) do
@@ -91,4 +101,6 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
     puppet_resource_should_show('ipaddress')
     puppet_resource_should_show('media_link')
   end
+
+  it_behaves_like 'a removable resource'
 end

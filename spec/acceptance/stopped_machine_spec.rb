@@ -23,7 +23,7 @@ describe 'azure_vm when creating a new machine in a stopped state' do
 
   it_behaves_like 'an idempotent resource'
 
-  include_context 'destroys created resources after use'
+  include_context 'destroy left-over created resources after use'
 
   it 'should be stopped' do
     expect(@machine.status).to eq('StoppedDeallocated')

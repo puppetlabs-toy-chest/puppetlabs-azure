@@ -75,14 +75,14 @@ info:    account list command OK
 1. Install the required gems with this command:
 
    ~~~
-   /opt/puppet/bin/gem install azure hocon --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure hocon retries --no-ri --no-rdoc
    ~~~
 
    If you are running Puppet Enterprise 2015.2.0 you need to use the
 updated path:
 
    ~~~
-   /opt/puppetlabs/puppet/bin/gem install azure hocon --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure hocon retries --no-ri --no-rdoc
    ~~~
 
 2. Set the following environment variables specific to your Azure
@@ -246,8 +246,12 @@ The availability set for the virtual machine.
 #####`reserved_ip`
 The name of the reserved IP to associate with the virtual machine.
 
-#####`disks`
-A list of disks which should be attached to the virtual machine.
+#####`data_disk_size_gb`
+The size of the data disk for this virtual machine, specified in gigabytes. Over the life cycle of a disk, this size
+can only grow. If this value is not set, puppet will not touch the data disks for this virtual machine.
+
+#####`purge_disk_on_delete`
+Whether or not the attached data disk should be deleted when the VM is deleted. Defaults to false.
 
 #####`endpoints`
 A list of endpoints which should be associated with the virtual machine.
