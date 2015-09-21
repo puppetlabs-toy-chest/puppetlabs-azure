@@ -5,6 +5,7 @@ require 'puppet_x/puppetlabs/azure/provider'
 Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs::Azure::Provider) do
   confine feature: :azure
   confine feature: :azure_hocon
+  confine feature: :azure_retries
 
   mk_resource_methods
 
@@ -32,18 +33,29 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
     end
   end
 
-  def self.machine_to_hash(machine)
-    status = case machine.status
-             when 'StoppedDeallocated', 'Stopped'
-               :stopped
-             else
-               :running
-             end
+  def self.ensure_from(status)
+    case status
+    when 'StoppedDeallocated', 'Stopped'
+      :stopped
+    else
+      :running
+    end
+  end
+
+  def self.data_disk_size_gb_from(machine)
+    if machine.data_disks.empty?
+      0
+    else
+      machine.data_disks.first[:size_in_gb]
+    end
+  end
+
+  def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     cloud_service = get_cloud_service(machine.cloud_service_name)
     {
       name: machine.vm_name,
       image: machine.image,
-      ensure: status,
+      ensure: ensure_from(machine.status),
       location: cloud_service.location,
       deployment: machine.deployment_name,
       cloud_service: machine.cloud_service_name,
@@ -53,6 +65,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       media_link: machine.media_link,
       size: machine.role_size,
       cloud_service_object: cloud_service,
+      data_disk_size_gb: data_disk_size_gb_from(machine),
       object: machine,
     }
   end
@@ -74,6 +87,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       private_key_file: resource[:private_key_file],
       deployment_name: resource[:deployment],
       cloud_service_name: resource[:cloud_service],
+      data_disk_size_gb: resource[:data_disk_size_gb],
     }
     create_vm(params)
   end
@@ -81,6 +95,10 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
   def destroy
     Puppet.info("Deleting #{name}")
     delete_vm(machine)
+    if resource[:purge_disk_on_delete]
+      Puppet.info("Deleting disks for #{name}")
+      machine.data_disks.each { |d| delete_disk(d[:name]) }
+    end
     @property_hash[:ensure] = :absent
   end
 

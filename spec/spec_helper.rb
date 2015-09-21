@@ -66,6 +66,18 @@ RSpec::Matchers.define :require_integer_for do |property|
   end
 end
 
+RSpec.shared_examples "boolean properties" do |properties|
+  properties.each do |property|
+    it "should require #{property} to be boolean" do
+      config = {name: 'name'}
+      config[property] = 'string'
+      expect do
+        type_class.new(config)
+      end.to raise_error(Puppet::Error, /Parameter #{property} failed on .*: Invalid value/)
+    end
+  end
+end
+
 RSpec::Matchers.define :be_read_only do |property|
   match do |type_class|
     config = {name: 'name'}
