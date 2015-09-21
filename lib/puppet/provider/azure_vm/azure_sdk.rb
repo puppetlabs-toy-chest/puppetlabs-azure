@@ -8,7 +8,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
-  read_only(:location, :deployment, :image, :cloud_service, :size)
+  read_only(:location, :deployment, :image, :cloud_service, :size, :availability_set)
 
   def self.instances
     begin
@@ -32,7 +32,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
     end
   end
 
-  def self.machine_to_hash(machine)
+  def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     status = case machine.status
              when 'StoppedDeallocated', 'Stopped'
                :stopped
@@ -40,11 +40,12 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
                :running
              end
     cloud_service = get_cloud_service(machine.cloud_service_name)
+    location = cloud_service.location || cloud_service.extended_properties["ResourceLocation"]
     {
       name: machine.vm_name,
       image: machine.image,
       ensure: status,
-      location: cloud_service.location,
+      location: location,
       deployment: machine.deployment_name,
       cloud_service: machine.cloud_service_name,
       os_type: machine.os_type,
@@ -52,6 +53,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       hostname: machine.hostname,
       media_link: machine.media_link,
       size: machine.role_size,
+      availability_set: machine.availability_set_name,
       cloud_service_object: cloud_service,
       object: machine,
     }
@@ -74,6 +76,12 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       private_key_file: resource[:private_key_file],
       deployment_name: resource[:deployment],
       cloud_service_name: resource[:cloud_service],
+      availability_set_name: resource[:availability_set],
+      affinity_group_name: resource[:affinity_group],
+      winrm_https_port: resource[:winrm_https_port],
+      winrm_http_port: resource[:winrm_http_port],
+      winrm_transport: resource[:winrm_transport],
+      ssh_port: resource[:ssh_port],
     }
     create_vm(params)
   end
