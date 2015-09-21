@@ -37,7 +37,7 @@ module PuppetX
         end
 
         def create_vm(args)
-          param_names = [:vm_name, :image, :location, :vm_user, :password]
+          param_names = [:vm_name, :image, :location, :vm_user, :password, :custom_data]
           params = (args.keys & param_names).each_with_object({}) { |k,h| h.update(k=>args.delete(k)) }
           sanitised_params = params.delete_if { |k, v| v.nil? }
           sanitised_args = args.delete_if { |k, v| v.nil? }
