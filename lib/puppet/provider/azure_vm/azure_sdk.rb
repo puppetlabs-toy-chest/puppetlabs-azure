@@ -114,8 +114,6 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       winrm_http_port: resource[:winrm_http_port],
       winrm_transport: resource[:winrm_transport],
       ssh_port: resource[:ssh_port],
-      availability_set_name: resource[:availability_set],
-      affinity_group_name: resource[:affinity_group],
     }
     create_vm(params)
   end

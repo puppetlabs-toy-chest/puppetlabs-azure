@@ -51,6 +51,9 @@ Puppet::Type.newtype(:azure_vm) do
     if self[:subnet] and !self[:virtual_network]
       fail 'When specifying a subnet you must also specify a virtual network'
     end
+    if self[:virtual_network] and self[:affinity_group]
+      fail 'You can only provide either a virtual_network or an affinity_group for an Azure VM'
+    end
     required_properties = [
       :location,
     ]

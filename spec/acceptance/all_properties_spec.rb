@@ -4,7 +4,6 @@ describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
   include_context 'with a known name and storage account name'
   include_context 'with known network'
-  include_context 'with temporary affinity group'
 
   before(:all) do
     @custom_data_file = '/tmp/needle'
@@ -25,38 +24,12 @@ describe 'azure_vm when creating a machine with all available properties' do
         storage_account: @storage_account_name,
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
-        affinity_group: @affinity_group_name,
         availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
         ssh_port: 2222,
-        affinity_group: @affinity_group_name,
-        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
       }
     }
-    @manifest = <<PP #PuppetManifest.new(@template, @config)
-azure_vm {
-'#{@name}':
-  ensure    => present,
-  image     => '#{@config[:optional][:image]}',
-  location  => '#{@config[:optional][:location]}',
-  user      => '#{@config[:optional][:user]}',
-  password  => '#{@config[:optional][:password]}',
-  size      => '#{@config[:optional][:size]}',
-  deployment           => '#{@config[:optional][:deployment]}',
-  cloud_service        => '#{@config[:optional][:cloud_service]}',
-  data_disk_size_gb    => #{@config[:optional][:data_disk_size_gb]},
-  purge_disk_on_delete => #{@config[:optional][:purge_disk_on_delete]},
-  custom_data          => #{@config[:optional][:custom_data]},
-  storage_account      => '#{@config[:optional][:storage_account]}',
-  virtual_network      => '#{@config[:optional][:virtual_network]}',
-  subnet               => '#{@config[:optional][:subnet]}',
-  affinity_group       => '#{@config[:optional][:affinity_group]}',
-  availability_set     => '#{@config[:optional][:availability_set]}',
-  ssh_port             => '#{@config[:optional][:ssh_port]}',
-  affinity_group       => '#{@config[:optional][:affinity_group]}',
-  availability_set     => '#{@config[:optional][:availability_set]}',
-}
-PP
-    @result = PuppetRunProxy.execute(@manifest)
+    @manifest = PuppetManifest.new(@template, @config)
+    @result = @manifest.execute
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress
   end
@@ -125,12 +98,6 @@ PP
 
   it 'should have the correct availability set' do
     expect(@machine.availability_set_name).to eq(@config[:optional][:availability_set])
-  end
-
-  it 'should be in the correct affinity group' do
-    affinity_group = @client.get_affinity_group(@affinity_group_name)
-    associated_services = affinity_group.hosted_services.map { |service| service[:service_name] }
-    expect(associated_services).to include(@machine.cloud_service_name)
   end
 
   context 'which has read-only properties' do
