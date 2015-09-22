@@ -186,7 +186,7 @@ describe 'azure_vm', :type => :type do
       context "when missing the #{key} property" do
         it "should fail" do
           config.delete(key)
-          expect { machine }.to raise_error Puppet::Error
+          expect { machine }.to raise_error(Puppet::Error, /You must provide a #{key}/)
         end
       end
     end
@@ -286,7 +286,7 @@ describe 'azure_vm', :type => :type do
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /When specifying a subnet you must also specify a virtual network/)
     end
   end
 
@@ -316,7 +316,7 @@ describe 'azure_vm', :type => :type do
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /the location must not be empty/)
     end
   end
 
@@ -329,7 +329,7 @@ describe 'azure_vm', :type => :type do
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You must provide a location/)
     end
   end
 
