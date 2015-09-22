@@ -2,15 +2,16 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
+  include_context 'with a known name and storage account name'
+  include_context 'with known network'
 
   before(:all) do
-    @name = "CLOUD-#{SecureRandom.hex(8)}"
-
+    @custom_data_file = '/tmp/needle'
     @config = {
       name: @name,
       ensure: 'present',
       optional: {
-        image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+        image: UBUNTU_IMAGE,
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
@@ -19,24 +20,16 @@ describe 'azure_vm when creating a machine with all available properties' do
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
         data_disk_size_gb: 53,
         purge_disk_on_delete: true,
+        custom_data: "touch #{@custom_data_file}",
+        storage_account: @storage_account_name,
+        virtual_network: @virtual_network_name,
+        subnet: @network.subnets.first[:name],
+        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
+        ssh_port: 2222,
       }
     }
-    @manifest = <<PP #PuppetManifest.new(@template, @config)
-azure_vm {
-'#{@name}':
-  ensure    => present,
-  image     => '#{@config[:optional][:image]}',
-  location  => '#{@config[:optional][:location]}',
-  user      => '#{@config[:optional][:user]}',
-  password  => '#{@config[:optional][:password]}',
-  size      => '#{@config[:optional][:size]}',
-  deployment           => '#{@config[:optional][:deployment]}',
-  cloud_service        => '#{@config[:optional][:cloud_service]}',
-  data_disk_size_gb    => #{@config[:optional][:data_disk_size_gb]},
-  purge_disk_on_delete => #{@config[:optional][:purge_disk_on_delete]},
-}
-PP
-    @result = PuppetRunProxy.execute(@manifest)
+    @manifest = PuppetManifest.new(@template, @config)
+    @result = @manifest.execute
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress
   end
@@ -67,12 +60,45 @@ PP
     end
   end
 
+  it 'should be associated with the correct network' do
+    expect(@machine.virtual_network_name).to eq(@config[:optional][:virtual_network])
+  end
+
+  it 'should be associated with the correct subnet' do
+    expect(@machine.subnet).to eq(@config[:optional][:subnet])
+  end
+
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password')
+    result = run_command_over_ssh('true', 'password', @config[:optional][:ssh_port])
     expect(result.exit_status).to eq 0
   end
 
   pending 'should be able to grow the disk on the fly'
+
+  it 'should have run the custom data script' do
+    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
+    # so we retry this a few times
+    5.times do
+      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', @config[:optional][:ssh_port])
+      break if @result.exit_status == 0
+      sleep 10
+    end
+    expect(@result.exit_status).to eq 0
+  end
+
+  it 'should be in the correct storage account' do
+    storage_account = @client.get_storage_account(@config[:optional][:storage_account])
+    expect(storage_account.label).to eq(@config[:optional][:cloud_service])
+  end
+
+  it 'should have the correct SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
+    expect(ssh_endpoint[:public_port].to_i).to eq(@config[:optional][:ssh_port])
+  end
+
+  it 'should have the correct availability set' do
+    expect(@machine.availability_set_name).to eq(@config[:optional][:availability_set])
+  end
 
   context 'which has read-only properties' do
     read_only = [
@@ -81,6 +107,8 @@ PP
       :cloud_service,
       :size,
       :image,
+      :virtual_network,
+      :availability_set,
     ]
 
     read_only.each do |new_config_value|
@@ -97,6 +125,7 @@ PP
     puppet_resource_should_show('size')
     puppet_resource_should_show('deployment')
     puppet_resource_should_show('cloud_service')
+    puppet_resource_should_show('availability_set')
   end
 
   it_behaves_like 'a removable resource'

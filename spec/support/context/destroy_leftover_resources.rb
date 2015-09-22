@@ -7,5 +7,6 @@ shared_context 'destroy left-over created resources after use' do
         @client.destroy_disk(disk_name)
       end
     end
+    @client.destroy_storage_account(@storage_account_name) if @client.get_storage_account(@storage_account_name)
   end
 end

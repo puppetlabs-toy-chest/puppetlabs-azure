@@ -2,10 +2,10 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a new machine with the minimum properties' do
   include_context 'with certificate copied to system under test'
+  include_context 'with a known name and storage account name'
+  include_context 'with temporary affinity group'
 
   before(:all) do
-    @name = "CLOUD-#{SecureRandom.hex(8)}"
-
     @config = {
       name: @name,
       ensure: 'present',
@@ -14,6 +14,8 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         private_key_file: @remote_private_key_path,
+        storage_account: @storage_account_name, # required in order to tidy up created storage groups
+        affinity_group: @affinity_group_name, # tested here to avoid clash with virtual_network
       }
     }
     @manifest = PuppetManifest.new(@template, @config)
@@ -35,7 +37,14 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
   end
 
   it 'should be launched in the specified location' do
-    expect(@client.get_cloud_service(@machine).location).to eq (@config[:optional][:location])
+    cloud_service = @client.get_cloud_service(@machine)
+    location = cloud_service.location || cloud_service.extended_properties["ResourceLocation"]
+    expect(location).to eq(@config[:optional][:location])
+  end
+
+  it 'should have the default SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
+    expect(ssh_endpoint[:public_port]).to eq('22')
   end
 
   it 'is accessible using the private key' do
@@ -46,6 +55,12 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
   it 'is able to use sudo to root' do
     result = run_command_over_ssh('sudo true', 'publickey')
     expect(result.exit_status).to eq 0
+  end
+
+  it 'should be in the correct affinity group' do
+    affinity_group = @client.get_affinity_group(@affinity_group_name)
+    associated_services = affinity_group.hosted_services.map { |service| service[:service_name] }
+    expect(associated_services).to include(@machine.cloud_service_name)
   end
 
   # this primarily tests that the image we use for testing does not add its own data disks,
