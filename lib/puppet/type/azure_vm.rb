@@ -48,6 +48,9 @@ Puppet::Type.newtype(:azure_vm) do
     if self[:password] and self[:private_key_file]
       fail 'You can only provide either a password or a private_key_file for an Azure VM'
     end
+    if self[:subnet] and !self[:virtual_network]
+      fail 'When specifying a subnet you must also specify a virtual network'
+    end
     required_properties = [
       :location,
     ]
@@ -174,7 +177,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The availability set for the virtual machine.'
   end
 
-  newproperty(:reserved_ip, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:reserved_ip, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the reserved IP to associate with the virtual machine.'
   end
 

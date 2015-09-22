@@ -237,10 +237,10 @@ sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines
 The affinity group to be used for the cloud service and the storage account if these do not exist.
 
 #####`virtual_network`
-The virtual network to which the virtual machine should be connected.
+An existing virtual network to which the virtual machine should be connected.
 
 #####`subnet`
-The subnet to which the virtual machine should be associated.
+An existing subnet in the specified virtual network to which the virtual machine should be associated.
 
 #####`availability_set`
 The availability set for the virtual machine.

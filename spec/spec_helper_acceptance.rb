@@ -118,6 +118,7 @@ class AzureHelper
     @azure_cloud_service = Azure.cloud_service_management
     @azure_storage = Azure.storage_management
     @azure_disk = Azure.vm_disk_management
+    @azure_network = Azure.network_management
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
@@ -149,6 +150,28 @@ class AzureHelper
 
   def destroy_storage_account(name)
     @azure_storage.delete_storage_account(name)
+  end
+
+  def get_virtual_network(name)
+    @azure_network.list_virtual_networks.find { |network| network.name == name }
+  end
+
+  def ensure_network(name)
+    # This should ideally be create_network, with a corresponding delete_network. However
+    # the SDK doesn't support deleteing virtual networks. Nor does the lower-level
+    # REST API https://msdn.microsoft.com/en-us/library/azure/jj157182.aspx
+    # With that in mind we reuse a known network between tests, which is horrible but works
+    # given we don't need to mutate it, just for it to exist
+    unless get_virtual_network(name)
+      address_space = ['172.16.0.0/12', '10.0.0.0/8', '192.168.0.0/24']
+      subnets = [
+        {name: "#{name}-1", ip_address: '172.16.0.0', cidr: 12},
+        {name: "#{name}-2", ip_address: '10.0.0.0', cidr: 8}
+      ]
+      dns_servers = [{name: 'dns', ip_address: '1.2.3.4'}]
+      options = {:subnet => subnets, :dns => dns_servers}
+      @azure_network.set_network_configuration(name, CHEAPEST_AZURE_LOCATION, address_space, options)
+    end
   end
 end
 

@@ -11,7 +11,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
-  read_only(:location, :deployment, :image, :cloud_service, :size)
+  read_only(:location, :deployment, :image, :cloud_service, :size, :virtual_network, :subnet, :reserved_ip)
 
   def self.instances
     begin
@@ -66,6 +66,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       hostname: machine.hostname,
       media_link: machine.media_link,
       size: machine.role_size,
+      virtual_network: machine.virtual_network_name,
+      subnet: machine.subnet,
       cloud_service_object: cloud_service,
       data_disk_size_gb: data_disk_size_gb_from(machine),
       object: machine,
@@ -96,10 +98,13 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       password: resource[:password],
       private_key_file: resource[:private_key_file],
       deployment_name: resource[:deployment],
+      virtual_network_name: resource[:virtual_network],
       cloud_service_name: resource[:cloud_service],
       data_disk_size_gb: resource[:data_disk_size_gb],
       custom_data: custom_data,
       storage_account_name: resource[:storage_account],
+      subnet_name: resource[:subnet],
+      reserved_ip_name: resource[:reserved_ip],
     }
     create_vm(params)
   end

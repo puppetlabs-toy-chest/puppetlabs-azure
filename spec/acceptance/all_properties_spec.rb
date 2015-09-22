@@ -3,10 +3,10 @@ require 'spec_helper_acceptance'
 describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with certificate copied to system under test'
   include_context 'with a known name and storage account name'
+  include_context 'with known network'
 
   before(:all) do
     @custom_data_file = '/tmp/needle'
-
     @config = {
       name: @name,
       ensure: 'present',
@@ -22,6 +22,8 @@ describe 'azure_vm when creating a machine with all available properties' do
         purge_disk_on_delete: true,
         custom_data: "touch #{@custom_data_file}",
         storage_account: @storage_account_name,
+        virtual_network: @virtual_network_name,
+        subnet: @network.subnets.first[:name],
       }
     }
 
@@ -57,6 +59,14 @@ describe 'azure_vm when creating a machine with all available properties' do
     end
   end
 
+  it 'should be associated with the correct network' do
+    expect(@machine.virtual_network_name).to eq(@config[:optional][:virtual_network])
+  end
+
+  it 'should be associated with the correct subnet' do
+    expect(@machine.subnet).to eq(@config[:optional][:subnet])
+  end
+
   it 'is accessible using the password' do
     result = run_command_over_ssh('true', 'password')
     expect(result.exit_status).to eq 0
@@ -87,6 +97,7 @@ describe 'azure_vm when creating a machine with all available properties' do
       :cloud_service,
       :size,
       :image,
+      :virtual_network,
     ]
 
     read_only.each do |new_config_value|
