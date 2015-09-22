@@ -21,22 +21,9 @@ describe 'azure_vm when creating a machine with all available properties' do
         purge_disk_on_delete: true,
       }
     }
-    @manifest = <<PP #PuppetManifest.new(@template, @config)
-azure_vm {
-'#{@name}':
-  ensure    => present,
-  image     => '#{@config[:optional][:image]}',
-  location  => '#{@config[:optional][:location]}',
-  user      => '#{@config[:optional][:user]}',
-  password  => '#{@config[:optional][:password]}',
-  size      => '#{@config[:optional][:size]}',
-  deployment           => '#{@config[:optional][:deployment]}',
-  cloud_service        => '#{@config[:optional][:cloud_service]}',
-  data_disk_size_gb    => #{@config[:optional][:data_disk_size_gb]},
-  purge_disk_on_delete => #{@config[:optional][:purge_disk_on_delete]},
-}
-PP
-    @result = PuppetRunProxy.execute(@manifest)
+
+    @manifest = PuppetManifest.new(@template, @config)
+    @result = @manifest.execute
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress
   end
