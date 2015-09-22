@@ -11,7 +11,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
-  read_only(:location, :deployment, :image, :cloud_service, :size, :virtual_network, :subnet, :reserved_ip)
+  read_only(:location, :deployment, :image, :cloud_service, :size,
+            :virtual_network, :subnet, :reserved_ip, :availability_set)
 
   def self.instances
     begin
@@ -69,6 +70,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       size: machine.role_size,
       virtual_network: machine.virtual_network_name,
       subnet: machine.subnet,
+      availability_set: machine.availability_set_name,
       cloud_service_object: cloud_service,
       data_disk_size_gb: data_disk_size_gb_from(machine),
       object: machine,
@@ -110,6 +112,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       winrm_http_port: resource[:winrm_http_port],
       winrm_transport: resource[:winrm_transport],
       ssh_port: resource[:ssh_port],
+      availability_set_name: resource[:availability_set],
+      affinity_group_name: resource[:affinity_group],
     }
     create_vm(params)
   end

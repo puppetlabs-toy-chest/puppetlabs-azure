@@ -17,6 +17,7 @@ describe 'azure_vm', :type => :type do
       :winrm_https_port,
       :winrm_http_port,
       :ssh_port,
+      :affinity_group,
     ]
   end
 
@@ -28,7 +29,6 @@ describe 'azure_vm', :type => :type do
       :cloud_service,
       :deployment,
       :size,
-      :affinity_group,
       :virtual_network,
       :subnet,
       :availability_set,

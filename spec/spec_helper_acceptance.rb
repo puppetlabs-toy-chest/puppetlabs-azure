@@ -119,6 +119,7 @@ end
 class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
+    @azure_affinity_group = Azure.base_management
     @azure_cloud_service = Azure.cloud_service_management
     @azure_storage = Azure.storage_management
     @azure_disk = Azure.vm_disk_management
@@ -176,6 +177,18 @@ class AzureHelper
       options = {:subnet => subnets, :dns => dns_servers}
       @azure_network.set_network_configuration(name, CHEAPEST_AZURE_LOCATION, address_space, options)
     end
+  end
+
+  def get_affinity_group(name)
+    @azure_affinity_group.get_affinity_group(name)
+  end
+
+  def create_affinity_group(name)
+    @azure_affinity_group.create_affinity_group(name, CHEAPEST_AZURE_LOCATION, 'Temporary group for acceptance tests')
+  end
+
+  def destroy_affinity_group(name)
+    @azure_affinity_group.delete_affinity_group(name)
   end
 end
 

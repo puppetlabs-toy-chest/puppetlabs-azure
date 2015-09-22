@@ -234,7 +234,7 @@ for a [full list of
 sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
 #####`affinity_group`
-The affinity group to be used for the cloud service and the storage account if these do not exist.
+The affinity group to be used for any created cloud service and storage accounts. Use affinity groups to influence colocation of compute and storage for improved performance.
 
 #####`virtual_network`
 An existing virtual network to which the virtual machine should be connected.
@@ -243,7 +243,9 @@ An existing virtual network to which the virtual machine should be connected.
 An existing subnet in the specified virtual network to which the virtual machine should be associated.
 
 #####`availability_set`
-The availability set for the virtual machine.
+The availability set for the virtual machine. These are used to ensure
+related machines are not all restarted or paused during routine
+maintenance.
 
 #####`reserved_ip`
 The name of the reserved IP to associate with the virtual machine.
