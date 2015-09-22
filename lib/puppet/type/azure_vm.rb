@@ -187,6 +187,10 @@ Puppet::Type.newtype(:azure_vm) do
     defaultto false
   end
 
+  newparam(:custom_data, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'A script to be executed on launch by Cloud-Init. Linux guests only.'
+  end
+
   # Could also be represented by a separate type. Best approach still to be determined.
   # endpoints => [{
   #   'name'        => 'ep-1',

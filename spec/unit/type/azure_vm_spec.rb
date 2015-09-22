@@ -10,6 +10,7 @@ describe 'azure_vm', :type => :type do
       :password,
       :private_key_file,
       :purge_disk_on_delete,
+      :custom_data,
     ]
   end
 
@@ -85,6 +86,7 @@ describe 'azure_vm', :type => :type do
     'subnet',
     'availability_set',
     'reserved_ip',
+    'custom_data',
   ].each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
