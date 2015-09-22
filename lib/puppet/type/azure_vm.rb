@@ -133,16 +133,16 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The storage account to create for the virtual machine.'
   end
 
-  newproperty(:winrm_transport, :parent => PuppetX::PuppetLabs::Azure::Property::String, :array_matching => :all) do
+  newparam(:winrm_transport, :parent => PuppetX::PuppetLabs::Azure::Property::String, :array_matching => :all) do
     desc 'A list of transport protocols for WINRM.'
   end
 
-  newproperty(:winrm_https_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
-    desc 'The port number of WINRM https communication.'
+  newparam(:winrm_https_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
+    desc 'The port number for WinRM https communication. Defaults to 5986.'
   end
 
-  newproperty(:winrm_http_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
-    desc 'The port number of WINRM http communication.'
+  newparam(:winrm_http_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
+    desc 'The port number for WinRM http communication. Defaults to 5985.'
   end
 
   newproperty(:cloud_service, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -153,7 +153,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The name for the deployment.'
   end
 
-  newproperty(:ssh_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
+  newparam(:ssh_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
     desc 'The port number for SSH.'
   end
 

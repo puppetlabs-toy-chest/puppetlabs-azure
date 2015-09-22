@@ -9,7 +9,7 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
       name: @name,
       ensure: 'present',
       optional: {
-        image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+        image: UBUNTU_IMAGE,
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         private_key_file: @remote_private_key_path,
@@ -36,6 +36,11 @@ describe 'azure_vm when creating a new machine with the minimum properties' do
 
   it 'should be launched in the specified location' do
     expect(@client.get_cloud_service(@machine).location).to eq (@config[:optional][:location])
+  end
+
+  it 'should have the default SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
+    expect(ssh_endpoint[:public_port]).to eq('22')
   end
 
   it 'is accessible using the private key' do

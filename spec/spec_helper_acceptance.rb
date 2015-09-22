@@ -7,6 +7,7 @@ require 'net/ssh'
 require 'ssh-exec'
 require 'retries'
 require 'shellwords'
+require 'winrm'
 
 # automatically load any shared examples or contexts
 Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
@@ -16,6 +17,9 @@ require 'azure/virtual_machine_image_management/virtual_machine_image_management
 
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
+
+UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB'
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
 
 unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
   require 'beaker-rspec'
@@ -376,21 +380,47 @@ def expect_failed_apply(config)
   expect(result.exit_code).not_to eq 0
 end
 
-def run_command_over_ssh(command, auth_method)
+def run_command_over_ssh(command, auth_method, port=22)
   # We retry failed attempts as although the VM has booted it takes some
   # time to start and expose SSH. This mirrors the behaviour of a typical SSH client
+  allowed_errors = [
+    # The following errors can occur if we try and connect after the machine has
+    # been created but before cloud-init provisions the machine
+    Net::SSH::HostKeyMismatch,
+    Net::SSH::AuthenticationFailed,
+    # The following errors can occur before the machine has been created
+    # and we retry until it exists
+    Errno::ECONNREFUSED,
+    Errno::ECONNRESET,
+    Errno::ETIMEDOUT,
+  ]
   with_retries(:max_tries => 10,
                :base_sleep_seconds => 20,
                :max_sleep_seconds => 20,
-               :rescue => [Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::ETIMEDOUT]) do
+               :rescue => allowed_errors) do
     Net::SSH.start(@ip,
                    @config[:optional][:user],
+                   :port => port,
                    :password => @config[:optional][:password],
                    :keys => [@local_private_key_path],
                    :auth_methods => [auth_method],
                    :verbose => :info) do |ssh|
       SshExec.ssh_exec!(ssh, command)
     end
+  end
+end
+
+def run_command_over_winrm(command, port=5986)
+  endpoint = "https://#{@machine.ipaddress}:#{port}/wsman"
+  winrm = WinRM::WinRMWebService.new(
+    endpoint,
+    :ssl,
+    user: @config[:optional][:user],
+    pass: @config[:optional][:password],
+    disable_sspi: true,
+  )
+  with_retries(:max_tries => 5) do
+    winrm.cmd(command)
   end
 end
 

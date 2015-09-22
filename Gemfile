@@ -26,6 +26,7 @@ group :development do
 end
 
 group :acceptance do
+  gem 'winrm', '~> 1.3'
   gem 'mustache'
   gem 'ssh-exec'
   gem "beaker-puppet_install_helper", :require => false

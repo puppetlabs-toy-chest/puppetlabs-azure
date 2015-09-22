@@ -11,7 +11,7 @@ describe 'azure_vm when creating a machine with all available properties' do
       name: @name,
       ensure: 'present',
       optional: {
-        image: 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
+        image: UBUNTU_IMAGE,
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
@@ -24,6 +24,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         storage_account: @storage_account_name,
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
+        ssh_port: 2222,
       }
     }
 
@@ -68,7 +69,7 @@ describe 'azure_vm when creating a machine with all available properties' do
   end
 
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password')
+    result = run_command_over_ssh('true', 'password', @config[:optional][:ssh_port])
     expect(result.exit_status).to eq 0
   end
 
@@ -88,6 +89,11 @@ describe 'azure_vm when creating a machine with all available properties' do
   it 'should be in the correct storage account' do
     storage_account = @client.get_storage_account(@config[:optional][:storage_account])
     expect(storage_account.label).to eq(@config[:optional][:cloud_service])
+  end
+
+  it 'should have the correct SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
+    expect(ssh_endpoint[:public_port].to_i).to eq(@config[:optional][:ssh_port])
   end
 
   context 'which has read-only properties' do

@@ -13,6 +13,10 @@ describe 'azure_vm', :type => :type do
       :custom_data,
       :storage_account,
       :reserved_ip,
+      :winrm_transport,
+      :winrm_https_port,
+      :winrm_http_port,
+      :ssh_port,
     ]
   end
 
@@ -21,12 +25,8 @@ describe 'azure_vm', :type => :type do
       :ensure,
       :image,
       :location,
-      :winrm_transport,
-      :winrm_https_port,
-      :winrm_http_port,
       :cloud_service,
       :deployment,
-      :ssh_port,
       :size,
       :affinity_group,
       :virtual_network,

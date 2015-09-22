@@ -211,13 +211,13 @@ Note that if the source image is a 'user' image, the storage account
 for the user image is used instead of the one provided here.
 
 #####`winrm_transport`
-A list of transport protocols for WINRM.
+A list of transport protocols for WinRM.
 
 #####`winrm_https_port`
-The port number of WINRM https communication.
+The port number for WinRM https communication. Defaults to 5986
 
 #####`winrm_http_port`
-The port number of WINRM http communication.
+The port number for WinRM http communication. Defaults to 5985
 
 #####`cloud_service`
 The name of the associated cloud service.
@@ -226,7 +226,7 @@ The name of the associated cloud service.
 The name for the deployment.
 
 #####`ssh_port`
-The port number for SSH.
+The port number for SSH. Defaults to 22
 
 #####`size`
 The size of the virtual machine instance. See the Azure documentation
