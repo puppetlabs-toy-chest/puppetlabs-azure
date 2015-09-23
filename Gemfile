@@ -12,6 +12,7 @@ group :test do
   gem 'rubocop', require: false
   gem 'simplecov'
   gem 'simplecov-console'
+  gem 'winrm', '~> 1.3'
 end
 
 group :development do
