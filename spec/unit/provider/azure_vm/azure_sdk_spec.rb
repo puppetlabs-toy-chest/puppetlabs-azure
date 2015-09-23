@@ -32,4 +32,14 @@ describe provider_class do
     expect(provider_class).to receive(:instances).and_return([])
     provider_class.prefetch({})
   end
+
+  describe 'creating a vm with custom_data' do
+    context 'when set to a single-line string' do
+      pending 'calls create_vm with a base64 encoded bash script'
+    end
+
+    context 'when set to a multi-line string' do
+      pending 'calls create_vm with the base64 encoded value'
+    end
+  end
 end

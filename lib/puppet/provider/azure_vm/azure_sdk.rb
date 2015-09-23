@@ -1,3 +1,5 @@
+require 'base64'
+
 require 'puppet_x/puppetlabs/azure/prefetch_error'
 require 'puppet_x/puppetlabs/azure/provider'
 
@@ -9,7 +11,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
-  read_only(:location, :deployment, :image, :cloud_service, :size)
+  read_only(:location, :deployment, :image, :cloud_service, :size,
+            :virtual_network, :subnet, :reserved_ip, :availability_set)
 
   def self.instances
     begin
@@ -52,11 +55,12 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     cloud_service = get_cloud_service(machine.cloud_service_name)
+    location = cloud_service.location || cloud_service.extended_properties["ResourceLocation"]
     {
       name: machine.vm_name,
       image: machine.image,
       ensure: ensure_from(machine.status),
-      location: cloud_service.location,
+      location: location,
       deployment: machine.deployment_name,
       cloud_service: machine.cloud_service_name,
       os_type: machine.os_type,
@@ -64,6 +68,9 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       hostname: machine.hostname,
       media_link: machine.media_link,
       size: machine.role_size,
+      virtual_network: machine.virtual_network_name,
+      subnet: machine.subnet,
+      availability_set: machine.availability_set_name,
       cloud_service_object: cloud_service,
       data_disk_size_gb: data_disk_size_gb_from(machine),
       object: machine,
@@ -77,6 +84,14 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
 
   def create # rubocop:disable Metrics/AbcSize
     Puppet.info("Creating #{name}")
+    custom_data = unless resource[:custom_data].nil?
+      # Azure won't execute scripts without providing a shebang line. Puppet will allow multi-line strings
+      # to be passed to properties, but it's purely formatting so the linebreaks don't come through in
+      # the resource hash. This data munging allows for simple one liners to be encoded in Puppet
+      # without the use of a template.
+      data = resource[:custom_data].include?("\n") ? resource[:custom_data] : "#!/bin/bash\n#{resource[:custom_data]}"
+      Base64.encode64(data)
+    end
     params = {
       vm_name: name,
       image: resource[:image],
@@ -86,8 +101,19 @@ Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs:
       password: resource[:password],
       private_key_file: resource[:private_key_file],
       deployment_name: resource[:deployment],
+      virtual_network_name: resource[:virtual_network],
       cloud_service_name: resource[:cloud_service],
       data_disk_size_gb: resource[:data_disk_size_gb],
+      custom_data: custom_data,
+      storage_account_name: resource[:storage_account],
+      subnet_name: resource[:subnet],
+      reserved_ip_name: resource[:reserved_ip],
+      winrm_https_port: resource[:winrm_https_port],
+      winrm_http_port: resource[:winrm_http_port],
+      winrm_transport: resource[:winrm_transport],
+      ssh_port: resource[:ssh_port],
+      availability_set_name: resource[:availability_set],
+      affinity_group_name: resource[:affinity_group],
     }
     create_vm(params)
   end

@@ -3,27 +3,20 @@ shared_examples 'a removable resource' do
     before(:all) do
       @disk_names = @machine.data_disks.map { |h| h[:name] }
       @disk_names << @machine.disk_name
+      old_config = @config
       @config = {
         name: @name,
         ensure: 'absent',
         optional: {
-          location: @config[:optional][:location],
-          deployment: @config[:optional][:deployment],
-          cloud_service: @config[:optional][:cloud_service],
+          location: old_config[:optional][:location],
+          deployment: old_config[:optional][:deployment],
+          cloud_service: old_config[:optional][:cloud_service],
           purge_disk_on_delete: true,
         }
       }
-      @manifest = <<PP
-azure_vm {
-  '#{@name}':
-    ensure    => absent,
-    location  => '#{@config[:optional][:location]}',
-    deployment => '#{@config[:optional][:deployment]}',
-    cloud_service => '#{@config[:optional][:cloud_service]}',
-    purge_disk_on_delete => #{@config[:optional][:purge_disk_on_delete]},
-}
-PP
-      @result = PuppetRunProxy.execute(@manifest)
+
+      @manifest = PuppetManifest.new(@template, @config)
+      @result = @manifest.execute
     end
 
     # note that @machine is still set to the "original" azure instance, making the "should exist" test here useless

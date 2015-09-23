@@ -10,6 +10,14 @@ describe 'azure_vm', :type => :type do
       :password,
       :private_key_file,
       :purge_disk_on_delete,
+      :custom_data,
+      :storage_account,
+      :reserved_ip,
+      :winrm_transport,
+      :winrm_https_port,
+      :winrm_http_port,
+      :ssh_port,
+      :affinity_group,
     ]
   end
 
@@ -18,19 +26,12 @@ describe 'azure_vm', :type => :type do
       :ensure,
       :image,
       :location,
-      :storage_account,
-      :winrm_transport,
-      :winrm_https_port,
-      :winrm_http_port,
       :cloud_service,
       :deployment,
-      :ssh_port,
       :size,
-      :affinity_group,
       :virtual_network,
       :subnet,
       :availability_set,
-      :reserved_ip,
       :data_disk_size_gb,
       :endpoints,
     ]
@@ -67,7 +68,6 @@ describe 'azure_vm', :type => :type do
     end.to raise_error(Puppet::Error, 'Title or name must be provided')
   end
 
-
   [
     'name',
     'image',
@@ -85,6 +85,7 @@ describe 'azure_vm', :type => :type do
     'subnet',
     'availability_set',
     'reserved_ip',
+    'custom_data',
   ].each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
@@ -185,7 +186,7 @@ describe 'azure_vm', :type => :type do
       context "when missing the #{key} property" do
         it "should fail" do
           config.delete(key)
-          expect { machine }.to raise_error Puppet::Error
+          expect { machine }.to raise_error(Puppet::Error, /You must provide a #{key}/)
         end
       end
     end
@@ -221,6 +222,23 @@ describe 'azure_vm', :type => :type do
     end
   end
 
+  context 'with a virtual_network and an affinity group' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'image-test',
+        location: 'West US',
+        affinity_group: 'real-affinity-set',
+        virtual_network: 'real-network',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You can only provide either a virtual_network or an affinity_group for an Azure VM/)
+    end
+  end
+
+
   context 'with a image specified' do
     let :config do
       {
@@ -243,13 +261,43 @@ describe 'azure_vm', :type => :type do
     end
   end
 
-
   context 'with a location' do
     let :config do
       {
         ensure: :present,
         name: 'disk-test',
         location: 'West US',
+      }
+    end
+
+    it 'should be valid' do
+      expect { type_class.new(config) }.to_not raise_error
+    end
+  end
+
+  context 'with a subnet but without a virtual network' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'West US',
+        subnet: 'subnet-name',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /When specifying a subnet you must also specify a virtual network/)
+    end
+  end
+
+  context 'with a subnet and a virtual network' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'West US',
+        subnet: 'subnet-name',
+        virtual_network: 'network-name',
       }
     end
 
@@ -268,7 +316,7 @@ describe 'azure_vm', :type => :type do
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /the location must not be empty/)
     end
   end
 
@@ -281,7 +329,7 @@ describe 'azure_vm', :type => :type do
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error)
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You must provide a location/)
     end
   end
 

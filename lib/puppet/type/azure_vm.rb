@@ -5,26 +5,26 @@ require_relative '../../puppet_x/puppetlabs/azure/property/positive_integer'
 require_relative '../../puppet_x/puppetlabs/azure/property/string'
 
 # azure_vm { 'sample':
-#   user                  => 'azureuser',
-#   image                 => '5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-63APR20130415',
-#   password              => 'Password',
-#   location              => 'West US'
-#   storage_account_name  => 'storage_suse',
-#   winrm_transport       => ['https','http'],
-#   winrm_https_port      => 5999,
-#   winrm_http_port       => 6999,
-#   cloud_service_name    => 'cloud_service_name',
-#   deployment_name       =>'vm_name',
-#   tcp_endpoints         => '80,3389:3390',
-#   private_key_file      => './private_key.key', # required for ssh
-#   ssh_port              => 2222,
-#   size                  => 'Small',
-#   affinity_group_name   => 'affinity1',
-#   virtual_network_name  => 'xplattestvnet',
-#   subnet_name           => 'subnet1',
-#   availability_set_name => 'availabiltyset1',
-#   reserved_ip_name      => 'reservedipname'
-#   endpoints             => [{
+#   user             => 'azureuser',
+#   image            => '5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-63APR20130415',
+#   password         => 'Password',
+#   location         => 'West US'
+#   storage_account  => 'storagesuse',
+#   winrm_transport  => ['https','http'],
+#   winrm_https_port => 5999,
+#   winrm_http_port  => 6999,
+#   cloud_service    => 'cloud_service_name',
+#   deployment       =>'vm_name',
+#   tcp_endpoints    => '80,3389:3390',
+#   private_key_file => './private_key.key', # required for ssh
+#   ssh_port         => 2222,
+#   size             => 'Small',
+#   affinity_group   => 'affinity1',
+#   virtual_network  => 'xplattestvnet',
+#   subnet           => 'subnet1',
+#   availability_set => 'availabiltyset1',
+#   reserved_ip      => 'reservedipname'
+#   endpoints        => [{
 #     :name        => 'ep-1',
 #     :public_port => 996,
 #     :local_port  => 998,
@@ -37,8 +37,8 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #     :load_balancer_name => 'lb-ep2',
 #     :load_balancer      => {:protocol => 'http', :path => 'hello'},
 #   }],
-#   data_disk_size_gb     => '100',
-#   purge_disk_on_delete  => false,
+#   data_disk_size_gb    => '100',
+#   purge_disk_on_delete => false,
 # }
 
 Puppet::Type.newtype(:azure_vm) do
@@ -47,6 +47,12 @@ Puppet::Type.newtype(:azure_vm) do
   validate do
     if self[:password] and self[:private_key_file]
       fail 'You can only provide either a password or a private_key_file for an Azure VM'
+    end
+    if self[:subnet] and !self[:virtual_network]
+      fail 'When specifying a subnet you must also specify a virtual network'
+    end
+    if self[:virtual_network] and self[:affinity_group]
+      fail 'You can only provide either a virtual_network or an affinity_group for an Azure VM'
     end
     required_properties = [
       :location,
@@ -126,20 +132,20 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  newproperty(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The storage account to associate the virtual machine with.'
+  newparam(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The storage account to create for the virtual machine.'
   end
 
-  newproperty(:winrm_transport, :parent => PuppetX::PuppetLabs::Azure::Property::String, :array_matching => :all) do
+  newparam(:winrm_transport, :parent => PuppetX::PuppetLabs::Azure::Property::String, :array_matching => :all) do
     desc 'A list of transport protocols for WINRM.'
   end
 
-  newproperty(:winrm_https_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
-    desc 'The port number of WINRM https communication.'
+  newparam(:winrm_https_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
+    desc 'The port number for WinRM https communication. Defaults to 5986.'
   end
 
-  newproperty(:winrm_http_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
-    desc 'The port number of WINRM http communication.'
+  newparam(:winrm_http_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
+    desc 'The port number for WinRM http communication. Defaults to 5985.'
   end
 
   newproperty(:cloud_service, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -150,7 +156,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The name for the deployment.'
   end
 
-  newproperty(:ssh_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
+  newparam(:ssh_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
     desc 'The port number for SSH.'
   end
 
@@ -158,8 +164,8 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The size of the virtual machine instance.'
   end
 
-  newproperty(:affinity_group, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The affinity group to be used for the cloud service and the storage account if these do not exist.'
+  newparam(:affinity_group, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The affinity group to be used for the cloud service and the storage account. Must already exist in your account.'
   end
 
   newproperty(:virtual_network, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -174,7 +180,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'The availability set for the virtual machine.'
   end
 
-  newproperty(:reserved_ip, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:reserved_ip, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the reserved IP to associate with the virtual machine.'
   end
 
@@ -185,6 +191,10 @@ Puppet::Type.newtype(:azure_vm) do
   newparam(:purge_disk_on_delete, :parent => Puppet::Parameter::Boolean) do
     desc 'Whether or not the attached data disk should be deleted when the VM is deleted.'
     defaultto false
+  end
+
+  newparam(:custom_data, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'A script to be executed on launch by Cloud-Init. Linux guests only.'
   end
 
   # Could also be represented by a separate type. Best approach still to be determined.

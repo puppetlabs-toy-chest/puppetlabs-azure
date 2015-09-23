@@ -206,16 +206,18 @@ Path to the private key file for accessing a Linux guest as the above
 user.
 
 #####`storage_account`
-The storage account to associate the virtual machine with.
+The name of the storage account to create for the virtual machine.
+Note that if the source image is a 'user' image, the storage account
+for the user image is used instead of the one provided here.
 
 #####`winrm_transport`
-A list of transport protocols for WINRM.
+A list of transport protocols for WinRM.
 
 #####`winrm_https_port`
-The port number of WINRM https communication.
+The port number for WinRM https communication. Defaults to 5986
 
 #####`winrm_http_port`
-The port number of WINRM http communication.
+The port number for WinRM http communication. Defaults to 5985
 
 #####`cloud_service`
 The name of the associated cloud service.
@@ -224,7 +226,7 @@ The name of the associated cloud service.
 The name for the deployment.
 
 #####`ssh_port`
-The port number for SSH.
+The port number for SSH. Defaults to 22
 
 #####`size`
 The size of the virtual machine instance. See the Azure documentation
@@ -232,16 +234,18 @@ for a [full list of
 sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
 #####`affinity_group`
-The affinity group to be used for the cloud service and the storage account if these do not exist.
+The affinity group to be used for any created cloud service and storage accounts. Use affinity groups to influence colocation of compute and storage for improved performance.
 
 #####`virtual_network`
-The virtual network to which the virtual machine should be connected.
+An existing virtual network to which the virtual machine should be connected.
 
 #####`subnet`
-The subnet to which the virtual machine should be associated.
+An existing subnet in the specified virtual network to which the virtual machine should be associated.
 
 #####`availability_set`
-The availability set for the virtual machine.
+The availability set for the virtual machine. These are used to ensure
+related machines are not all restarted or paused during routine
+maintenance.
 
 #####`reserved_ip`
 The name of the reserved IP to associate with the virtual machine.
@@ -252,6 +256,12 @@ can only grow. If this value is not set, puppet will not touch the data disks fo
 
 #####`purge_disk_on_delete`
 Whether or not the attached data disk should be deleted when the VM is deleted. Defaults to false.
+
+#####`custom_data`
+A script to be executed on launch by cloud-init on Linux hosts. This can
+either be a single-line command (for example `touch /tmp/some-file`) which
+will be run under bash, or a multi-line file (for instance from a
+template) which can be any format supported by cloud-init.
 
 #####`endpoints`
 A list of endpoints which should be associated with the virtual machine.

@@ -7,6 +7,7 @@ require 'net/ssh'
 require 'ssh-exec'
 require 'retries'
 require 'shellwords'
+require 'winrm'
 
 # automatically load any shared examples or contexts
 Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
@@ -16,6 +17,9 @@ require 'azure/virtual_machine_image_management/virtual_machine_image_management
 
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
+
+UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB'
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
 
 unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
   require 'beaker-rspec'
@@ -115,9 +119,11 @@ end
 class AzureHelper
   def initialize
     @azure_vm = Azure.vm_management
+    @azure_affinity_group = Azure.base_management
     @azure_cloud_service = Azure.cloud_service_management
     @azure_storage = Azure.storage_management
     @azure_disk = Azure.vm_disk_management
+    @azure_network = Azure.network_management
   end
 
   # This can return > 1 virtual machines if there are naming clashes.
@@ -145,6 +151,44 @@ class AzureHelper
     if @azure_disk.get_virtual_machine_disk(name)
       @azure_disk.delete_virtual_machine_disk(name)
     end
+  end
+
+  def destroy_storage_account(name)
+    @azure_storage.delete_storage_account(name)
+  end
+
+  def get_virtual_network(name)
+    @azure_network.list_virtual_networks.find { |network| network.name == name }
+  end
+
+  def ensure_network(name)
+    # This should ideally be create_network, with a corresponding delete_network. However
+    # the SDK doesn't support deleteing virtual networks. Nor does the lower-level
+    # REST API https://msdn.microsoft.com/en-us/library/azure/jj157182.aspx
+    # With that in mind we reuse a known network between tests, which is horrible but works
+    # given we don't need to mutate it, just for it to exist
+    unless get_virtual_network(name)
+      address_space = ['172.16.0.0/12', '10.0.0.0/8', '192.168.0.0/24']
+      subnets = [
+        {name: "#{name}-1", ip_address: '172.16.0.0', cidr: 12},
+        {name: "#{name}-2", ip_address: '10.0.0.0', cidr: 8}
+      ]
+      dns_servers = [{name: 'dns', ip_address: '1.2.3.4'}]
+      options = {:subnet => subnets, :dns => dns_servers}
+      @azure_network.set_network_configuration(name, CHEAPEST_AZURE_LOCATION, address_space, options)
+    end
+  end
+
+  def get_affinity_group(name)
+    @azure_affinity_group.get_affinity_group(name)
+  end
+
+  def create_affinity_group(name)
+    @azure_affinity_group.create_affinity_group(name, CHEAPEST_AZURE_LOCATION, 'Temporary group for acceptance tests')
+  end
+
+  def destroy_affinity_group(name)
+    @azure_affinity_group.delete_affinity_group(name)
   end
 end
 
@@ -349,21 +393,47 @@ def expect_failed_apply(config)
   expect(result.exit_code).not_to eq 0
 end
 
-def run_command_over_ssh(command, auth_method)
+def run_command_over_ssh(command, auth_method, port=22)
   # We retry failed attempts as although the VM has booted it takes some
   # time to start and expose SSH. This mirrors the behaviour of a typical SSH client
+  allowed_errors = [
+    # The following errors can occur if we try and connect after the machine has
+    # been created but before cloud-init provisions the machine
+    Net::SSH::HostKeyMismatch,
+    Net::SSH::AuthenticationFailed,
+    # The following errors can occur before the machine has been created
+    # and we retry until it exists
+    Errno::ECONNREFUSED,
+    Errno::ECONNRESET,
+    Errno::ETIMEDOUT,
+  ]
   with_retries(:max_tries => 10,
                :base_sleep_seconds => 20,
                :max_sleep_seconds => 20,
-               :rescue => [Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::ETIMEDOUT]) do
+               :rescue => allowed_errors) do
     Net::SSH.start(@ip,
                    @config[:optional][:user],
+                   :port => port,
                    :password => @config[:optional][:password],
                    :keys => [@local_private_key_path],
                    :auth_methods => [auth_method],
                    :verbose => :info) do |ssh|
       SshExec.ssh_exec!(ssh, command)
     end
+  end
+end
+
+def run_command_over_winrm(command, port=5986)
+  endpoint = "https://#{@machine.ipaddress}:#{port}/wsman"
+  winrm = WinRM::WinRMWebService.new(
+    endpoint,
+    :ssl,
+    user: @config[:optional][:user],
+    pass: @config[:optional][:password],
+    disable_sspi: true,
+  )
+  with_retries(:max_tries => 5) do
+    winrm.cmd(command)
   end
 end
 
