@@ -4,7 +4,7 @@ require 'puppet_x/puppetlabs/azure/prefetch_error'
 require 'puppet_x/puppetlabs/azure/provider'
 
 
-Puppet::Type.type(:azure_vm).provide(:azure_sdk, :parent => PuppetX::Puppetlabs::Azure::Provider) do
+Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Puppetlabs::Azure::Provider) do
   confine feature: :azure
   confine feature: :azure_hocon
   confine feature: :azure_retries

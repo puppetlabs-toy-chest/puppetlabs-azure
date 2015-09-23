@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-provider_class = Puppet::Type.type(:azure_vm).provider(:azure_sdk)
+provider_class = Puppet::Type.type(:azure_vm_classic).provider(:azure_sdk)
 
 describe provider_class do
   let(:resource) do
-    Puppet::Type.type(:azure_vm).new(
+    Puppet::Type.type(:azure_vm_classic).new(
       name: 'name',
       location: 'West US',
     )
@@ -13,7 +13,7 @@ describe provider_class do
   let(:provider) { resource.provider }
 
   it 'should be an instance of the correct provider' do
-    expect(provider).to be_an_instance_of Puppet::Type::Azure_vm::ProviderAzure_sdk
+    expect(provider).to be_an_instance_of Puppet::Type::Azure_vm_classic::ProviderAzure_sdk
   end
 
   [:vm_manager, :list_vms, :read_only, :machine_to_hash, :prefetch].each do |method|
