@@ -29,9 +29,10 @@ unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
     hosts.each do |host|
       on(host, 'apt-get install zlib1g-dev')
       on(host, 'apt-get install patch')
+      on(host, 'apt-get install -y g++')
 
       path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
-      on(host, "#{path}/gem install azure")
+      on(host, "#{path}/gem install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage hocon retries azure")
     end
   end
 
