@@ -123,6 +123,7 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
     delete_vm(machine)
     if resource[:purge_disk_on_delete]
       Puppet.info("Deleting disks for #{name}")
+      delete_disk(machine.disk_name)
       machine.data_disks.each { |d| delete_disk(d[:name]) }
     end
     @property_hash[:ensure] = :absent

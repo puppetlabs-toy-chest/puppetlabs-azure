@@ -141,13 +141,32 @@ module PuppetX
           with_retries(:max_tries => 10,
                        :base_sleep_seconds => 20,
                        :max_sleep_seconds => 20,
-                       :rescue => [NotFinished, ::Azure::Core::Error]) do
+                       :rescue => [
+                         NotFinished,
+                         ::Azure::Core::Error,
+                         # The following errors can occur when there are network issues
+                         Errno::ECONNREFUSED,
+                         Errno::ECONNRESET,
+                         Errno::ETIMEDOUT,]) do
             Puppet.debug("Trying to deleting disk #{disk_name}")
             begin
               Provider.disk_manager.delete_virtual_machine_disk(disk_name)
               if Provider.disk_manager.get_virtual_machine_disk(disk_name)
                 Puppet.debug("Disk was not deleted. Retrying to deleting disk #{disk_name}")
                 raise NotFinished.new
+              end
+            rescue RuntimeError => err
+              # The disk may already be in the process of being deleted by Azure,
+              # therefore we might have lost that race
+              # Note: pattern cannot be anchored, since the azure-sdk adds its own
+              # escape sequences for coloring it
+              case err.message
+              when /ConflictError : Windows Azure is currently performing an operation/
+                raise NotFinished.new
+              when /ResourceNotFound : The disk with the specified name does not exist/
+                return # it's gone!
+              else
+                raise
               end
             rescue NotFinished
               raise
