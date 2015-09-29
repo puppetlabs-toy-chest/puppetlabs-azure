@@ -3,7 +3,7 @@ require 'base64'
 require 'puppet_x/puppetlabs/azure/prefetch_error'
 require 'puppet_x/puppetlabs/azure/provider'
 
-SQL_USER = 'azure_sql_user'
+require 'azure'
 
 
 Puppet::Type.type(:azure_sql_database).provide(:azure_sql, :parent => PuppetX::Puppetlabs::Azure::Provider) do
@@ -17,7 +17,7 @@ Puppet::Type.type(:azure_sql_database).provide(:azure_sql, :parent => PuppetX::P
 
   def self.instances
     begin
-      list_servers.collect do |server|
+      list_sql_servers.collect do |server|
         begin
           hash = server_to_hash(server)
           Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
@@ -40,12 +40,12 @@ Puppet::Type.type(:azure_sql_database).provide(:azure_sql, :parent => PuppetX::P
 
   def create
     Puppet.info("Creating #{name}")
-    create_server(AZURE_SQL_USER, :password, :location)
+    create_sql_server(:password, :location)
   end
 
   def destroy
     Puppet.info("Deleting #{name}")
-    delete_server(:name)
+    delete_sql_server(:name)
     @property_hash[:ensure] = :absent
   end
 
