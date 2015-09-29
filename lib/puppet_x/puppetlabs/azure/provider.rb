@@ -1,7 +1,8 @@
 require 'stringio'
 require 'puppet_x/puppetlabs/azure/config'
-
 require 'puppet_x/puppetlabs/azure/not_finished'
+
+SQL_USER = 'azure_sql_user'
 
 module PuppetX
   module Puppetlabs
@@ -92,13 +93,11 @@ module PuppetX
           ::Azure.vm_disk_management
         end
 
-        def self.sql_database_management
+        def self.sql_manager
           ::Azure.sql_database_management
         end
 
-        def self.list_sql_servers
-          sql_database_management.list_servers
-        end
+
 
         def self.list_vms
           vm_manager.list_virtual_machines
@@ -124,6 +123,31 @@ module PuppetX
               disk_size: data_disk_size_gb,
               import: false,
             })
+        end
+
+        def self.list_sql_servers
+          sql_manager.list_servers
+        end
+
+        def self.find_sql_server(name)
+          list_sql_servers.find { |x| x.name == name }
+        end
+
+        def create_sql_server(password, location)
+          Provider.sql_manager.create_server(AZURE_SQL_USER, password, location)
+        end
+
+        def delete_sql_server(name)
+          Provider.sql_manager.delete_server(name)
+        end
+
+        # ip_range {:start_ip_address => "0.0.0.1", :end_ip_address => "0.0.0.5"}
+        def create_sql_firewall_rule(server_name, rule_name, ip_range)
+          Provider.sql_manager.set_sql_server_firewall_rule(server_name, rule_name, ip_range)
+        end
+
+        def remove_sql_firewall_rule(server_name, rule_name)
+          Provider.sql_manager.delete_sql_server_firewall_rule(server_name, rule_name)
         end
 
         def create_vm(args) # rubocop:disable Metrics/AbcSize
