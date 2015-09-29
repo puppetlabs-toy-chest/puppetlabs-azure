@@ -1,3 +1,4 @@
+
 require 'azure'
 require 'mustache'
 require 'open3'
@@ -9,7 +10,14 @@ require 'retries'
 require 'shellwords'
 require 'winrm'
 
+require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
+
+require 'azure_mgmt_compute'
+require 'azure_mgmt_resources'
+require 'azure_mgmt_storage'
+require 'azure_mgmt_network'
+require 'ms_rest_azure'
 
 # automatically load any shared examples or contexts
 Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
@@ -18,7 +26,7 @@ Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
-CHEAPEST_AZURE_LOCATION="East US"
+CHEAPEST_AZURE_LOCATION="East US 2"
 
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
 WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
@@ -135,6 +143,112 @@ class PuppetManifest < Mustache
 
   def self.env_dns_id
     @env_dns_id ||= @env_id.gsub(/[^\\dA-Za-z-]/, '')
+  end
+end
+
+class AzureARMHelper
+  def self.config
+    PuppetX::Puppetlabs::Azure::Config.new
+  end
+
+  def self.compute_client
+    @compute_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(credentials)
+  end
+
+  def self.network_client
+    @network_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(credentials)
+  end
+
+  def self.storage_client
+    @storage_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(credentials)
+  end
+
+  def self.resource_client
+    @resource_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(credentials)
+  end
+
+  def self.credentials
+    token_provider = ::MsRestAzure::ApplicationTokenProvider.new(AzureARMHelper.config.tenant_id, AzureARMHelper.config.client_id, AzureARMHelper.config.client_secret)
+    ::MsRest::TokenCredentials.new(token_provider)
+  end
+
+  def self.with_subscription_id(client)
+    client.subscription_id = AzureARMHelper.config.subscription_id
+    client
+  end
+
+  def list_resource_providers
+    promise = AzureARMHelper.resource_client.providers.list
+    promise.value!.body.value
+  end
+
+  def get_resource_group(name)
+    resource_groups = AzureARMHelper.resource_client.resource_groups.list.value!.body
+    rg = resource_groups.value.find { |x| x.name == name }
+    rg
+  end
+
+  def destroy_resource_group(resource_group_name)
+    promise = AzureARMHelper.resource_client.resource_groups.delete(resource_group_name)
+    promise.value!.body
+  end
+
+  def list_storage_accounts
+    promise = AzureARMHelper.storage_client.storage_accounts.list
+    result = promise.value!.body
+    result.value
+  end
+
+  def get_storage_account(name)
+    accounts = list_storage_accounts
+    account = accounts.find { |x| x.name == name }
+    account
+  end
+
+  def destroy_storage_account(resource_group_name, name)
+    promise = AzureARMHelper.storage_client.storage_accounts.delete(resource_group_name, name)
+    promise.value!.body
+  end
+
+  def get_all_vms
+    vms = AzureARMHelper.compute_client.virtual_machines.list_all.value!.body.value
+    vms.collect do |vm|
+      AzureARMHelper.compute_client.virtual_machines.get(get_resource_group_from(vm), vm.name, 'instanceView').value!.body
+    end
+  end
+
+  def get_resource_group_from(machine)
+    machine.id.split('/')[4].downcase
+  end
+
+  def get_vm(name)
+    get_all_vms.find { |vm| vm.name == name }
+  end
+
+  def stop_vm(resource_group, name)
+    promise = AzureARMHelper.compute_client.virtual_machines.power_off(resource_group, name)
+    promise.value!.response.env.body
+  end
+
+  def start_vm(resource_group, name)
+    promise = AzureARMHelper.compute_client.virtual_machines.start(resource_group, name)
+    promise.value!.response.env.body
+  end
+
+  def vm_running(name)
+    vm = get_vm(name)
+    state = vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/running/ }
+    state.code == 'PowerState/running'
+  end
+
+  def vm_stopped(name)
+    vm = get_vm(name)
+    state = vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }
+    begin
+      return state.code == 'PowerState stopped'
+    rescue StandardError
+      return false
+    end
   end
 end
 
