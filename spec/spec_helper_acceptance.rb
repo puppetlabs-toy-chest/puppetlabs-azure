@@ -9,6 +9,8 @@ require 'retries'
 require 'shellwords'
 require 'winrm'
 
+require 'puppet_x/puppetlabs/azure/not_finished'
+
 # automatically load any shared examples or contexts
 Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 
@@ -18,7 +20,7 @@ require 'azure/virtual_machine_image_management/virtual_machine_image_management
 # cheapest as of 2015-08
 CHEAPEST_AZURE_LOCATION="East US"
 
-UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB'
+UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
 WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
 
 unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
@@ -53,8 +55,27 @@ unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
 end
 
 class PuppetManifest < Mustache
-  def initialize(file, config)
+  attr_accessor :optional_endpoints, :endpoints
+
+  def initialize(file, config) # rubocop:disable Metrics/AbcSize
     @template_file = File.join(Dir.getwd, 'spec', 'acceptance', 'fixtures', file)
+
+    # decouple the config we're munging from the value used in the tests
+    config = Marshal.load( Marshal.dump(config) )
+
+    endpoints = config.delete(:endpoints)
+    @optional_endpoints = endpoints.is_a?(Array) and !endpoints.empty?
+    if @optional_endpoints
+      @endpoints = endpoints.collect do |ep|
+        lb = ep.delete(:load_balancer)
+        {
+          values: self.class.to_generalized_data(ep),
+          has_load_balancer: !!lb,
+          load_balancer: self.class.to_generalized_data(lb),
+        }
+      end
+    end
+
     config.each do |key, value|
       config_value = self.class.to_generalized_data(value)
       instance_variable_set("@#{key}".to_sym, config_value)

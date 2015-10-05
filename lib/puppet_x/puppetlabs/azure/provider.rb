@@ -191,6 +191,17 @@ module PuppetX
           end
         end
 
+        def update_endpoints(should) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Updating endpoints for #{name}: from #{endpoints} to #{should.inspect}")
+          unless endpoints == :absent
+            to_delete = endpoints.collect { |ep| ep[:name] } - should.collect { |ep| ep[:name] }
+            to_delete.each do |name|
+              Provider.vm_manager.delete_endpoint(resource[:name], resource[:cloud_service], name)
+            end
+          end
+          Provider.vm_manager.update_endpoints(resource[:name], resource[:cloud_service], should)
+        end
+
         def stop_vm(machine)
           Provider.vm_manager.shutdown_virtual_machine(machine.vm_name, machine.cloud_service_name)
         end
