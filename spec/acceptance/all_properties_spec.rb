@@ -24,7 +24,6 @@ describe 'azure_vm_classic when creating a machine with all available properties
         storage_account: @storage_account_name,
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
-        ssh_port: 2222,
         availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
       }
     }
@@ -70,7 +69,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
   end
 
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password', @config[:optional][:ssh_port])
+    result = run_command_over_ssh('true', 'password', 22)
     expect(result.exit_status).to eq 0
   end
 
@@ -80,7 +79,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
     # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
     # so we retry this a few times
     5.times do
-      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', @config[:optional][:ssh_port])
+      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', 22)
       break if @result.exit_status == 0
       sleep 10
     end
@@ -94,7 +93,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
 
   it 'should have the correct SSH port' do
     ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
-    expect(ssh_endpoint[:public_port].to_i).to eq(@config[:optional][:ssh_port])
+    expect(ssh_endpoint[:public_port].to_i).to eq(22)
   end
 
   it 'should have the correct availability set' do

@@ -108,10 +108,6 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       storage_account_name: resource[:storage_account],
       subnet_name: resource[:subnet],
       reserved_ip_name: resource[:reserved_ip],
-      winrm_https_port: resource[:winrm_https_port],
-      winrm_http_port: resource[:winrm_http_port],
-      winrm_transport: resource[:winrm_transport],
-      ssh_port: resource[:ssh_port],
       availability_set_name: resource[:availability_set],
       affinity_group_name: resource[:affinity_group],
     }

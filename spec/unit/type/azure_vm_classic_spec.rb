@@ -13,10 +13,6 @@ describe 'azure_vm_classic', :type => :type do
       :custom_data,
       :storage_account,
       :reserved_ip,
-      :winrm_transport,
-      :winrm_https_port,
-      :winrm_http_port,
-      :ssh_port,
       :affinity_group,
     ]
   end
@@ -76,7 +72,6 @@ describe 'azure_vm_classic', :type => :type do
     'private_key_file',
     'location',
     'storage_account',
-    'winrm_transport',
     'cloud_service',
     'deployment',
     'size',
@@ -93,9 +88,6 @@ describe 'azure_vm_classic', :type => :type do
   end
 
   [
-    'winrm_https_port',
-    'winrm_http_port',
-    'ssh_port',
     'data_disk_size_gb',
   ].each do |property|
     it "should require #{property} to be a number" do

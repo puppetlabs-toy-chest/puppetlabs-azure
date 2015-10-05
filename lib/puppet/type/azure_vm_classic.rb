@@ -10,14 +10,9 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #   password         => 'Password',
 #   location         => 'West US'
 #   storage_account  => 'storagesuse',
-#   winrm_transport  => ['https','http'],
-#   winrm_https_port => 5999,
-#   winrm_http_port  => 6999,
 #   cloud_service    => 'cloud_service_name',
 #   deployment       =>'vm_name',
-#   tcp_endpoints    => '80,3389:3390',
 #   private_key_file => './private_key.key', # required for ssh
-#   ssh_port         => 2222,
 #   size             => 'Small',
 #   affinity_group   => 'affinity1',
 #   virtual_network  => 'xplattestvnet',
@@ -136,28 +131,12 @@ Puppet::Type.newtype(:azure_vm_classic) do
     desc 'The storage account to create for the virtual machine.'
   end
 
-  newparam(:winrm_transport, :parent => PuppetX::PuppetLabs::Azure::Property::String, :array_matching => :all) do
-    desc 'A list of transport protocols for WINRM.'
-  end
-
-  newparam(:winrm_https_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
-    desc 'The port number for WinRM https communication. Defaults to 5986.'
-  end
-
-  newparam(:winrm_http_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
-    desc 'The port number for WinRM http communication. Defaults to 5985.'
-  end
-
   newproperty(:cloud_service, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated cloud service.'
   end
 
   newproperty(:deployment, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name for the deployment.'
-  end
-
-  newparam(:ssh_port, :parent => PuppetX::PuppetLabs::Azure::Property::PositiveInteger) do
-    desc 'The port number for SSH.'
   end
 
   newproperty(:size, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
