@@ -15,7 +15,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
-        size: 'Medium',
+        size: 'Small',
         deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
         cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
         data_disk_size_gb: 53,
@@ -24,9 +24,15 @@ describe 'azure_vm_classic when creating a machine with all available properties
         storage_account: @storage_account_name,
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
-        ssh_port: 2222,
         availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
-      }
+      },
+      endpoints: [{
+        name: 'ssh',
+        local_port: 22,
+        public_port: 22,
+        protocol: 'TCP',
+        direct_server_return: false,
+      }],
     }
 
     @manifest = PuppetManifest.new(@template, @config)
@@ -70,8 +76,70 @@ describe 'azure_vm_classic when creating a machine with all available properties
   end
 
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password', @config[:optional][:ssh_port])
+    result = run_command_over_ssh('true', 'password', 22)
     expect(result.exit_status).to eq 0
+  end
+
+  context 'when configuring a load balancer for ssh on a non-default port' do
+    before(:all) do
+      # replace the existing endpoint
+      @config[:endpoints] = [{
+          name: 'SSH',
+          local_port: 22,
+          public_port: 2200,
+          protocol: 'TCP',
+          direct_server_return: false,
+          load_balancer_name: 'ssh-lb',
+          load_balancer: {
+            port: 22,
+            protocol: 'tcp',
+            interval: 2,
+          }
+        }]
+
+      @manifest = PuppetManifest.new(@template, @config)
+      @result = @manifest.execute
+    end
+
+    it_behaves_like 'an idempotent resource'
+
+    it 'is accessible using the new port' do
+      result = run_command_over_ssh('true', 'password', 2200)
+      expect(result.exit_status).to eq 0
+    end
+
+    context 'after deleting the endpoint' do
+      before(:all) do
+        @config[:endpoints] = []
+        @manifest = PuppetManifest.new(@template, @config)
+        @result = @manifest.execute
+      end
+
+      it_behaves_like 'an idempotent resource'
+
+      # Since the last tests verified that we can talk to the VM,
+      # this will check that the port is now closed. Obviously
+      # this is a race against network failures.
+      it 'is not accessible anymore' do
+        expect do
+          with_retries(:max_tries => 10,
+                       :base_sleep_seconds => 2,
+                       :max_sleep_seconds => 20,
+                       :rescue => [PuppetX::Puppetlabs::Azure::NotFinished]) do
+            Net::SSH.start(@ip,
+                           @config[:optional][:user],
+                           :port => 2200,
+                           :password => @config[:optional][:password],
+                           :auth_methods => ['password'],
+                           :verbose => :info) do |ssh|
+              SshExec.ssh_exec!(ssh, 'true')
+            end
+            # Wait for Azure to reconfigure the endpoint
+            raise PuppetX::Puppetlabs::Azure::NotFinished.new
+          end
+        end.to raise_error(Errno::ETIMEDOUT)
+      end
+    end
   end
 
   pending 'should be able to grow the disk on the fly'
@@ -80,7 +148,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
     # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
     # so we retry this a few times
     5.times do
-      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', @config[:optional][:ssh_port])
+      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', 22)
       break if @result.exit_status == 0
       sleep 10
     end
@@ -94,7 +162,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
 
   it 'should have the correct SSH port' do
     ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
-    expect(ssh_endpoint[:public_port].to_i).to eq(@config[:optional][:ssh_port])
+    expect(ssh_endpoint[:public_port].to_i).to eq(22)
   end
 
   it 'should have the correct availability set' do

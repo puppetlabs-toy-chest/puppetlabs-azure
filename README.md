@@ -239,23 +239,11 @@ The name of the storage account to create for the virtual machine.
 Note that if the source image is a 'user' image, the storage account
 for the user image is used instead of the one provided here.
 
-#####`winrm_transport`
-A list of transport protocols for WinRM.
-
-#####`winrm_https_port`
-The port number for WinRM https communication. Defaults to 5986
-
-#####`winrm_http_port`
-The port number for WinRM http communication. Defaults to 5985
-
 #####`cloud_service`
 The name of the associated cloud service.
 
 #####`deployment`
 The name for the deployment.
-
-#####`ssh_port`
-The port number for SSH. Defaults to 22
 
 #####`size`
 The size of the virtual machine instance. See the Azure documentation
@@ -293,7 +281,46 @@ will be run under bash, or a multi-line file (for instance from a
 template) which can be any format supported by cloud-init.
 
 #####`endpoints`
-A list of endpoints which should be associated with the virtual machine.
+A list of endpoints which should be associated with the virtual machine. Supply an array of hashes describing the endpoints. Available keys:
+
+  * `name`: *Required* The name of this endpoint.
+  * `public_port`: *Required* The public port to access this endpoint.
+  * `local_port`: *Required* The internal port on which the virtual machine is listening.
+  * `protocol`: *Required* `TCP` or `UDP`.
+  * `direct_server_return`: enable direct server return on the endpoint.
+  * `load_balancer_name`: If the endpoint should be added to a load balancer set, specify a name here. If the set does not exist yet, it will be created automatically.
+  * `load_balancer`: A hash of the properties to add this endpoint to a load balancer configuration.
+    * `port`: *Required* The internal port on which the virtual machine is listening.
+    * `protocol`: *Required* The protocol to use for the availability probe.
+    * `interval`: The interval for the availability probe in seconds.
+    * `path`: a relative path used by the availability probe.
+
+The most often used endpoints are SSH for Linux, and WinRM for Windows. Usually they are configured for direct pass-through like this:
+
+~~~
+endpoints => [{
+    name        => 'ssh',
+    local_port  => 22,
+    public_port => 22,
+    protocol    => 'TCP',
+  },]
+~~~
+
+or
+
+~~~
+endpoints => [{
+    name        => 'WinRm-HTTP',
+    local_port  => 5985,
+    public_port => 5985,
+    protocol    => 'TCP',
+  },{
+    name        => 'PowerShell',
+    local_port  => 5986,
+    public_port => 5986,
+    protocol    => 'TCP',
+  },]
+~~~
 
 #####`os_type`
 _Read Only_. The operating system type for the virtual machine.

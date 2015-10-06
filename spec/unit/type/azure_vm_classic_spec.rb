@@ -13,10 +13,6 @@ describe 'azure_vm_classic', :type => :type do
       :custom_data,
       :storage_account,
       :reserved_ip,
-      :winrm_transport,
-      :winrm_https_port,
-      :winrm_http_port,
-      :ssh_port,
       :affinity_group,
     ]
   end
@@ -76,7 +72,6 @@ describe 'azure_vm_classic', :type => :type do
     'private_key_file',
     'location',
     'storage_account',
-    'winrm_transport',
     'cloud_service',
     'deployment',
     'size',
@@ -93,9 +88,6 @@ describe 'azure_vm_classic', :type => :type do
   end
 
   [
-    'winrm_https_port',
-    'winrm_http_port',
-    'ssh_port',
     'data_disk_size_gb',
   ].each do |property|
     it "should require #{property} to be a number" do
@@ -344,6 +336,7 @@ describe 'azure_vm_classic', :type => :type do
           public_port: 996,
           local_port: 998,
           protocol: 'TCP',
+          direct_server_return: true,
         },
       }
     end
@@ -352,12 +345,57 @@ describe 'azure_vm_classic', :type => :type do
       expect { type_class.new(config) }.to_not raise_error
     end
 
+    [ true, false, "true", "false" ].each do |value|
+      context "with direct_server_return set to #{value.inspect}" do
+        let :config do
+          {
+            ensure: :present,
+            name: 'endpoint-test',
+            location: 'West US',
+            endpoints: {
+              name: 'ep-1',
+              public_port: 996,
+              local_port: 998,
+              protocol: 'TCP',
+              direct_server_return: value,
+            },
+          }
+        end
+
+        it 'should have stringified direct_server_return correctly' do
+          instance = type_class.new(config)
+          expect(instance[:endpoints].first[:direct_server_return]).to eq value.to_s
+        end
+      end
+    end
+
+    context 'with no direct_server_return set' do
+      let :config do
+        {
+          ensure: :present,
+          name: 'endpoint-test',
+          location: 'West US',
+          endpoints: {
+            name: 'ep-1',
+            public_port: 996,
+            local_port: 998,
+            protocol: 'TCP',
+          },
+        }
+      end
+
+      it 'should have stringified direct_server_return correctly' do
+        instance = type_class.new(config)
+        expect(instance[:endpoints].first[:direct_server_return]).to eq 'false'
+      end
+    end
+
     [:name, :public_port, :local_port, :protocol].each do |key|
       it "should require endpoint to have a #{key} key" do
         expect do
           config[:endpoints].delete(key)
           type_class.new(config)
-        end.to raise_error(Puppet::Error, /for endpoints you are missing the following keys: #{key}/)
+        end.to raise_error(Puppet::Error, /an endpoint is missing the following keys: #{key}/)
       end
     end
 
@@ -367,6 +405,55 @@ describe 'azure_vm_classic', :type => :type do
           config[:endpoints][port] = 'invalid'
           type_class.new(config)
         end.to raise_error(Puppet::Error, /#{port} for endpoints should be an Integer/)
+      end
+    end
+
+    context 'with an unnamed load balancer specified' do
+      let :config do
+        {
+          ensure: :present,
+          name: 'endpoint-test',
+          location: 'West US',
+          endpoints: {
+            name: 'ep-1',
+            public_port: 996,
+            local_port: 998,
+            protocol: 'TCP',
+            load_balancer: {
+              port: 60,
+              protocol: 'tcp',
+            }
+          },
+        }
+      end
+
+      it 'should be invalid' do
+        expect { type_class.new(config) }.to raise_error(Puppet::Error, /having a load_balancer requires a load_balancer_name/)
+      end
+    end
+
+    context 'with a named load balancer specified' do
+      let :config do
+        {
+          ensure: :present,
+          name: 'endpoint-test',
+          location: 'West US',
+          endpoints: {
+            name: 'ep-1',
+            public_port: 996,
+            local_port: 998,
+            protocol: 'TCP',
+            load_balancer_name: 'lb-1',
+            load_balancer: {
+              port: 60,
+              protocol: 'tcp',
+            }
+          },
+        }
+      end
+
+      it 'should be valid' do
+        expect { type_class.new(config) }.to_not raise_error
       end
     end
   end

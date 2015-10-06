@@ -53,6 +53,22 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
     end
   end
 
+  def self.endpoints_from_machine(machine)
+    udp_endpoints = machine.udp_endpoints.collect do |udp|
+      udp = udp.dup
+      udp.delete(:vip)
+      udp[:protocol] = 'udp'
+      udp
+    end
+    tcp_endpoints = machine.tcp_endpoints.collect do |tcp|
+      tcp = tcp.dup
+      tcp.delete(:vip)
+      tcp[:protocol] = 'tcp'
+      tcp
+    end
+    udp_endpoints + tcp_endpoints
+  end
+
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     cloud_service = get_cloud_service(machine.cloud_service_name)
     location = cloud_service.location || cloud_service.extended_properties["ResourceLocation"]
@@ -73,6 +89,7 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       availability_set: machine.availability_set_name,
       cloud_service_object: cloud_service,
       data_disk_size_gb: data_disk_size_gb_from(machine),
+      endpoints: endpoints_from_machine(machine),
       object: machine,
     }
   end
@@ -108,21 +125,19 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       storage_account_name: resource[:storage_account],
       subnet_name: resource[:subnet],
       reserved_ip_name: resource[:reserved_ip],
-      winrm_https_port: resource[:winrm_https_port],
-      winrm_http_port: resource[:winrm_http_port],
-      winrm_transport: resource[:winrm_transport],
-      ssh_port: resource[:ssh_port],
       availability_set_name: resource[:availability_set],
       affinity_group_name: resource[:affinity_group],
     }
     create_vm(params)
+    update_endpoints(resource[:endpoints]) if resource[:endpoints] and resource[:endpoints].size > 0
   end
 
-  def destroy
+  def destroy # rubocop:disable Metrics/AbcSize
     Puppet.info("Deleting #{name}")
     delete_vm(machine)
     if resource[:purge_disk_on_delete]
       Puppet.info("Deleting disks for #{name}")
+      delete_disk(machine.disk_name)
       machine.data_disks.each { |d| delete_disk(d[:name]) }
     end
     @property_hash[:ensure] = :absent

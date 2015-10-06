@@ -13,7 +13,6 @@ describe 'azure_vm_classic when creating a new Windows machine' do
         location: CHEAPEST_AZURE_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
-        winrm_https_port: 5986,
         storage_account: @storage_account_name, # required in order to tidy up created storage group
       }
     }
@@ -33,7 +32,7 @@ describe 'azure_vm_classic when creating a new Windows machine' do
 
   it 'should be accessible via WinRM with the provided details' do
     pending 'the Azure firewall is not by default open to WinRM, pending work in CLOUD-429'
-    run_command_over_winrm('ipconfig /all', @config[:optional][:winrm_https_port]) do |stdout, stderr|
+    run_command_over_winrm('ipconfig /all', 5986) do |stdout, stderr|
       expect(stderr).to be_empty?
     end
   end
