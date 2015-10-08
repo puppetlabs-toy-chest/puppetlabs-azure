@@ -192,6 +192,7 @@ azure_vm_classic { 'virtual-machine-name':
 ###Types
 
 * `azure_vm_classic`: Manages a virtual machine in Microsoft Azure.
+* `azure_sql_database`: Manages a SQL Database in Microsoft Azure.
 
 ###Parameters
 
@@ -335,6 +336,30 @@ _Read Only_. The hostname of the running virtual machine.
 _Read Only_. The link to the underlying disk image for the virtual
 machine.
 
+####Type: azure_sql_database
+
+#####`ensure`
+
+#####`name`
+*Required* The name of the SQL database server.
+
+#####`password`
+*Required* The password required to access the database server.
+
+#####`location`
+*Required* The location where the database server will be created.
+
+#####`firewalls`
+A list of firewall rules controlling access to the database server.
+These require the following structure:
+
+~~~
+firewalls => [{
+  name             => 'rule-name'
+  start_ip_address => '0.0.0.1',
+  end_ip_address   => '0.0.0.5',
+}]
+~~~
 
 ##Limitations
 
