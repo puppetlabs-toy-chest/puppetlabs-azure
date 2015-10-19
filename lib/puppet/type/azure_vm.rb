@@ -16,11 +16,12 @@ Puppet::Type.newtype(:azure_vm) do
   @doc = 'Type representing a virtual machine in Microsoft Azure.'
 
   validate do
-    if self[:password] and self[:private_key_file]
-      fail 'You can only provide either a password or a private_key_file for an Azure VM'
+    if self[:password]
+      fail 'You can only provide a password for an Azure VM'
     end
     required_properties = [
       :location,
+      :size,
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
@@ -95,6 +96,10 @@ Puppet::Type.newtype(:azure_vm) do
 
   newproperty(:size, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The size of the virtual machine instance.'
+    validate do |value|
+      super value
+      fail 'the size must not be empty' if value.empty?
+    end
   end
 
   [
