@@ -1,3 +1,5 @@
+require 'puppet_x/puppetlabs/azure/config'
+
 require 'azure'
 require 'mustache'
 require 'open3'
@@ -114,6 +116,92 @@ class PuppetManifest < Mustache
 
   def self.env_dns_id
     @env_dns_id ||= @env_id.gsub(/[^\\dA-Za-z-]/, '')
+  end
+end
+
+class AzureARMHelper
+  def initialize
+    def self.config
+      PuppetX::Puppetlabs::Azure::Config.new
+    end
+  end
+  def self.credentials
+    token_provider = ::MsRestAzure::ApplicationTokenProvider.new(config.tenant_id, config.client_id, config.client_secret)
+    ::MsRest::TokenCredentials.new(token_provider)
+  end
+
+  def self.with_subscription_id(client)
+    client.subscription_id = config.subscription_id
+    client
+  end
+
+  def self.compute_client
+    @compute_client ||= with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(credentials)
+  end
+
+  def self.network_client
+    @network_client ||= with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(credentials)
+  end
+
+  def self.storage_client
+    @storage_client ||= with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(credentials)
+  end
+
+  def self.resource_client
+    @resource_client ||= with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(credentials)
+  end
+
+  def list_resource_providers
+    provider_worker = @resource_client.providers.list
+    result = provider_worker.value!.body.value
+    result
+  end
+
+  # Resource Group Helpers
+  def create_resource_group
+    params = Azure::ARM::Resources::Models::ResourceGroup.new
+    params.location = @location
+    @resource_client.resource_groups.create_or_update(@resource_group_name, params).value!.body
+  end
+
+  def find_resource_group(name)
+    resource_groups = @resource_client.resource_groups.list.value!.body
+    rg = resource_groups.value.find { |x| x.name == name }
+    rg
+  end
+
+  def delete_resource_group(name)
+    @resource_client.resource_groups.delete(name).value!.body
+  end
+
+  def list_storage_accounts
+    promise = @storage_client.storage_accounts.list
+    result = promise.value!.body
+    result.value
+  end
+
+  def delete_storage_account(resource_group_name, account_name)
+    promise = @storage_client.storage_accounts.delete(resource_group_name, account_name)
+  end
+
+  def get_storage_account(name)
+    accounts = list_storage_accounts
+    account = accounts.find { |x| x.name == name }
+    account
+  end
+
+  def delete_vm(vm_name, resource_group_name)
+    promise = @compute_client.virtual_machines.delete(resource_group_name, vm_name)
+    promise.value!.body
+  end
+
+  def get_all_vms
+    promise = @compute_client.virtual_machines.list_all
+    promise.value!.body.value
+  end
+
+  def get_vm(name)
+    list_all_vms.find { |vm| vm.name == name }
   end
 end
 

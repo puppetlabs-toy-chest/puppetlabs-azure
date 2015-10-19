@@ -2,7 +2,23 @@ require 'stringio'
 require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
 
-SQL_USER = 'azure_sql_user'
+require 'azure_mgmt_compute'
+require 'azure_mgmt_resources'
+require 'azure_mgmt_storage'
+require 'azure_mgmt_network'
+require 'ms_rest_azure'
+
+include MsRest
+include MsRestAzure
+include Azure::ARM::Resources
+include Azure::ARM::Compute
+include Azure::ARM::Compute::Models
+include Azure::ARM::Storage
+include Azure::ARM::Network
+include Azure::ARM::Network::Models
+
+include Azure
+require 'pry'
 
 module PuppetX
   module Puppetlabs
@@ -21,7 +37,7 @@ module PuppetX
         end
       end
 
-      class Provider < Puppet::Provider
+      class ProviderBase < Puppet::Provider
         # all of this needs to happen once in the life-time of the runtime,
         # but Puppet.feature does not allow us to add a feature-conditional
         # initialization, so we need to be a little bit circumspect here.
@@ -30,15 +46,6 @@ module PuppetX
 
           # re-route azure's messages to puppet
           ::Azure::Core::Logger.initialize_external_logger(LoggerAdapter.new)
-        rescue LoadError
-          Puppet.debug("Couldn't load azure SDK")
-        end
-
-        # Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
-        # This needs to be separate from the rescue above, as this might
-        # get fixed on a different schedule.
-        begin
-          require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
         rescue LoadError
           Puppet.debug("Couldn't load azure SDK")
         end
@@ -54,10 +61,42 @@ module PuppetX
         def self.config
           PuppetX::Puppetlabs::Azure::Config.new
         end
+      end
 
-        def self.arm_credentials
+=begin
+      Azure Resource Management API
+
+      The ARM API requires
+      subscription_id
+      tenant_id => Found in the URI of the portal along with the client subscrition_id
+      client_id => A application must be created on the default account ActiveDirectory for this to be created
+      client_secret => This is generated on the application created on the default account as well, once its saved.
+
+      The application MUST be granted at least a contributor role for the ARM API to allow you access. This is done through
+      windows powershell.
+
+      See the Readme.md
+=end
+
+      class Provider_ARM < ProviderBase
+
+        MICROSOFT_PROVIDER_STORAGE="Microsoft.Storage"
+        MICROSOFT_PROVIDER_NETWORK="Microsoft.Network"
+        MICROSOFT_PROVIDER_COMPUTE="Microsoft.Compute"
+
+        @location = "eastus" # GH:: check mapping. these seem to not match the regions??!
+        @resource_group_name = "puppet_msazure_res_group"
+        @storage_account = "puppet_msazure_storage_account" # TO DO : add a uuid
+        @storage_account_type =  'Standard_GRS'
+
+        def initialise(location, size)
+          @location = location
+          @size = size
+        end
+
+        def self.credentials
           token_provider = ::MsRestAzure::ApplicationTokenProvider.new(config.tenant_id, config.client_id, config.client_secret)
-          ::MsRest::TokenCredentials.new(token_provider)
+          credentials = ::MsRest::TokenCredentials.new(token_provider)
         end
 
         def self.with_subscription_id(client)
@@ -65,20 +104,303 @@ module PuppetX
           client
         end
 
-        def self.arm_compute_client
-          @arm_compute_client ||= with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(arm_credentials)
+        def self.compute_client
+          @compute_client ||= with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(credentials)
         end
 
-        def self.arm_network_client
-          @arm_network_client ||= with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(arm_credentials)
+        def self.network_client
+          @network_client ||= with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(credentials)
         end
 
-        def self.arm_storage_client
-         @arm_storage_client ||= with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(arm_credentials)
+        def self.storage_client
+         @storage_client ||= with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(credentials)
         end
 
-        def self.arm_resource_client
-          @arm_resource_client ||= with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(arm_credentials)
+        def self.resource_client
+          @resource_client ||= with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(credentials)
+        end
+
+        def self.get_random_name(prefix = "puppet", length = 1000)
+          prefix + SecureRandom.uuid.downcase.delete('^a-zA-Z0-9')[0...length]
+        end
+
+        def self.register_azure_provider(name)
+          promise = @resource_client.providers.register(name)
+          promise.value!.body
+        end
+
+        def self.register_providers
+          register_azure_provider(MICROSOFT_PROVIDER_STORAGE)
+          register_azure_provider(MICROSOFT_PROVIDER_NETWORK)
+          register_azure_provider(MICROSOFT_PROVIDER_COMPUTE)
+        end
+
+
+        def self.list_resource_providers
+          provider_worker = @resource_client.providers.list
+          result = provider_worker.value!.body.value
+          result
+        end
+
+        def self.create_resource_group
+          params = Azure::ARM::Resources::Models::ResourceGroup.new
+          params.location = @location
+          @resource_client.resource_groups.create_or_update(@resource_group_name, params).value!.body
+        end
+
+        def self.find_resource_group(name)
+          resource_groups = @resource_client.resource_groups.list.value!.body
+          rg = resource_groups.value.find { |x| x.name == name }
+          rg
+        end
+
+        def self.delete_resource_group(name)
+          @resource_client.resource_groups.delete(name).value!
+        end
+
+        def self.list_storage_accounts
+          promise = @storage_client.storage_accounts.list
+          result = promise.value!.body
+          result.value
+        end
+
+        def self.get_storage_account(name)
+          accounts = list_storage_accounts
+          account = accounts.find { |x| x.name == name }
+          account
+        end
+
+        #
+        # ARM launch params and profiles
+        #
+
+        def generate_os_vhd_uri
+          container_name = get_random_name 'cont'
+          vhd_container = "https://#{@storage_account}.blob.core.windows.net/#{container_name}"
+          os_vhduri = "#{vhd_container}/os#{get_random_name 'test'}.vhd"
+          os_vhduri
+        end
+
+        #image reference format for ARM images canonical:ubuntuserver:14.04.2-LTS:latest
+        def get_image_reference()
+          ref = ImageReference.new
+          ref.publisher = config.image_reference.split(':')[0]
+          ref.offer = config.image_reference.split(':')[1]
+          ref.sku = config.image_reference.split(':')[2]
+          ref.version = config.image_reference.split(':')[3]
+          ref
+        end
+
+        def build_storage_account_create_parameters(name, location)
+          params = Azure::ARM::Storage::Models::StorageAccountCreateParameters.new
+          params.location = location
+          params.name = name
+          props = Azure::ARM::Storage::Models::StorageAccountPropertiesCreateParameters.new
+          params.properties = props
+          props.account_type = @storage_account_type
+          params
+        end
+
+        def create_storage_account
+          params = build_storage_account_create_parameters(@storage_account, location)
+          storage_worker = STORAGE_CLIENT.storage_accounts.create(resource_group.name, @storage_account, params)
+          result = storage_worker.value!.body
+          result.name = @storage_account #similar problem in dot net tests
+          result
+        end
+
+        def create_storage_profile
+          storage_profile = StorageProfile.new
+          storage_profile.image_reference = get_image_reference
+          os_disk = OSDisk.new
+          os_disk.caching = 'ReadWrite'
+          os_disk.create_option = 'fromImage'
+          os_disk.name = 'myosdisk1'
+          virtual_hard_disk = VirtualHardDisk.new
+          virtual_hard_disk.uri = generate_os_vhd_uri
+          os_disk.vhd = virtual_hard_disk
+          storage_profile.os_disk = os_disk
+          storage_profile
+        end
+
+        # Network helpers
+        def build_public_ip_params
+          public_ip = PublicIpAddress.new
+          public_ip.location = @location
+          props = PublicIpAddressPropertiesFormat.new
+          props.public_ipallocation_method = 'Dynamic'
+          public_ip.properties = props
+          domain_name = get_random_name 'domain'
+          dns_settings = PublicIpAddressDnsSettings.new
+          dns_settings.domain_name_label = domain_name
+          props.dns_settings = dns_settings
+          public_ip
+        end
+
+        def create_public_ip_address
+          public_ip_address_name = get_random_name('ip_name')
+          params = build_public_ip_params(@location)
+          @network_client.public_ip_addresses.create_or_update(@resource_group_name, public_ip_address_name, params).value!.body
+        end
+
+        def build_virtual_network_params
+          params = VirtualNetwork.new
+          props = VirtualNetworkPropertiesFormat.new
+          params.location = @location
+          address_space = AddressSpace.new
+          address_space.address_prefixes = ['10.0.0.0/16']
+          props.address_space = address_space
+          dhcp_options = DhcpOptions.new
+          dhcp_options.dns_servers = %w(10.1.1.1 10.1.2.4)
+          props.dhcp_options = dhcp_options
+          sub2 = Subnet.new
+          sub2_prop = SubnetPropertiesFormat.new
+          sub2.name = get_random_name('subnet')
+          sub2_prop.address_prefix = '10.0.2.0/24'
+          sub2.properties = sub2_prop
+          props.subnets = [sub2]
+          params.properties = props
+          params
+        end
+
+        def create_virtual_network(resource_group_name)
+          virtualNetworkName = get_random_name("vnet")
+          params = build_virtual_network_params
+          promise = @network_client.virtual_networks.create_or_update(resource_group_name, virtualNetworkName, params)
+          promise.value!.body
+        end
+
+        def build_subnet_params
+          params = Subnet.new
+          prop = SubnetPropertiesFormat.new
+          params.properties = prop
+          prop.address_prefix = '10.0.1.0/24'
+          params
+        end
+
+        def self.create_subnet(virtual_network)
+          subnet_name = get_random_name('subnet')
+          params = build_subnet_params
+          @network_client.subnets.create_or_update(@resource_group_name, virtual_network.name, subnet_name, params).value!.body
+        end
+
+        def self.create_network_interface
+          params = build_network_interface_param
+          @network_client.network_interfaces.create_or_update(@resource_group_name, params.name, params).value!.body
+        end
+
+        def build_network_interface_param
+          params = NetworkInterface.new
+          params.location = @location
+          network_interface_name = get_random_name('nic')
+          ip_config_name = get_random_name('ip_name')
+          params.name = network_interface_name
+          props = NetworkInterfacePropertiesFormat.new
+          ip_configuration = NetworkInterfaceIpConfiguration.new
+          params.properties = props
+          props.ip_configurations = [ip_configuration]
+          ip_configuration_properties = NetworkInterfaceIpConfigurationPropertiesFormat.new
+          ip_configuration.properties = ip_configuration_properties
+          ip_configuration.name = ip_config_name
+          ip_configuration_properties.private_ipallocation_method = 'Dynamic'
+          ip_configuration_properties.public_ipaddress = create_public_ip_address
+          ip_configuration_properties.subnet = @created_subnet
+          params
+        end
+
+        def create_network_profile
+          vn = create_virtual_network
+          @created_subnet = create_subnet(vn)
+          network_interface = create_network_interface
+
+          profile = NetworkProfile.new
+          profile.network_interfaces = [network_interface]
+
+          profile
+        end
+
+        def build_props
+          props = VirtualMachineProperties.new
+
+          windows_config = WindowsConfiguration.new
+          windows_config.provision_vmagent = false
+          windows_config.enable_automatic_updates = false
+
+          os_profile = OSProfile.new
+          os_profile.computer_name = vm_name
+          os_profile.admin_username = @user
+          os_profile.admin_password = @password
+
+          os_profile.secrets = []
+          props.os_profile = os_profile
+
+          hardware_profile = HardwareProfile.new
+          hardware_profile.vm_size = @size
+          props.hardware_profile = hardware_profile
+          props.storage_profile = create_storage_profile
+          props.network_profile = create_network_profile
+          props
+        end
+
+        def build_params
+          props = build_props
+
+          params = VirtualMachine.new
+          params.type = 'Microsoft.Compute/virtualMachines'
+          params.properties = props
+          params.location = @location
+          params
+        end
+
+        #
+        # Create/Update/Destroy VM
+        #
+
+        def self.create_vm(vm_name)
+          create_resource_group
+          create_storage_account
+
+          params = build_params
+
+          promise = @compute_client.virtual_machines.begin_create_or_update(@resource_group_name, vm_name, params)
+          promise.value!.body
+        end
+
+        def self.delete_vm(vm_name)
+          promise = @compute_client.virtual_machines.delete(@resource_group_name, vm_name)
+          promise.value!.body
+        end
+
+        def stop_vm(vm_name)
+          @compute_client.virtual_machines.poweroff(@resource_group_name, vm_name)
+        end
+
+        def start_vm(vm_name)
+          @compute_client.virtual_machines.start(@resource_group_name, vm_name)
+        end
+
+        def self.get_all_vms
+          promise = @compute_client.virtual_machines.list_all
+          promise.value!.body.value
+        end
+
+        def self.get_vm(name)
+          list_all_vms.find { |vm| vm.name == name }
+        end
+      end
+
+=begin
+      Azure Classic API
+=end
+      class Provider < ProviderBase
+
+        # Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
+        # This needs to be separate from the rescue above, as this might
+        # get fixed on a different schedule.
+        begin
+          require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
+        rescue LoadError
+          Puppet.debug("Couldn't load azure SDK")
         end
 
         def self.vm_manager
@@ -96,8 +418,6 @@ module PuppetX
         def self.sql_manager
           ::Azure.sql_database_management
         end
-
-
 
         def self.list_vms
           vm_manager.list_virtual_machines
@@ -123,31 +443,6 @@ module PuppetX
               disk_size: data_disk_size_gb,
               import: false,
             })
-        end
-
-        def self.list_sql_servers
-          sql_manager.list_servers
-        end
-
-        def self.find_sql_server(name)
-          list_sql_servers.find { |x| x.name == name }
-        end
-
-        def create_sql_server(password, location)
-          Provider.sql_manager.create_server(AZURE_SQL_USER, password, location)
-        end
-
-        def delete_sql_server(name)
-          Provider.sql_manager.delete_server(name)
-        end
-
-        # ip_range {:start_ip_address => "0.0.0.1", :end_ip_address => "0.0.0.5"}
-        def create_sql_firewall_rule(server_name, rule_name, ip_range)
-          Provider.sql_manager.set_sql_server_firewall_rule(server_name, rule_name, ip_range)
-        end
-
-        def remove_sql_firewall_rule(server_name, rule_name)
-          Provider.sql_manager.delete_sql_server_firewall_rule(server_name, rule_name)
         end
 
         def create_vm(args) # rubocop:disable Metrics/AbcSize

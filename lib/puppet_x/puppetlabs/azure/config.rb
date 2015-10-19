@@ -7,7 +7,7 @@ module PuppetX
           envs: ['AZURE_MANAGEMENT_CERTIFICATE', 'AZURE_SUBSCRIPTION_ID'],
         }
 
-        attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret
+        attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret, :image_reference
 
         def default_config_file
           Puppet.initialize_settings unless Puppet[:confdir]
@@ -26,6 +26,8 @@ module PuppetX
             @tenant_id = settings[:tenant_id]
             @client_id = settings[:client_id]
             @client_secret = settings[:client_secret]
+            @image_reference = settings[:image] # ARM image format .e.g canonical:ubuntuserver:14.04.2-LTS:latest
+
           end
         end
 
@@ -77,6 +79,7 @@ module PuppetX
               tenant_id: ENV['AZURE_TENANT_ID'],
               client_id: ENV['AZURE_CLIENT_ID'],
               client_secret: ENV['AZURE_CLIENT_SECRET'],
+              image_reference: ENV['AZURE_IMAGE_REFERENCE']
             }
           end
         end
