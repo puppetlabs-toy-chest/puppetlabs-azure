@@ -385,7 +385,7 @@ module PuppetX
         end
 
         def self.get_vm(name)
-          list_all_vms.find { |vm| vm.name == name }
+          get_all_vms.find { |vm| vm.name == name }
         end
       end
 

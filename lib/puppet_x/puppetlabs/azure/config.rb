@@ -1,3 +1,7 @@
+require 'pry'
+
+require 'puppetlabs_spec_helper/module_spec_helper'
+
 module PuppetX
   module Puppetlabs
     module Azure

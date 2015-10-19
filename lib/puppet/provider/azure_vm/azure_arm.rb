@@ -44,18 +44,16 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   end
 
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
-    {
-      name: machine.name,
-      image: machine.image,
-      ensure: ensure_from(machine.properties.provisioning_state),
-      location: machine.location,
-      # GH: ipaddress cant be found easily in the ARM API!
-      #ipaddress: machine.ipaddress,
-      username: machine.properties.os_profile.admin_username,
-      hostname: machine.properties.os_profile.computer_name,
-      size: machine.properties.hardware_profile.vm_size,
-      object: machine,
-    }
+    name: machine.name,
+    image: machine.image,
+    ensure: ensure_from(machine.properties.provisioning_state),
+    location: machine.location,
+    # GH: ipaddress cant be found easily in the ARM API.
+    #ipaddress: machine.ipaddress,
+    username: machine.properties.os_profile.admin_username
+    hostname: machine.properties.os_profile.computer_name,
+    size: machine.properties.hardware_profile.vm_size,
+    object: machine,
   end
 
   def exists?
