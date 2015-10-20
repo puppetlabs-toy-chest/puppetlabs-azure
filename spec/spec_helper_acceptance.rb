@@ -292,22 +292,45 @@ class LocalRunner
   end
 
   private
-    def use_local_shell(cmd)
-      Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
-        @out = read_stream(stdout)
-        @error = read_stream(stderr)
-        @code = /(exit)(\s)(\d+)/.match(wait_thr.value.to_s)[3]
-      end
-      BeakerLikeResponse.new(@out, @error, @code, cmd)
-    end
+    def use_local_shell(cmd) # rubocop:disable Metrics/AbcSize
+      blocks = {
+        out: [],
+        err: [],
+      }
 
-    def read_stream(stream)
-      result = String.new
-      while line = stream.gets # rubocop:disable Lint/AssignmentInCondition
-        result << line if line.class == String
-        puts line
+      exit_code = -1
+
+      Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
+        stdin.close_write
+
+        files = [stdout, stderr]
+
+        until files.all?(&:eof) do
+          ready = IO.select(files)
+
+          if ready
+            ready[0].each do |f|
+              fileno = f.fileno
+              begin
+                data = f.read_nonblock(1024)
+                $stdout.write(data)
+
+                if fileno == stdout.fileno
+                  blocks[:out] << data
+                else
+                  blocks[:err] << data
+                end
+              rescue EOFError # rubocop:disable Lint/HandleExceptions
+                # pass on EOF
+              end
+            end
+          end
+        end
+
+        exit_code = wait_thr.value.exitstatus
       end
-      result
+
+      BeakerLikeResponse.new(blocks[:out].join, blocks[:err].join, exit_code, cmd)
     end
 end
 
