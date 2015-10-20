@@ -76,7 +76,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
   end
 
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password', 22)
+    result = run_command_over_ssh(@ip, 'true', 'password', 22)
     expect(result.exit_status).to eq 0
   end
 
@@ -104,7 +104,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
     it_behaves_like 'an idempotent resource'
 
     it 'is accessible using the new port' do
-      result = run_command_over_ssh('true', 'password', 2200)
+      result = run_command_over_ssh(@ip, 'true', 'password', 2200)
       expect(result.exit_status).to eq 0
     end
 
@@ -148,7 +148,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
     # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
     # so we retry this a few times
     5.times do
-      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', 22)
+      @result = run_command_over_ssh(@ip, "test -f #{@custom_data_file}", 'password', 22)
       break if @result.exit_status == 0
       sleep 10
     end

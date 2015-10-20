@@ -48,12 +48,12 @@ describe 'azure_vm_classic when creating a new machine with the minimum properti
   end
 
   it 'is accessible using the private key' do
-    result = run_command_over_ssh('true', 'publickey')
+    result = run_command_over_ssh(@ip, 'true', 'publickey')
     expect(result.exit_status).to eq 0
   end
 
   it 'is able to use sudo to root' do
-    result = run_command_over_ssh('sudo true', 'publickey')
+    result = run_command_over_ssh(@ip, 'sudo true', 'publickey')
     expect(result.exit_status).to eq 0
   end
 

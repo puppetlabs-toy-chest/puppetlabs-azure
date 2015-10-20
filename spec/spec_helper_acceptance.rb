@@ -438,7 +438,7 @@ def expect_failed_apply(config)
   expect(result.exit_code).not_to eq 0
 end
 
-def run_command_over_ssh(command, auth_method, port=22)
+def run_command_over_ssh(host, command, auth_method, port=22)
   # We retry failed attempts as although the VM has booted it takes some
   # time to start and expose SSH. This mirrors the behaviour of a typical SSH client
   allowed_errors = [
@@ -452,11 +452,16 @@ def run_command_over_ssh(command, auth_method, port=22)
     Errno::ECONNRESET,
     Errno::ETIMEDOUT,
   ]
+  handler = Proc.new do |exception, attempt_number, total_delay|
+    puts "Handler saw a #{exception.class}; retry attempt #{attempt_number}; #{total_delay} seconds have passed."
+    puts exception
+  end
   with_retries(:max_tries => 10,
                :base_sleep_seconds => 20,
                :max_sleep_seconds => 20,
-               :rescue => allowed_errors) do
-    Net::SSH.start(@ip,
+               :rescue => allowed_errors,
+               :handler => handler) do
+    Net::SSH.start(host,
                    @config[:optional][:user],
                    :port => port,
                    :password => @config[:optional][:password],
