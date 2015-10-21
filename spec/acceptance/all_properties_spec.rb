@@ -65,6 +65,8 @@ describe 'azure_vm_classic when creating a machine with all available properties
     it 'should have the correct size' do
       expect(@machine.data_disks.first[:size_in_gb].to_i).to eq @config[:optional][:data_disk_size_gb]
     end
+
+    pending 'should be able to grow on the fly'
   end
 
   it 'should be associated with the correct network' do
@@ -76,8 +78,34 @@ describe 'azure_vm_classic when creating a machine with all available properties
   end
 
   it 'is accessible using the password' do
-    result = run_command_over_ssh('true', 'password', 22)
+    result = run_command_over_ssh(@ip, 'true', 'password', 22)
     expect(result.exit_status).to eq 0
+  end
+
+  it 'should have run the custom data script' do
+    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
+    # so we retry this a few times
+    5.times do
+      @result = run_command_over_ssh(@ip, "test -f #{@custom_data_file}", 'password', 22)
+      break if @result.exit_status == 0
+      sleep 10
+    end
+    expect(@result.exit_status).to eq 0
+  end
+
+  it 'should be in the correct storage account' do
+    storage_account = @client.get_storage_account(@config[:optional][:storage_account])
+    expect(storage_account.label).to eq(@config[:optional][:cloud_service])
+  end
+
+  it 'should have the correct SSH port' do
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name].downcase == 'ssh' }
+    expect(ssh_endpoint).not_to be_nil
+    expect(ssh_endpoint[:public_port].to_i).to eq(22)
+  end
+
+  it 'should have the correct availability set' do
+    expect(@machine.availability_set_name).to eq(@config[:optional][:availability_set])
   end
 
   context 'when configuring a load balancer for ssh on a non-default port' do
@@ -104,7 +132,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
     it_behaves_like 'an idempotent resource'
 
     it 'is accessible using the new port' do
-      result = run_command_over_ssh('true', 'password', 2200)
+      result = run_command_over_ssh(@ip, 'true', 'password', 2200)
       expect(result.exit_status).to eq 0
     end
 
@@ -140,33 +168,6 @@ describe 'azure_vm_classic when creating a machine with all available properties
         end.to raise_error(Errno::ETIMEDOUT)
       end
     end
-  end
-
-  pending 'should be able to grow the disk on the fly'
-
-  it 'should have run the custom data script' do
-    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
-    # so we retry this a few times
-    5.times do
-      @result = run_command_over_ssh("test -f #{@custom_data_file}", 'password', 22)
-      break if @result.exit_status == 0
-      sleep 10
-    end
-    expect(@result.exit_status).to eq 0
-  end
-
-  it 'should be in the correct storage account' do
-    storage_account = @client.get_storage_account(@config[:optional][:storage_account])
-    expect(storage_account.label).to eq(@config[:optional][:cloud_service])
-  end
-
-  it 'should have the correct SSH port' do
-    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name] == 'SSH' }
-    expect(ssh_endpoint[:public_port].to_i).to eq(22)
-  end
-
-  it 'should have the correct availability set' do
-    expect(@machine.availability_set_name).to eq(@config[:optional][:availability_set])
   end
 
   context 'which has read-only properties' do

@@ -322,6 +322,9 @@ endpoints => [{
   },]
 ~~~
 
+> Note: if you want to manually configure one of the ssh, WinRm-HTTP, or PowerShell endpoints, take care to use those
+> endpoint names verbatim. This is required to override Azure's defaults without creating a resource conflict.
+
 #####`os_type`
 _Read Only_. The operating system type for the virtual machine.
 
