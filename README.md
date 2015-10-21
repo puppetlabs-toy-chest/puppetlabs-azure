@@ -237,7 +237,8 @@ user.
 #####`storage_account`
 The name of the storage account to create for the virtual machine.
 Note that if the source image is a 'user' image, the storage account
-for the user image is used instead of the one provided here.
+for the user image is used instead of the one provided here. The storage account 
+must be between 3-24 characters, containing only numeric and/or lower case letters.
 
 #####`cloud_service`
 The name of the associated cloud service.
