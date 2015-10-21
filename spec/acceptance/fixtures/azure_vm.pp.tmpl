@@ -1,4 +1,6 @@
 azure_vm { '{{name}}':
   ensure  => {{ensure}},
+  {{#optional}}
   {{k}}   => '{{v}}',
+  {{/optional}}
 }

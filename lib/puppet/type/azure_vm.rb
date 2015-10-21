@@ -16,9 +16,14 @@ Puppet::Type.newtype(:azure_vm) do
   @doc = 'Type representing a virtual machine in Microsoft Azure.'
 
   validate do
-    if self[:password]
-      fail 'You can only provide a password for an Azure VM'
+    if !self[:password]
+      fail 'You must provide a password for an Azure VM'
     end
+
+    if self[:password].empty?
+      fail 'The VM password may not be blank'
+    end
+
     required_properties = [
       :location,
       :size,

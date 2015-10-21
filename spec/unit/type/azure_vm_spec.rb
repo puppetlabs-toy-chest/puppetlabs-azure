@@ -69,6 +69,8 @@ describe 'azure_vm', :type => :type do
       name: 'testvm',
       size: 'Standard_A0',
       location: 'eastus',
+      user: 'specuser',
+      password: 'Pa55wd!'
     )
     expect(machine[:ensure]).to eq(:present)
   end
@@ -81,7 +83,8 @@ describe 'azure_vm', :type => :type do
         location: 'eastus',
         size: 'Standard_A0',
         image: 'image-name',
-        user: 'admin',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
@@ -130,6 +133,8 @@ describe 'azure_vm', :type => :type do
         name: 'testvm',
         location: 'eastus',
         size: 'Standard_A0',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
@@ -146,6 +151,8 @@ describe 'azure_vm', :type => :type do
         name: 'testvm',
         location: 'eastus',
         size: 'Standard_A0',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
@@ -165,9 +172,11 @@ describe 'azure_vm', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'loc-test',
         location: 'eastus',
         size: 'Standard_A0',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
@@ -180,9 +189,11 @@ describe 'azure_vm', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'blank-loc-test',
         location: '',
         size: 'Standard_A0',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
@@ -195,8 +206,10 @@ describe 'azure_vm', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'inv-loc-test',
         size: 'Standard_A0',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
@@ -209,8 +222,10 @@ describe 'azure_vm', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'nosize-test',
         location: 'eastus',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
@@ -223,14 +238,49 @@ describe 'azure_vm', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'size-test',
         location: 'eastus',
         size: '',
+        user: 'specuser',
+        password: 'Pa55wd!'
       }
     end
 
     it 'should be invalid' do
       expect { type_class.new(config) }.to raise_error(Puppet::Error, /the size must not be empty/)
+    end
+  end
+
+  context 'with no password' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'eastus',
+        size: 'Standard_A0',
+        user: 'specuser',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You must provide a password for an Azure VM/)
+    end
+  end
+
+  context 'with a blank password' do
+    let :config do
+      {
+        ensure: :present,
+        name: 'disk-test',
+        location: 'eastus',
+        size: 'Standard_A0',
+        user: 'specuser',
+        password: '',
+      }
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /The VM password may not be blank/)
     end
   end
 end

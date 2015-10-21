@@ -30,7 +30,7 @@ module PuppetX
             @tenant_id = settings[:tenant_id]
             @client_id = settings[:client_id]
             @client_secret = settings[:client_secret]
-            @image_reference = settings[:image] # ARM image format .e.g canonical:ubuntuserver:14.04.2-LTS:latest
+            @image_reference = settings[:image_reference] # ARM image format .e.g canonical:ubuntuserver:14.04.2-LTS:latest
 
           end
         end
@@ -56,6 +56,7 @@ module PuppetX
               tenant_id: azure_config['tenant_id'],
               client_id: azure_config['client_id'],
               client_secret: azure_config['client_secret'],
+              image_reference: azure_config['image_reference']
             }
           end
         end

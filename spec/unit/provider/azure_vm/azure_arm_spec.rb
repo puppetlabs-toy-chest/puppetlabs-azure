@@ -7,7 +7,9 @@ describe provider_class do
     Puppet::Type.type(:azure_vm).new(
       name: 'spectestvm',
       location: 'eastus',
-      size: 'Standard_A0'
+      size: 'Standard_A0',
+      password: 'Pa55wd!',
+      user: 'specuser',
     )
   end
 

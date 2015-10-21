@@ -13,13 +13,13 @@ require 'winrm'
 
 require 'puppet_x/puppetlabs/azure/not_finished'
 
-require 'pry'
-
 require 'azure_mgmt_compute'
 require 'azure_mgmt_resources'
 require 'azure_mgmt_storage'
 require 'azure_mgmt_network'
 require 'ms_rest_azure'
+
+require 'pry'
 
 include MsRest
 include MsRestAzure
@@ -38,7 +38,7 @@ Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
-CHEAPEST_AZURE_LOCATION="East US"
+CHEAPEST_AZURE_LOCATION="East US 2"
 
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
 WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
