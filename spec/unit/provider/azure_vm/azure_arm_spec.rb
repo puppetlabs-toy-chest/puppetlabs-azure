@@ -10,6 +10,25 @@ describe provider_class do
       size: 'Standard_A0',
       password: 'Pa55wd!',
       user: 'specuser',
+      resource_group: 'puppetresaccountazure',
+      storage_account: 'puppetstorageaccount',
+      storage_account_type: 'Standard_GRS',
+      os_disk_name: 'myosdisk1',
+      os_disk_caching: 'ReadWrite',
+      os_disk_create_option: 'fromImage',
+      os_disk_vhd_container_name: 'conttest1',
+      os_disk_vhd_name: 'vhdtest1',
+      dns_domain_name: 'mydomain01',
+      dns_servers: '10.1.1.1 10.1.2.4',
+      public_ip_allocation_method: 'Dynamic',
+      public_ip_address_name: 'ip_nametest01pubip',
+      virtual_network_name: 'vnettest01',
+      virtual_network_address_space: '10.0.0.0/16',
+      subnet_name: 'subnet111',
+      subnet_address_prefix: '10.0.2.0/24',
+      ip_configuration_name: 'ip_config_test01',
+      private_ipallocation_method: 'Dynamic',
+      network_interface_name: 'nicspec01',
     )
   end
 
@@ -19,7 +38,7 @@ describe provider_class do
     expect(provider).to be_an_instance_of Puppet::Type::Azure_vm::ProviderAzure_arm
   end
 
-  [:compute_client, :get_all_vms, :read_only].each do |method|
+  [:compute_client, :resource_client, :storage_client, :network_client].each do |method|
     it "should respond to the class method #{method}" do
       expect(provider_class).to respond_to(method)
     end

@@ -19,18 +19,6 @@ require 'azure_mgmt_storage'
 require 'azure_mgmt_network'
 require 'ms_rest_azure'
 
-require 'pry'
-
-include MsRest
-include MsRestAzure
-include Azure::ARM::Resources
-include Azure::ARM::Compute
-include Azure::ARM::Compute::Models
-include Azure::ARM::Storage
-include Azure::ARM::Storage::Models
-include Azure::ARM::Network
-include Azure::ARM::Network::Models
-
 # automatically load any shared examples or contexts
 Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 
@@ -159,69 +147,57 @@ class PuppetManifest < Mustache
 end
 
 class AzureARMHelper
-  def initialize
-    def self.config
-      PuppetX::Puppetlabs::Azure::Config.new
-    end
+  def self.config
+    PuppetX::Puppetlabs::Azure::Config.new
+  end
 
-    def self.compute_client
-      @compute_client ||= with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(credentials)
-    end
+  def self.compute_client
+    @compute_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(credentials)
+  end
 
-    def self.network_client
-      @network_client ||= with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(credentials)
-    end
+  def self.network_client
+    @network_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(credentials)
+  end
 
-    def self.storage_client
-      @storage_client ||= with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(credentials)
-    end
+  def self.storage_client
+    @storage_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(credentials)
+  end
 
-    def self.resource_client
-      @resource_client ||= with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(credentials)
-    end
+  def self.resource_client
+    @resource_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(credentials)
+  end
 
-    def self.credentials
-      token_provider = ::MsRestAzure::ApplicationTokenProvider.new(config.tenant_id, config.client_id, config.client_secret)
-      ::MsRest::TokenCredentials.new(token_provider)
-    end
+  def self.credentials
+    token_provider = ::MsRestAzure::ApplicationTokenProvider.new(AzureARMHelper.config.tenant_id, AzureARMHelper.config.client_id, AzureARMHelper.config.client_secret)
+    ::MsRest::TokenCredentials.new(token_provider)
+  end
 
-    def self.with_subscription_id(client)
-      client.subscription_id = config.subscription_id
-      client
-    end
+  def self.with_subscription_id(client)
+    client.subscription_id = AzureARMHelper.config.subscription_id
+    client
   end
 
   def list_resource_providers
-    promise = self.resource_client.providers.list
+    promise = AzureARMHelper.resource_client.providers.list
     result = promise.value!.body.value
     result
   end
 
-  # Resource Group Helpers
-  def create_resource_group
-    params = Azure::ARM::Resources::Models::ResourceGroup.new
-    params.location = @location
-    self.resource_client.resource_groups.create_or_update(@resource_group_name, params).value!.body
-  end
-
-  def find_resource_group(name)
-    resource_groups = self.resource_client.resource_groups.list.value!.body
+  def get_resource_group(name)
+    resource_groups = AzureARMHelper.resource_client.resource_groups.list.value!.body
     rg = resource_groups.value.find { |x| x.name == name }
     rg
   end
 
-  def delete_resource_group(name)
-    self.resource_client.resource_groups.delete(name).value!.body
+  def destroy_resource_group(resource_group_name)
+    promise = AzureARMHelper.resource_client.resource_groups.delete(resource_group_name)
+    promise.value!.body
   end
 
   def list_storage_accounts
-    promise = self.storage_client.storage_accounts.list
+    promise = AzureARMHelper.storage_client.storage_accounts.list
     result = promise.value!.body
     result.value
-  end
-
-  def delete_storage_account(resource_group_name, account_name)
-    promise = self.storage_client.storage_accounts.delete(resource_group_name, account_name)
   end
 
   def get_storage_account(name)
@@ -230,13 +206,13 @@ class AzureARMHelper
     account
   end
 
-  def delete_vm(vm_name, resource_group_name)
-    promise = self.compute_client.virtual_machines.delete(resource_group_name, vm_name)
+  def destroy_storage_account(resource_group_name, name)
+    promise = AzureARMHelper.storage_client.storage_accounts.delete(resource_group_name, name)
     promise.value!.body
   end
 
   def get_all_vms
-    promise = self.compute_client.virtual_machines.list_all
+    promise = AzureARMHelper.compute_client.virtual_machines.list_all
     promise.value!.body.value
   end
 

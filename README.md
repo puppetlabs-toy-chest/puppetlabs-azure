@@ -18,6 +18,12 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 
 ## Overview
 
+The Azure module supports the Azure Classic and the Azure Resource Manager SDK's.
+
+NOTE:
+
+The Azure Resource Manager (ARM) SDK will return MsRestAzure::AzureOperationError
+if there is an incorrect or missing type in the manifest. This is due to the infancy of the Azure API. 
 
 ## Description
 
@@ -72,6 +78,7 @@ info:    account list command OK
 
 For using the Resource Manager API instead you require a service
 principal on the Active Directory. The [official documentation covers creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
+Please note that for the Azure Resource Manager (ARM) API you will require powershell access to complete the credential generation.
 
 ### Installing the Azure module
 
@@ -148,7 +155,7 @@ updated path:
 
 ## Usage
 
-You can create Azure Virtual Machines using the following:
+You can create Azure Virtual Machines using the following with the classic API:
 
 ~~~
 azure_vm_classic { 'virtual-machine-name':
@@ -186,13 +193,61 @@ azure_vm_classic { 'virtual-machine-name':
 }
 ~~~
 
+~~~
+Azure management with azure_vm
+~~~
+
+You can create an Azure Virtual Manchine with the Azure ARM API with the following :
+
+azure_vm { 'sample':
+  location                      => 'eastus'
+  image                         => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user                          => 'azureuser',
+  password                      => 'Password',
+  size                          => 'Standard_A0',
+  resource_group                => 'testresacc01',
+  storage_account               => 'teststoracc01',
+  storage_account_type          => 'Standard_GRS',
+  os_disk_name                  => 'myosdisk01',
+  os_disk_caching               => 'ReadWrite',
+  os_disk_create_option         => 'fromImage',
+  os_disk_vhd_container_name    => 'conttest1',
+  os_disk_vhd_name              => 'vhdtest1',
+  dns_domain_name               => 'mydomain01',
+  dns_servers                   => '10.1.1.1.1 10.1.2.4',
+  public_ip_allocation_method   => 'Dynamic',
+  public_ip_address_name        => 'ip_name_test01pubip',
+  virtual_network_name          => 'vnettest01',
+  virtual_network_address_space => '10.0.0.0/16',
+  subnet_name                   => 'subnet111',
+  subnet_address_prefix         => '10.0.2.0/24',
+  ip_configuration_name         => 'ip_config_test01',
+  private_ipallocation_method   => 'Dynamic',
+  network_interface_name        => 'nicspec01',
+}
+
+In addition to describing new machines using the DSL the module also supports
+listing and managing machines via `puppet resource`:
+
+~~~
+puppet resource azure_vm
+~~~
+azure_vm { 'sample':
+  location         => 'eastus'
+  image            => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user             => 'azureuser',
+  password         => 'Password',
+  size             => 'Standard_A0',
+  resource_group   => 'testresacc01'
+}
+
 
 ##Reference
 
 ###Types
 
 * `azure_vm_classic`: Manages a virtual machine in Microsoft Azure.
-* `azure_sql_database`: Manages a SQL Database in Microsoft Azure.
+* `azure_vm`: Manages a virtual machine in Microsoft Azure with ARM.
 
 ###Parameters
 
@@ -336,30 +391,124 @@ _Read Only_. The hostname of the running virtual machine.
 _Read Only_. The link to the underlying disk image for the virtual
 machine.
 
-####Type: azure_sql_database
+####Type: azure_vm
 
 #####`ensure`
+Specifies the basic state of the virtual machine. Valid values are 'present',
+'running', stopped', and 'absent'. Defaults to 'present'.
+
+Values have the following effects:
+
+* 'present': Ensure that the VM exists in either the running or stopped
+  state. If the VM doesn't yet exist, a new one is created.
+* 'running': Ensures that the VM is up and running. If the VM
+  doesn't yet exist, a new one is created.
+* 'stopped': Ensures that the VM is created, but is not running. This
+  can be used to shut down running VMs, as well as for creating VMs without
+  having them running immediately.
+* 'absent': Ensures that the VM doesn't exist on Azure..
 
 #####`name`
-*Required* The name of the SQL database server.
+*Required* The name of the virtual machine.
 
-#####`password`
-*Required* The password required to access the database server.
+#####`image`
+Name of the image to use to create the virtual machine. This must be in the ARM image_refence format
+.e.g canonical:ubuntuserver:14.04.2-LTS:latest
+
+Available through the azure cli :
+  azure config mode arm
+  azure locations list
 
 #####`location`
-*Required* The location where the database server will be created.
+*Required* The location where the virtual machine will be created. Details of
+available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+Location is read-only once the VM has been created.
 
-#####`firewalls`
-A list of firewall rules controlling access to the database server.
-These require the following structure:
+#####`user`
+The name of the user to be created on the virtual machine. Required for Linux guests.
 
-~~~
-firewalls => [{
-  name             => 'rule-name'
-  start_ip_address => '0.0.0.1',
-  end_ip_address   => '0.0.0.5',
-}]
-~~~
+#####`password`
+The password for the above mentioned user on the virtual machine.
+
+#####`size`
+The size of the virtual machine instance. See the Azure documentation
+for a [full list of sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
+ARM requires that the "classic" size be prefixed with Standard. .e.g A0 with ARM is Standard_A0.
+D-Series sizes are already prefixed.
+
+#####`resource_group`
+The resource group for the new virtual machine. [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)
+
+#####`storage_account`
+The storage account name for the subscription id.
+Storage account name rules are defined [Storage accounts](https://msdn.microsoft.com/en-us/library/azure/hh264518.aspx)
+
+#####`storage_account_type`
+The type of storage account to be associated with the virtual machine.
+Valid types are listed [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx)
+
+#####`os_disk_name`
+The name of the disk that is to be attached to the virtual machine.
+
+#####`os_disk_caching`
+The caching type for the attached disk. [Caching](https://azure.microsoft.com/en-gb/documentation/articles/storage-premium-storage-preview-portal/)
+
+#####`os_disk_create_option`
+The create options are listed here [Options](https://msdn.microsoft.com/en-us/library/azure/mt163591.aspx)
+
+#####`os_disk_vhd_container_name`
+The vhd container name is used to create the vhd uri of the virtual machine.
+
+https://#{resource_group}.blob.core.windows.net/#{os_disk_vhd_container_name}/#{os_disk_vhd_name}.vhd
+
+#####`os_disk_vhd_name`
+The name of the vhd that forms the vhd URI for the virtual machine.
+
+https://#{resource_group}.blob.core.windows.net/#{os_disk_vhd_container_name}/#{os_disk_vhd_name}.vhd
+
+#####`dns_domain_name`
+
+The DNS domain name that to be associated with the virtual machine.
+
+#####`dns_servers`
+
+The DNS servers to be setup on the virtual machine.
+
+#####`public_ip_allocation_method`
+
+The public ip allocation method [Static, Dynamic]
+
+#####`public_ip_address_name`
+
+The key name of the public ip address.
+
+#####`virtual_network_name`
+
+The key name of the virtual network for the virtual machine. [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
+
+#####`virtual_network_address_space`
+
+The ip range for the private virtual network. [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
+
+#####`subnet_name`
+
+The private subnet name for the virtual network. [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
+
+#####`subnet_address_prefix`
+
+Details of the prefix are availabe at [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
+
+#####`ip_configuration_name`
+
+The key name of the ip configuration for the VM.
+
+#####`private_ipallocation_method`
+
+The private ip allocation method [Static, Dynamic]
+
+#####`network_interface_name`
+
+The Network Interface Controller (nic) name for the virtual machine.
 
 ##Limitations
 

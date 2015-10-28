@@ -3,30 +3,11 @@ require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
 require 'puppet_x/puppetlabs/azure/provider_base'
 
-require 'azure_mgmt_compute'
-require 'azure_mgmt_resources'
-require 'azure_mgmt_storage'
-require 'azure_mgmt_network'
-require 'ms_rest_azure'
-
-include MsRest
-include MsRestAzure
-include Azure::ARM::Resources
-include Azure::ARM::Compute
-include Azure::ARM::Compute::Models
-include Azure::ARM::Storage
-include Azure::ARM::Network
-include Azure::ARM::Network::Models
-
-require 'pry'
-
 module PuppetX
   module Puppetlabs
     module Azure
-
       # Azure Classic API
       class Provider < ProviderBase
-
         # Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
         # This needs to be separate from the rescue above, as this might
         # get fixed on a different schedule.

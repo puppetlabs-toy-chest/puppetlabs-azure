@@ -17,18 +17,32 @@ describe 'azure_vm', :type => :type do
       :location,
       :image,
       :size,
-    ]
-  end
-
-  let :read_only_properties do
-    [
-      :ipaddress,
-      :hostname,
+      :resource_group,
+      :storage_account,
+      :storage_account_type,
+      :os_disk_name,
+      :os_disk_caching,
+      :os_disk_create_option,
+      :os_disk_vhd_container_name,
+      :os_disk_vhd_name,
+      :dns_domain_name,
+      :dns_servers,
+      :public_ip_address_name,
+      :public_ip_allocation_name,
+      :public_ip_allocation_method,
+      :public_ip_address_name,
+      :ip_configuration_name,
+      :virtual_network_name,
+      :virtual_network_address_space,
+      :private_ipallocation_method,
+      :subnet_name,
+      :subnet_address_prefix,
+      :network_interface_name,
     ]
   end
 
   it 'should have expected properties' do
-    expect(type_class.properties.map(&:name)).to include(*(properties + read_only_properties))
+    expect(type_class.properties.map(&:name)).to include(*(properties))
   end
 
   it 'should have expected parameters' do
@@ -36,7 +50,7 @@ describe 'azure_vm', :type => :type do
   end
 
   it 'should not have unexpected properties' do
-    expect(properties + read_only_properties).to include(*type_class.properties.map(&:name))
+    expect(properties).to include(*type_class.properties.map(&:name))
   end
 
   it 'should not have unexpected parameters' do
@@ -46,31 +60,55 @@ describe 'azure_vm', :type => :type do
   [
     'location',
     'image',
-    'user',
-    'password',
     'size',
+    'resource_group',
+    'storage_account',
+    'storage_account_type',
+    'os_disk_name',
+    'os_disk_caching',
+    'os_disk_create_option',
+    'os_disk_vhd_container_name',
+    'os_disk_vhd_name',
+    'dns_domain_name',
+    'dns_servers',
+    'public_ip_allocation_method',
+    'public_ip_address_name',
+    'virtual_network_name',
+    'virtual_network_address_space',
+    'subnet_name',
+    'subnet_address_prefix',
   ].each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
     end
   end
 
-  [
-    :ipaddress,
-    :hostname,
-  ].each do |property|
-    it "should require #{property} to be read only" do
-      expect(type_class).to be_read_only(property)
-    end
-  end
-
   it 'should default ensure to present' do
     machine = type_class.new(
       name: 'testvm',
-      size: 'Standard_A0',
       location: 'eastus',
+      size: 'Standard_A0',
       user: 'specuser',
-      password: 'Pa55wd!'
+      password: 'Pa55wd!',
+      resource_group: 'testresourcegrp',
+      storage_account: 'teststorageaccount',
+      storage_account_type: 'Standard_GRS',
+      os_disk_name: 'testosdisk1',
+      os_disk_caching: 'ReadWrite',
+      os_disk_create_option: 'fromImage',
+      os_disk_vhd_container_name: 'conttest1',
+      os_disk_vhd_name: 'vhdtest1',
+      dns_domain_name: 'mydomain01',
+      dns_servers: '10.1.1.1.1 10.1.2.4',
+      public_ip_allocation_method: 'Dynamic',
+      public_ip_address_name: 'ip_name_test01pubip',
+      virtual_network_name: 'vnettest01',
+      virtual_network_address_space: '10.0.0.0/16',
+      subnet_name: 'subnet111',
+      subnet_address_prefix: '10.0.2.0/24',
+      ip_configuration_name: 'ip_config_test01',
+      private_ipallocation_method: 'Dynamic',
+      network_interface_name: 'nicspec01',
     )
     expect(machine[:ensure]).to eq(:present)
   end
@@ -84,7 +122,26 @@ describe 'azure_vm', :type => :type do
         size: 'Standard_A0',
         image: 'image-name',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -134,7 +191,26 @@ describe 'azure_vm', :type => :type do
         location: 'eastus',
         size: 'Standard_A0',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -152,7 +228,26 @@ describe 'azure_vm', :type => :type do
         location: 'eastus',
         size: 'Standard_A0',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -176,7 +271,26 @@ describe 'azure_vm', :type => :type do
         location: 'eastus',
         size: 'Standard_A0',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -193,7 +307,26 @@ describe 'azure_vm', :type => :type do
         location: '',
         size: 'Standard_A0',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -209,7 +342,26 @@ describe 'azure_vm', :type => :type do
         name: 'inv-loc-test',
         size: 'Standard_A0',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -225,7 +377,26 @@ describe 'azure_vm', :type => :type do
         name: 'nosize-test',
         location: 'eastus',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -242,7 +413,26 @@ describe 'azure_vm', :type => :type do
         location: 'eastus',
         size: '',
         user: 'specuser',
-        password: 'Pa55wd!'
+        password: 'Pa55wd!',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
@@ -255,15 +445,34 @@ describe 'azure_vm', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'no-pass',
         location: 'eastus',
         size: 'Standard_A0',
         user: 'specuser',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You must provide a password for an Azure VM/)
+      expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /You must provide a password/)
     end
   end
 
@@ -271,16 +480,35 @@ describe 'azure_vm', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'blank-pass',
         location: 'eastus',
         size: 'Standard_A0',
         user: 'specuser',
         password: '',
+        resource_group: 'testresourcegrp',
+        storage_account: 'teststorageaccount',
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'testosdisk1',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'fromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'vhdtest1',
+        dns_domain_name: 'mydomain01',
+        dns_servers: '10.1.1.1.1 10.1.2.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: 'ip_name_test01pubip',
+        virtual_network_name: 'vnettest01',
+        virtual_network_address_space: '10.0.0.0/16',
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: 'ip_config_test01',
+        private_ipallocation_method: 'Dynamic',
+        network_interface_name: 'nicspec01',
       }
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error, /The VM password may not be blank/)
+      expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /the password must not be empty/)
     end
   end
 end

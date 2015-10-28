@@ -28,22 +28,6 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
     end
   end
 
-  def self.prefetch(resources)
-    instances.each do |prov|
-      if resource = resources[prov.name] # rubocop:disable Lint/AssignmentInCondition
-        resource.provider = prov
-      end
-    end
-  end
-
-  def self.ensure_from(status)
-    case status
-    when 'StoppedDeallocated', 'Stopped'
-      :stopped
-    else
-      :running
-    end
-  end
 
   def self.data_disk_size_gb_from(machine)
     if machine.data_disks.empty?
@@ -92,11 +76,6 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       endpoints: endpoints_from_machine(machine),
       object: machine,
     }
-  end
-
-  def exists?
-    Puppet.info("Checking if #{name} exists")
-    @property_hash[:ensure] and @property_hash[:ensure] != :absent
   end
 
   def create # rubocop:disable Metrics/AbcSize
@@ -153,25 +132,5 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
     Puppet.info("Starting #{name}")
     start_vm(machine)
     @property_hash[:ensure] = :running
-  end
-
-  def running?
-    !stopped?
-  end
-
-  def stopped?
-    ['StoppedDeallocated', 'Stopped'].include? machine.status
-  end
-
-  private
-  def machine
-    vm = if @property_hash[:object]
-           @property_hash[:object]
-         else
-           Puppet.debug("Looking up #{name}")
-           find_vm(name)
-         end
-    raise Puppet::Error, "No virtual machine called #{name}" unless vm
-    vm
   end
 end

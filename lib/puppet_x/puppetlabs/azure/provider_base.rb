@@ -2,23 +2,6 @@ require 'stringio'
 require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
 
-require 'azure_mgmt_compute'
-require 'azure_mgmt_resources'
-require 'azure_mgmt_storage'
-require 'azure_mgmt_network'
-require 'ms_rest_azure'
-
-include MsRest
-include MsRestAzure
-include Azure::ARM::Resources
-include Azure::ARM::Compute
-include Azure::ARM::Compute::Models
-include Azure::ARM::Storage
-include Azure::ARM::Network
-include Azure::ARM::Network::Models
-
-require 'pry'
-
 module PuppetX
   module Puppetlabs
     module Azure
@@ -59,6 +42,48 @@ module PuppetX
 
         def self.config
           PuppetX::Puppetlabs::Azure::Config.new
+        end
+
+        def self.prefetch(resources)
+          instances.each do |prov|
+            if resource = resources[prov.name] # rubocop:disable Lint/AssignmentInCondition
+              resource.provider = prov
+            end
+          end
+        end
+
+        def self.ensure_from(status)
+          case status
+          when 'StoppedDeallocated', 'Stopped'
+            :stopped
+          else
+            :running
+          end
+        end
+
+        def exists?
+          Puppet.info("Checking if #{name} exists")
+          @property_hash[:ensure] and @property_hash[:ensure] != :absent
+        end
+
+        def running?
+          !stopped?
+        end
+
+        def stopped?
+          ['StoppedDeallocated', 'Stopped'].include? machine.status
+        end
+
+        private
+        def machine
+          vm = if @property_hash[:object]
+                 @property_hash[:object]
+               else
+                 Puppet.debug("Looking up #{name}")
+                 get_vm(name)
+               end
+          raise Puppet::Error, "No virtual machine called #{name}" unless vm
+          vm
         end
       end
     end

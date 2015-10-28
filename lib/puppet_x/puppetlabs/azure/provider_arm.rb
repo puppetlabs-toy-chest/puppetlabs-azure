@@ -11,22 +11,9 @@ require 'azure_mgmt_storage'
 require 'azure_mgmt_network'
 require 'ms_rest_azure'
 
-include MsRest
-include MsRestAzure
-include Azure::ARM::Resources
-include Azure::ARM::Compute
-include Azure::ARM::Compute::Models
-include Azure::ARM::Storage
-include Azure::ARM::Network
-include Azure::ARM::Network::Models
-
-require 'pry'
-
 module PuppetX
   module Puppetlabs
     module Azure
-
-
       # Azure Resource Management API
       #
       # The ARM API requires
@@ -40,24 +27,12 @@ module PuppetX
       #
       # See the Readme.md
 
-
       class ProviderArm < ::PuppetX::Puppetlabs::Azure::ProviderBase
-
-        MICROSOFT_PROVIDER_STORAGE="Microsoft.Storage"
-        MICROSOFT_PROVIDER_NETWORK="Microsoft.Network"
-        MICROSOFT_PROVIDER_COMPUTE="Microsoft.Compute"
-
-        def self.initialize
-          @resource_group_name = 'puppet_azure_res_group'
-          @storage_account = 'puppetstorageaccount'
-          @storage_account_type =  'Standard_GRS'
-        end
-
         def self.credentials
           token_provider = ::MsRestAzure::ApplicationTokenProvider.new(ProviderBase.config.tenant_id,
             ProviderBase.config.client_id, ProviderBase.config.client_secret)
 
-          credentials = ::MsRest::TokenCredentials.new(token_provider)
+          ::MsRest::TokenCredentials.new(token_provider)
         end
 
         def self.with_subscription_id(client)
@@ -81,40 +56,28 @@ module PuppetX
           @resource_client ||= ProviderArm.with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(ProviderArm.credentials)
         end
 
-        def get_random_name(prefix = "puppet", length = 1000)
-          prefix + SecureRandom.uuid.downcase.delete('^a-zA-Z0-9')[0...length]
-        end
-
         def register_azure_provider(name)
           promise = ProviderArm.resource_client.providers.register(name)
           promise.value!.body
         end
 
         def register_providers
-          register_azure_provider(MICROSOFT_PROVIDER_STORAGE)
-          register_azure_provider(MICROSOFT_PROVIDER_NETWORK)
-          register_azure_provider(MICROSOFT_PROVIDER_COMPUTE)
+          register_azure_provider('Microsoft.Storage')
+          register_azure_provider('Microsoft.Network')
+          register_azure_provider('Microsoft.Compute')
         end
 
-
-        def list_resource_providers
-          promise = ProviderArm.resource_client.providers.list
-          result = promise.value!.body.value
-          result
-        end
-
-        def create_resource_group(location)
+        def create_resource_group
           params = ::Azure::ARM::Resources::Models::ResourceGroup.new
-          params.location = location
-          promise = ProviderArm.resource_client.resource_groups.create_or_update(@resource_group_name, params)
-          puts promise.value!.body
+          params.location = @vm_context[:location]
+          promise = ProviderArm.resource_client.resource_groups.create_or_update(@vm_context[:resource_group], params)
+          promise.value!.body
         end
 
         def find_resource_group(name)
           promise = ProviderArm.resource_client.resource_groups.list.value!.body
           resource_groups = promise.value!.body
-          rg = resource_groups.value.find { |x| x.name == name }
-          rg
+          resource_groups.value.find { |x| x.name == name }
         end
 
         def delete_resource_group(name)
@@ -128,192 +91,208 @@ module PuppetX
         end
 
         def get_storage_account(name)
-          accounts = list_storage_accounts
-          account = accounts.find { |x| x.name == name }
-          account
+          list_storage_accounts.find { |x| x.name == name }
         end
 
-        #
         # ARM launch params and profiles
-        #
-
         def generate_os_vhd_uri
-          container_name = get_random_name 'cont'
-          vhd_container = "https://#{@storage_account}.blob.core.windows.net/#{container_name}"
-          os_vhduri = "#{vhd_container}/os#{get_random_name 'test'}.vhd"
-          os_vhduri
+          vhd_container = "https://#{@vm_context[:storage_account]}.blob.core.windows.net/#{@vm_context[:os_disk_vhd_container_name]}"
+          "#{vhd_container}/os#{@vm_context[:os_disk_vhd_name]}.vhd"
         end
 
-        #image reference format for ARM images canonical:ubuntuserver:14.04.2-LTS:latest
+        # image reference format for ARM images canonical:ubuntuserver:14.04.2-LTS:latest
         def get_image_reference
-          ref = ImageReference.new
-          ref.publisher = ProviderBase.config.image_reference.split(':')[0]
-          ref.offer = ProviderBase.config.image_reference.split(':')[1]
-          ref.sku = ProviderBase.config.image_reference.split(':')[2]
-          ref.version = ProviderBase.config.image_reference.split(':')[3]
+          ref = ::Azure::ARM::Compute::Models::ImageReference.new
+          ref.publisher, ref.offer, ref.sku, ref.version = ProviderBase.config.image_reference.split(':')
           ref
         end
 
-        def build_storage_account_create_parameters(location)
+        def build_storage_account_create_parameters
           params = ::Azure::ARM::Storage::Models::StorageAccountCreateParameters.new
-          params.location = location
-          params.name = @storage_account
+          params.location = @vm_context[:location]
+          params.name = @vm_context[:storage_account]
           props = ::Azure::ARM::Storage::Models::StorageAccountPropertiesCreateParameters.new
           params.properties = props
-          props.account_type = @storage_account_type
+          props.account_type = @vm_context[:storage_account_type]
           params
         end
 
-        def create_storage_account(location)
-          params = build_storage_account_create_parameters(location)
-          promise = ProviderArm.storage_client.storage_accounts.create(@resource_group_name, @storage_account, params)
+        def create_storage_account
+          params = build_storage_account_create_parameters
+          promise = ProviderArm.storage_client.storage_accounts.create(@vm_context[:resource_group], @vm_context[:storage_account], params)
           result = promise.value!.body
-          result.name = @storage_account #similar problem in dot net tests
+          result.name = @vm_context[:storage_account]
           result
         end
 
-        def create_storage_profile
-          storage_profile = StorageProfile.new
-          storage_profile.image_reference = get_image_reference
-          os_disk = OSDisk.new
-          os_disk.caching = 'ReadWrite'
-          os_disk.create_option = 'fromImage'
-          os_disk.name = 'myosdisk1'
-          virtual_hard_disk = VirtualHardDisk.new
+        def create_osdisk
+          virtual_hard_disk = ::Azure::ARM::Compute::Models::VirtualHardDisk.new
           virtual_hard_disk.uri = generate_os_vhd_uri
+
+          os_disk = ::Azure::ARM::Compute::Models::OSDisk.new
+          os_disk.caching = @vm_context[:os_disk_caching]
+          os_disk.create_option = @vm_context[:os_disk_create_option]
+          os_disk.name = @vm_context[:os_disk_name]
           os_disk.vhd = virtual_hard_disk
-          storage_profile.os_disk = os_disk
+          os_disk
+        end
+
+        def create_storage_profile
+          storage_profile = ::Azure::ARM::Compute::Models::StorageProfile.new
+          storage_profile.image_reference = get_image_reference
+          storage_profile.os_disk = create_osdisk
           storage_profile
         end
 
         # Network helpers
-        def build_public_ip_params(location)
-          public_ip = PublicIpAddress.new
-          public_ip.location = location
-          props = PublicIpAddressPropertiesFormat.new
-          props.public_ipallocation_method = 'Dynamic'
+        def build_public_ip_params
+          public_ip = ::Azure::ARM::Network::Models::PublicIpAddress.new
+          public_ip.location = @vm_context[:location]
+          props = ::Azure::ARM::Network::Models::PublicIpAddressPropertiesFormat.new
+          props.public_ipallocation_method = @vm_context[:public_ipallocation_method]
           public_ip.properties = props
-          domain_name = get_random_name 'domain'
-          dns_settings = PublicIpAddressDnsSettings.new
-          dns_settings.domain_name_label = domain_name
+          dns_settings = ::Azure::ARM::Network::Models::PublicIpAddressDnsSettings.new
+          dns_settings.domain_name_label = @vm_context[:dns_domain_name]
           props.dns_settings = dns_settings
           public_ip
         end
 
-        def create_public_ip_address(location)
-          public_ip_address_name = get_random_name('ip_name')
-          params = build_public_ip_params(location)
-
-          promise = ProviderArm.network_client.public_ip_addresses.create_or_update(@resource_group_name, public_ip_address_name, params)
+        def create_public_ip_address
+          params = build_public_ip_params
+          promise = ProviderArm.network_client.public_ip_addresses.create_or_update(@vm_context[:resource_group], @vm_context[:public_ip_address_name], params)
           promise.value!.body
         end
 
-        def build_virtual_network_params(location)
-          params = VirtualNetwork.new
-          props = VirtualNetworkPropertiesFormat.new
-          params.location = location
-          address_space = AddressSpace.new
-          address_space.address_prefixes = ['10.0.0.0/16']
-          props.address_space = address_space
-          dhcp_options = DhcpOptions.new
-          dhcp_options.dns_servers = %w(10.1.1.1 10.1.2.4)
-          props.dhcp_options = dhcp_options
-          sub2 = Subnet.new
-          sub2_prop = SubnetPropertiesFormat.new
-          sub2.name = get_random_name('subnet')
-          sub2_prop.address_prefix = '10.0.2.0/24'
-          sub2.properties = sub2_prop
-          props.subnets = [sub2]
-          params.properties = props
-          params
+        def build_virtual_subnet
+          subnet = ::Azure::ARM::Network::Models::Subnet.new
+          subnet_prop = ::Azure::ARM::Network::Models::SubnetPropertiesFormat.new
+          subnet.name = @vm_context[:subnet_name]
+          subnet_prop.address_prefix = @vm_context[:subnet_address_prefix]
+          subnet.properties = subnet_prop
+          subnet
         end
 
-        def create_virtual_network(location)
-          virtualNetworkName = get_random_name("vnet")
-          params = build_virtual_network_params(location)
-          promise = ProviderArm.network_client.virtual_networks.create_or_update(@resource_group_name, virtualNetworkName, params)
+        def build_dhcp_options
+          dhcp_options = ::Azure::ARM::Network::Models::DhcpOptions.new
+          dhcp_options.dns_servers = @vm_context[:dns_servers].split
+          dhcp_options
+        end
+
+        def build_address_space
+          address_space = ::Azure::ARM::Network::Models::AddressSpace.new
+          address_space.address_prefixes = [@vm_context[:virtual_network_address_space]]
+          address_space
+        end
+
+        def build_network_properties
+          props = ::Azure::ARM::Network::Models::VirtualNetworkPropertiesFormat.new
+          props.address_space = build_address_space
+          props.dhcp_options = build_dhcp_options
+          props.subnets = [build_virtual_subnet]
+          props
+        end
+
+        def create_virtual_network
+          params = ::Azure::ARM::Network::Models::VirtualNetwork.new
+          params.location = @vm_context[:location]
+          params.properties = build_network_properties
+          promise = ProviderArm.network_client.virtual_networks.create_or_update(@vm_context[:resource_group],@vm_context[:virtual_network_name], params)
           promise.value!.body
         end
 
         def build_subnet_params
-          params = Subnet.new
-          prop = SubnetPropertiesFormat.new
+          params = ::Azure::ARM::Network::Models::Subnet.new
+          prop = ::Azure::ARM::Network::Models::SubnetPropertiesFormat.new
           params.properties = prop
-          prop.address_prefix = '10.0.1.0/24'
+          prop.address_prefix = @vm_context[:subnet_address_prefix]
           params
         end
 
         def create_subnet(virtual_network)
-          subnet_name = get_random_name('subnet')
           params = build_subnet_params
-          ProviderArm.network_client.subnets.create_or_update(@resource_group_name, virtual_network.name, subnet_name, params).value!.body
+          promise = ProviderArm.network_client.subnets.create_or_update(@vm_context[:resource_group],
+            virtual_network.name, @vm_context[:subnet_name], params)
+          promise.value!.body
         end
 
-        def create_network_interface(location)
-          params = build_network_interface_param(location)
-          ProviderArm.network_client.network_interfaces.create_or_update(@resource_group_name, params.name, params).value!.body
+        def create_network_interface
+          params = build_network_interface_param
+          promise = ProviderArm.network_client.network_interfaces.create_or_update(@vm_context[:resource_group], params.name, params)
+          promise.value!.body
         end
 
-        def build_network_interface_param(location)
-          params = NetworkInterface.new
-          params.location = location
-          network_interface_name = get_random_name('nic')
-          ip_config_name = get_random_name('ip_name')
-          params.name = network_interface_name
-          props = NetworkInterfacePropertiesFormat.new
-          ip_configuration = NetworkInterfaceIpConfiguration.new
-          params.properties = props
+        def build_network_interface_properties(ip_configuration)
+          props = ::Azure::ARM::Network::Models::NetworkInterfacePropertiesFormat.new
           props.ip_configurations = [ip_configuration]
-          ip_configuration_properties = NetworkInterfaceIpConfigurationPropertiesFormat.new
-          ip_configuration.properties = ip_configuration_properties
-          ip_configuration.name = ip_config_name
-          ip_configuration_properties.private_ipallocation_method = 'Dynamic'
-          ip_configuration_properties.public_ipaddress = create_public_ip_address(location)
-          ip_configuration_properties.subnet = @created_subnet
-          params
-        end
-
-        def create_network_profile(location)
-          vn = create_virtual_network(location)
-          @created_subnet = create_subnet(vn)
-          network_interface = create_network_interface(location)
-
-          profile = NetworkProfile.new
-          profile.network_interfaces = [network_interface]
-
-          profile
-        end
-
-        def build_props(vm_name, location, size, user, password)
-          props = VirtualMachineProperties.new
-
-          windows_config = WindowsConfiguration.new
-          windows_config.provision_vmagent = false
-          windows_config.enable_automatic_updates = false
-
-          os_profile = OSProfile.new
-          os_profile.computer_name = vm_name
-          os_profile.admin_username = user
-          os_profile.admin_password = password
-
-          os_profile.secrets = []
-          props.os_profile = os_profile
-
-          hardware_profile = HardwareProfile.new
-          hardware_profile.vm_size = size
-          props.hardware_profile = hardware_profile
-          props.storage_profile = create_storage_profile
-          props.network_profile = create_network_profile(location)
           props
         end
 
-        def build_params(vm_name, location, size, user, password)
-          props = build_props(vm_name, location, size, user, password)
+        def build_ip_configuration(ip_configuration_properties)
+          ip_configuration = ::Azure::ARM::Network::Models::NetworkInterfaceIpConfiguration.new
+          ip_configuration.properties = ip_configuration_properties
+          ip_configuration.name = @vm_context[:ip_configuration_name]
+          ip_configuration
+        end
 
-          params = VirtualMachine.new
+        def build_ip_config_properties
+          ip_configuration_properties = ::Azure::ARM::Network::Models::NetworkInterfaceIpConfigurationPropertiesFormat.new
+          ip_configuration_properties.private_ipallocation_method = @vm_context[:private_ipallocation_method]
+          ip_configuration_properties.public_ipaddress = create_public_ip_address
+          ip_configuration_properties.subnet = @created_subnet
+          ip_configuration_properties
+        end
+
+        def build_network_interface_param
+          ip_configuration_properties = build_ip_config_properties
+          ip_configuration = build_ip_configuration(ip_configuration_properties)
+
+          params = ::Azure::ARM::Network::Models::NetworkInterface.new
+          params.location = @vm_context[:location]
+          params.name = @vm_context[:network_interface_name]
+          params.properties = build_network_interface_properties(ip_configuration)
+          params
+        end
+
+        def create_network_profile
+          vn = create_virtual_network
+          @created_subnet = create_subnet(vn)
+          network_interface = create_network_interface
+          profile = ::Azure::ARM::Compute::Models::NetworkProfile.new
+          profile.network_interfaces = [network_interface]
+          profile
+        end
+
+        def build_os_profile
+          os_profile = ::Azure::ARM::Compute::Models::OSProfile.new
+          os_profile.computer_name = @vm_context[:name]
+          os_profile.admin_username = @vm_context[:user]
+          os_profile.admin_password = @vm_context[:password]
+          os_profile.secrets = []
+          os_profile
+        end
+
+        def build_hardware_profile
+          hardware_profile = ::Azure::ARM::Compute::Models::HardwareProfile.new
+          hardware_profile.vm_size = @vm_context[:size]
+          hardware_profile
+        end
+
+        def build_props
+          props = ::Azure::ARM::Compute::Models::VirtualMachineProperties.new
+          props.os_profile = build_os_profile
+          props.hardware_profile = build_hardware_profile
+          props.storage_profile = create_storage_profile
+          props.network_profile = create_network_profile
+          props
+        end
+
+        def build_params
+          props = build_props
+
+          params = ::Azure::ARM::Compute::Models::VirtualMachine.new
           params.type = 'Microsoft.Compute/virtualMachines'
           params.properties = props
-          params.location = location
+          params.location = @vm_context[:location]
           params
         end
 
@@ -322,32 +301,31 @@ module PuppetX
         #
 
         def create_arm_vm(args)
-          location = args[:location]
-          size = args[:size]
-          user = args[:user]
-          password = args[:password]
-          vm_name = args[:name]
+          @vm_context = args
 
           register_providers
-          create_resource_group(location)
-          create_storage_account(location)
-          params = build_params(vm_name, location, size, user, password)
+          create_resource_group
+          create_storage_account
+          params = build_params
 
-          promise = ProviderArm.compute_client.virtual_machines.create_or_update(@resource_group_name, vm_name, params)
-          result = promise.value!.body
-        end
-
-        def delete_vm(vm_name)
-          promise = ProviderArm.compute_client.virtual_machines.delete(@resource_group_name, vm_name)
+          promise = ProviderArm.compute_client.virtual_machines.create_or_update(@vm_context[:resource_group], @vm_context[:name], params)
           promise.value!.body
         end
 
-        def stop_vm(vm_name)
-          ProviderArm.compute_client.virtual_machines.poweroff(@resource_group_name, vm_name)
+        def delete_vm(args)
+          @vm_context = args
+          promise = ProviderArm.compute_client.virtual_machines.delete(@vm_context[:resource_group], @vm_context[:name])
+          promise.value!.body
         end
 
-        def start_vm(vm_name)
-          ProviderArm.compute_client.virtual_machines.start(@resource_group_name, vm_name)
+        def stop_vm(args)
+          @vm_context = args
+          ProviderArm.compute_client.virtual_machines.poweroff(@vm_context[:resource_group], @vm_context[:name])
+        end
+
+        def start_vm(args)
+          @vm_context = args
+          ProviderArm.compute_client.virtual_machines.start(@vm_context[:resource_group], @vm_context[:name])
         end
 
         def get_all_vms
