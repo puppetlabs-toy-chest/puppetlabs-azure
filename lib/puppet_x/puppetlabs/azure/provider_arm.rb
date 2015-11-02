@@ -304,26 +304,29 @@ module PuppetX
           promise.value!.body
         end
 
-        def delete_vm(args)
-          promise = ProviderArm.compute_client.virtual_machines.delete(args[:resource_group], args[:name])
+        def delete_vm
+          promise = ProviderArm.compute_client.virtual_machines.delete(resource_group, name)
           promise.value!.body
         end
 
-        def stop_vm(args)
-          ProviderArm.compute_client.virtual_machines.poweroff(args[:resource_group], args[:name])
+        def stop_vm
+          ProviderArm.compute_client.virtual_machines.power_off(resource_group, name)
         end
 
-        def start_vm(args)
-          ProviderArm.compute_client.virtual_machines.start(args[:resource_group], args[:name])
+        def start_vm
+          ProviderArm.compute_client.virtual_machines.start(resource_group, name)
         end
 
         def get_all_vms
-          promise = ProviderArm.compute_client.virtual_machines.list_all
-          promise.value!.body.value
+          vms = ProviderArm.compute_client.virtual_machines.list_all.value!.body.value
+          vms.collect do |vm|
+            resource_group = vm.id.split('/')[4].downcase
+            ProviderArm.compute_client.virtual_machines.get(resource_group, vm.name, 'instanceView').value!.body
+          end
         end
 
         def get_vm(name)
-          get_all_vms.find { |vm| vm.properties.os_profile.computerName == name }
+          get_all_vms.select { |vm| vm.name == name }
         end
       end
     end

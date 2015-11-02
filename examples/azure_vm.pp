@@ -1,4 +1,4 @@
-azure_vm { 'sample':
+azure_vm { 'armtest2':
   ensure          => stopped,
   location        => 'eastus',
   image           => 'canonical:ubuntuserver:14.04.2-LTS:latest',
