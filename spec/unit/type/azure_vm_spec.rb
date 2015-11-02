@@ -5,12 +5,8 @@ describe 'azure_vm', :type => :type do
 
   let :params do
     [
-      :user,
       :password,
       :name,
-      :os_disk_name,
-      :os_disk_caching,
-      :os_disk_create_option,
       :os_disk_vhd_container_name,
       :os_disk_vhd_name,
       :dns_domain_name,
@@ -26,6 +22,8 @@ describe 'azure_vm', :type => :type do
       :subnet_name,
       :subnet_address_prefix,
       :network_interface_name,
+      :storage_account,
+      :storage_account_type,
     ]
   end
 
@@ -35,9 +33,11 @@ describe 'azure_vm', :type => :type do
       :location,
       :image,
       :size,
+      :user,
+      :os_disk_name,
+      :os_disk_caching,
+      :os_disk_create_option,
       :resource_group,
-      :storage_account,
-      :storage_account_type,
     ]
   end
 
@@ -242,18 +242,6 @@ describe 'azure_vm', :type => :type do
 
     it 'should be invalid' do
       expect { type_class.new(config) }.to raise_error(Puppet::Error, /the size must not be empty/)
-    end
-  end
-
-  context 'with no password' do
-    let :config do
-        result = default_config
-        result.delete(:password)
-        result
-    end
-
-    it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /You must provide a password/)
     end
   end
 

@@ -192,8 +192,9 @@ Azure management with azure_vm.
 
 You can create an Azure Virtual Manchine with the Azure ARM API with the following :
 
+~~~
 azure_vm { 'sample':
-  location                      => 'eastus'
+  location                      => 'eastus',
   image                         => 'canonical:ubuntuserver:14.04.2-LTS:latest',
   user                          => 'azureuser',
   password                      => 'Password',
@@ -218,21 +219,22 @@ azure_vm { 'sample':
   private_ipallocation_method   => 'Dynamic',
   network_interface_name        => 'nicspec01',
 }
+~~~
 
 In addition to describing new machines using the DSL the module also supports
 listing and managing machines via `puppet resource`:
 
 ~~~
-puppet resource azure_vm
-~~~
+$ puppet resource azure_vm
 azure_vm { 'sample':
-  location         => 'eastus'
+  location         => 'eastus',
   image            => 'canonical:ubuntuserver:14.04.2-LTS:latest',
   user             => 'azureuser',
   password         => 'Password',
   size             => 'Standard_A0',
-  resource_group   => 'testresacc01'
+  resource_group   => 'testresacc01',
 }
+~~~
 
 
 ##Reference
