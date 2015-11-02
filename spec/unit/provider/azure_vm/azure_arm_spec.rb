@@ -8,6 +8,7 @@ describe provider_class do
       name: 'spectestvm',
       location: 'eastus',
       size: 'Standard_A0',
+      image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
       password: 'Pa55wd!',
       user: 'specuser',
       resource_group: 'puppetresaccountazure',
@@ -38,7 +39,7 @@ describe provider_class do
     expect(provider).to be_an_instance_of Puppet::Type::Azure_vm::ProviderAzure_arm
   end
 
-  [:compute_client, :resource_client, :storage_client, :network_client].each do |method|
+  [:compute_client, :resource_client, :read_only, :storage_client, :network_client].each do |method|
     it "should respond to the class method #{method}" do
       expect(provider_class).to respond_to(method)
     end

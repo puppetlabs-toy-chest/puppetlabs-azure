@@ -29,10 +29,6 @@ module PuppetX
           ::Azure.vm_disk_management
         end
 
-        def self.sql_manager
-          ::Azure.sql_database_management
-        end
-
         def self.list_vms
           vm_manager.list_virtual_machines
         end

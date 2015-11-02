@@ -1,4 +1,3 @@
-require 'puppet_x/puppetlabs/azure/config'
 
 require 'azure'
 require 'mustache'
@@ -11,6 +10,7 @@ require 'retries'
 require 'shellwords'
 require 'winrm'
 
+require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
 
 require 'azure_mgmt_compute'
@@ -179,8 +179,7 @@ class AzureARMHelper
 
   def list_resource_providers
     promise = AzureARMHelper.resource_client.providers.list
-    result = promise.value!.body.value
-    result
+    promise.value!.body.value
   end
 
   def get_resource_group(name)
@@ -218,6 +217,16 @@ class AzureARMHelper
 
   def get_vm(name)
     get_all_vms.find { |vm| vm.name == name }
+  end
+
+  def stop_vm(resource_group, name)
+    promise = AzureARMHelper.compute_client.virtual_machines.power_off(resource_group, name)
+    promise.value!.response.env.body
+  end
+
+  def start_vm(resource_group, name)
+    promise = AzureARMHelper.compute_client.virtual_machines.start(resource_group, name)
+    promise.value!.response.env.body
   end
 end
 

@@ -28,19 +28,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
 
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     {
-      name: machine.name,
-      image: build_image_from_reference(machine.properties.storage_profile.image_reference),
-      ensure: ensure_from(machine.properties.provisioning_state),
-      location: machine.location,
-      username: machine.properties.os_profile.admin_username,
-      hostname: machine.properties.os_profile.computer_name,
-      size: machine.properties.hardware_profile.vm_size,
-      resource_group: machine.id.split('/')[4].downcase,
-    }
-  end
-
-  def gen_params # rubocop:disable Metrics/AbcSize
-    {
+      machine: machine,
       name: resource[:name],
       image: resource[:image],
       location: resource[:location],
@@ -69,34 +57,30 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
     }
   end
 
+  def gen_params
+    self.machine_to_hash(Nil)
+  end
+
   def create
-    params = gen_params
-    Puppet.info("Creating #{params[:name]}")
-    create_arm_vm(params)
+    Puppet.info("Creating #{resource[:name]}")
+    create_arm_vm(gen_params)
   end
 
   def destroy
-    params = gen_params
-    Puppet.info("Deleting #{params[:name]}")
-    delete_vm(params)
+    Puppet.info("Deleting #{resource[:name]}")
+    delete_vm(gen_params)
     @property_hash[:ensure] = :absent
   end
 
   def stop
-    params = gen_params
-    Puppet.info("Stopping #{params[:name]}")
-    stop_vm(params)
+    Puppet.info("Stopping #{resource[:name]}")
+    stop_vm(gen_params)
     @property_hash[:ensure] = :stopped
   end
 
   def start
-    params = gen_params
-    Puppet.info("Starting #{params[:name]}")
-    start_vm(params)
+    Puppet.info("Starting #{resource[:name]}")
+    start_vm(gen_params)
     @property_hash[:ensure] = :running
-  end
-
-  def get_all_vms
-    get_all_vms
   end
 end
