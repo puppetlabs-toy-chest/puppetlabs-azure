@@ -3,24 +3,26 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 
 ####Table of Contents
 
-1. [Overview](#overview)
-2. [Description - What the module does and why it is useful](#module-description)
-3. [Setup](#setup)
+
+1. [Description - What the module does and why it is useful](#module-description)
+2. [Setup](#setup)
   * [Requirements](#requirements)
   * [Getting Azure credentials](#getting-azure-credentials)
   * [Installing the Azure module](#installing-the-azure-module)
-4. [Usage - Configuration options and additional functionality](#usage)
-5. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
+3. [Usage - Configuration options and additional functionality](#usage)
+4. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
   * [Types](#types)
   * [Parameters](#parameters)
-6. [Known Issues](#known-issues)
-7. [Limitations - OS compatibility, etc.](#limitations)
+5. [Known Issues](#known-issues)
+6. [Limitations - OS compatibility, etc.](#limitations)
 
 ## Overview
 
 The Azure module supports the Azure Classic and the Azure Resource Manager SDK's.
 
 ## Description
+
+TODO: Add brief description of what the module does.
 
 ## Setup
 
@@ -31,16 +33,16 @@ The Azure module supports the Azure Classic and the Azure Resource Manager SDK's
 
 ### Getting Azure credentials
 
-In order to use the Azure module you'll need an Azure account. If you
+In order to use the Azure module, you'll need an Azure account. If you
 already have one you can skip this section, but otherwise you can sign
 up for a [Free Trial](http://azure.microsoft.com/en-gb/).
 
 You then need to install the Azure CLI. This is required to
-generate the certificate that we will use later for the Puppet module
+generate the certificate that we will use later for the Puppet module,
 but it's also a useful way of interacting with Azure. Follow this
 [installation
 guide](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-install/)
-on how to get the CLI setup.
+to get the CLI setup.
 
 Next you need to register the CLI with your Azure account. You can do
 this by following this [guide from
@@ -52,14 +54,14 @@ azure account download
 azure account import <path to your .publishsettings file>
 ~~~
 
-Once you have the account created you can export the PEM certificate file
+When you have the account created, you can export the PEM certificate file
 using the following command:
 
 ~~~
 azure account cert export
 ~~~
 
-And finally you can get the subscription ID using the `account list` command
+And finally, you can get the subscription ID using the `account list` command
 like so:
 
 ~~~
@@ -73,7 +75,6 @@ info:    account list command OK
 
 For using the Resource Manager API instead you require a service
 principal on the Active Directory. The [official documentation covers creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
-Please note that for the Azure Resource Manager (ARM) API you will require powershell access to complete the credential generation.
 
 ### Installing the Azure module
 
@@ -84,7 +85,7 @@ Please note that for the Azure Resource Manager (ARM) API you will require power
    /opt/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network hocon retries --no-ri --no-rdoc
    ~~~
 
-   If you are running Puppet Enterprise 2015.2.0 you need to use the
+   If you are running Puppet Enterprise 2015.2.0 [TODO: or later?], use the
 updated path:
 
    ~~~
@@ -94,14 +95,14 @@ updated path:
 2. Set the following environment variables specific to your Azure
    installation:
 
-   For using the Classic API you need to provide:
+   If using the Classic API, you need to provide:
 
    ~~~
    export AZURE_MANAGEMENT_CERTIFICATE='/path/to/pem/file'
    export AZURE_SUBSCRIPTION_ID='your-subscription-id'
    ~~~
 
-   For using the Resource Management API you need to provide:
+   If using the Resource Management API, you need to provide:
 
    ~~~
    export AZURE_SUBSCRIPTION_ID='your-subscription-id'
@@ -111,13 +112,13 @@ updated path:
    ~~~
 
    Note that you can provide all of the above credentials if you are
-   working with both Resource Manager and Classic virtual machines.
+   working with **both** Resource Manager and Classic virtual machines.
 
    Alternatively, you can provide the information in a configuration file. Store this as azure.conf in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html). This should be:
 
-   * nix Systems: /etc/puppetlabs/puppet
-   * Windows: C:\ProgramData\PuppetLabs\puppet\etc
-   * non-root users: ~/.puppetlabs/etc/puppet
+   * nix Systems: `/etc/puppetlabs/puppet`
+   * Windows: `C:\ProgramData\PuppetLabs\puppet\etc`
+   * non-root users: `~/.puppetlabs/etc/puppet`
 
    The file format is:
 
@@ -128,7 +129,7 @@ updated path:
    }
    ~~~
 
-   Or with the Resource Management API:
+   Or, with the Resource Management API:
 
    ~~~
    azure: {
@@ -139,9 +140,9 @@ updated path:
    }
    ~~~
 
-   Note that you can use either the environment variables or the config file. If both are present the environment variables will be used. You cannot have some settings in environment variables and others in the config file.
+   Note that you can use either the environment variables or the config file. If both are present, the environment variables are used. You cannot have some settings in environment variables and others in the config file.
 
-3. Finally install the module with:
+3. Finally, install the module with:
 
    ~~~
    puppet module install puppetlabs-msazure
@@ -151,6 +152,10 @@ updated path:
 ## Usage
 
 You can create Azure Virtual Machines using the following with the classic API:
+
+### Create Azure VMs
+
+You can create Azure Virtual Machines using the following:
 
 ~~~
 azure_vm_classic { 'virtual-machine-name':
@@ -163,7 +168,9 @@ azure_vm_classic { 'virtual-machine-name':
 }
 ~~~
 
-In addition to describing new machines using the DSL the module also supports
+### List and manage VMs
+
+In addition to describing new machines using the DSL, the module also supports
 listing and managing machines via `puppet resource`:
 
 ~~~
@@ -236,19 +243,19 @@ azure_vm { 'sample':
 }
 ~~~
 
+## Reference
 
-##Reference
-
-###Types
+### Types
 
 * `azure_vm_classic`: Manages a virtual machine in Microsoft Azure.
 * `azure_vm`: Manages a virtual machine in Microsoft Azure with ARM.
 
-###Parameters
+### Parameters
 
-####Type: azure_vm_classic
+#### Type: azure_vm_classic
 
-#####`ensure`
+##### `ensure`
+
 Specifies the basic state of the virtual machine. Valid values are 'present',
 'running', stopped', and 'absent'. Defaults to 'present'.
 
@@ -263,91 +270,109 @@ Values have the following effects:
   having them running immediately.
 * 'absent': Ensures that the VM doesn't exist on Azure.
 
-#####`name`
+##### `name`
+
 *Required* The name of the virtual machine.
 
-#####`image`
+##### `image`
+
 Name of the image to use to create the virtual machine. This can be either a VM Image or an OS Image. When specifying a VM Image, `user`, `password`, and `private_key_file` are not used.
 
-#####`location`
-*Required* The location where the virtual machine will be created. Details of
+##### `location`
+
+*Required.* The location where the virtual machine will be created. Details of
 available values can be found on the [Azure
 regions documentation](http://azure.microsoft.com/en-gb/regions/).
-Location is read-only once the VM has been created.
+Location is read-only after the VM has been created.
 
-#####`user`
+##### `user`
+
 The name of the user to be created on the virtual machine. Required for Linux guests.
 
-#####`password`
+##### `password`
+
 The password for the above mentioned user on the virtual machine.
 
-#####`private_key_file`
+##### `private_key_file`
+
 Path to the private key file for accessing a Linux guest as the above
 user.
 
-#####`storage_account`
+##### `storage_account`
+
 The name of the storage account to create for the virtual machine.
 Note that if the source image is a 'user' image, the storage account
-for the user image is used instead of the one provided here. The storage account 
+for the user image is used instead of the one provided here. The storage account
 must be between 3-24 characters, containing only numeric and/or lower case letters.
 
-#####`cloud_service`
+##### `cloud_service`
+
 The name of the associated cloud service.
 
-#####`deployment`
+##### `deployment`
+
 The name for the deployment.
 
-#####`size`
+##### `size`
+
 The size of the virtual machine instance. See the Azure documentation
 for a [full list of
 sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
-#####`affinity_group`
+##### `affinity_group`
+
 The affinity group to be used for any created cloud service and storage accounts. Use affinity groups to influence colocation of compute and storage for improved performance.
 
-#####`virtual_network`
+##### `virtual_network`
+
 An existing virtual network to which the virtual machine should be connected.
 
-#####`subnet`
+##### `subnet`
+
 An existing subnet in the specified virtual network to which the virtual machine should be associated.
 
-#####`availability_set`
+##### `availability_set`
+
 The availability set for the virtual machine. These are used to ensure
 related machines are not all restarted or paused during routine
 maintenance.
 
-#####`reserved_ip`
+##### `reserved_ip`
+
 The name of the reserved IP to associate with the virtual machine.
 
-#####`data_disk_size_gb`
-The size of the data disk for this virtual machine, specified in gigabytes. Over the life cycle of a disk, this size
-can only grow. If this value is not set, puppet will not touch the data disks for this virtual machine.
+##### `data_disk_size_gb`
 
-#####`purge_disk_on_delete`
+The size of the data disk for this virtual machine, specified in gigabytes. Over the life cycle of a disk, this size can only grow. If this value is not set, Puppet does not touch the data disks for this virtual machine.
+
+##### `purge_disk_on_delete`
+
 Whether or not the attached data disk should be deleted when the VM is deleted. Defaults to false.
 
-#####`custom_data`
+##### `custom_data`
+
 A script to be executed on launch by cloud-init on Linux hosts. This can
 either be a single-line command (for example `touch /tmp/some-file`) which
 will be run under bash, or a multi-line file (for instance from a
 template) which can be any format supported by cloud-init.
 
-#####`endpoints`
-A list of endpoints which should be associated with the virtual machine. Supply an array of hashes describing the endpoints. Available keys:
+##### `endpoints`
 
-  * `name`: *Required* The name of this endpoint.
-  * `public_port`: *Required* The public port to access this endpoint.
-  * `local_port`: *Required* The internal port on which the virtual machine is listening.
-  * `protocol`: *Required* `TCP` or `UDP`.
+A list of endpoints to associate with the virtual machine. Supply an array of hashes describing the endpoints. Available keys are:
+
+  * `name`: *Required.* The name of this endpoint.
+  * `public_port`: *Required.* The public port to access this endpoint.
+  * `local_port`: *Required.* The internal port on which the virtual machine is listening.
+  * `protocol`: *Required.* `TCP` or `UDP`.
   * `direct_server_return`: enable direct server return on the endpoint.
-  * `load_balancer_name`: If the endpoint should be added to a load balancer set, specify a name here. If the set does not exist yet, it will be created automatically.
+  * `load_balancer_name`: If the endpoint should be added to a load balancer set, specify a name here. If the set does not exist yet, it is created automatically.
   * `load_balancer`: A hash of the properties to add this endpoint to a load balancer configuration.
-    * `port`: *Required* The internal port on which the virtual machine is listening.
-    * `protocol`: *Required* The protocol to use for the availability probe.
+    * `port`: *Required.* The internal port on which the virtual machine is listening.
+    * `protocol`: *Required.* The protocol to use for the availability probe.
     * `interval`: The interval for the availability probe in seconds.
     * `path`: a relative path used by the availability probe.
 
-The most often used endpoints are SSH for Linux, and WinRM for Windows. Usually they are configured for direct pass-through like this:
+The most often used endpoints are SSH for Linux and WinRM for Windows. Usually they are configured for direct pass-through like this:
 
 ~~~
 endpoints => [{
@@ -374,19 +399,23 @@ endpoints => [{
   },]
 ~~~
 
-> Note: if you want to manually configure one of the ssh, WinRm-HTTP, or PowerShell endpoints, take care to use those
+> Note: If you want to manually configure one of the ssh, WinRm-HTTP, or PowerShell endpoints, take care to use those
 > endpoint names verbatim. This is required to override Azure's defaults without creating a resource conflict.
 
-#####`os_type`
+##### `os_type`
+
 _Read Only_. The operating system type for the virtual machine.
 
-#####`ipaddress`
+##### `ipaddress`
+
 _Read Only_. The IP address assigned to the virtual machine.
 
-#####`hostname`
+##### `hostname`
+
 _Read Only_. The hostname of the running virtual machine.
 
-#####`media_link`
+##### `media_link`
+
 _Read Only_. The link to the underlying disk image for the virtual
 machine.
 
@@ -395,6 +424,8 @@ machine.
 #####`ensure`
 Specifies the basic state of the virtual machine. Valid values are 'present',
 'running', stopped', and 'absent'. Defaults to 'present'.
+
+##Limitations
 
 Values have the following effects:
 
@@ -519,7 +550,6 @@ Default's to nicpupaz01.
 This module is available only for Puppet Enterprise 3.8 and later.
 
 ## Known Issues
-
 
 ## Development
 This module was built by Puppet Labs specifically for use with Puppet Enterprise (PE).
