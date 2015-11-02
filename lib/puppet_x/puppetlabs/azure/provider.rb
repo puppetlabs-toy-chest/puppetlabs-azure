@@ -55,15 +55,45 @@ module PuppetX
             })
         end
 
+        def adding_role?(cloud_service_name)
+          add_role = false
+
+          return false if cloud_service_name.nil?
+
+          cloud_service = Provider.cloud_service_manager.get_cloud_service(cloud_service_name)
+          return false if cloud_service.nil?
+
+          begin
+            service_properties = Provider.cloud_service_manager.get_cloud_service_properties(cloud_service_name)
+            deployments = service_properties.virtual_machines
+
+            add_role = deployments.count >= 1
+          rescue Exception
+            # This might lead to false negatives when the API or network is not well-behaved
+            # Since it doesn't impact idempotency or data reliability, we punted this issue
+            # until a general reliability overhaul of the azure SDK or our usage of it.
+            add_role = false
+          end
+
+          add_role
+        end
+
         def create_vm(args) # rubocop:disable Metrics/AbcSize
+          cloud_service_name = args[:cloud_service_name]
           param_names = [:vm_name, :image, :location, :vm_user, :password, :custom_data]
           params = (args.keys & param_names).each_with_object({}) { |k,h| h.update(k=>args.delete(k)) }
           sanitised_params = params.delete_if { |k, v| v.nil? }
           sanitised_args = args.delete_if { |k, v| v.nil? }
           data_disk_size_gb = sanitised_args.delete(:data_disk_size_gb)
-          Provider.vm_manager.create_virtual_machine(sanitised_params, sanitised_args)
+
+          if adding_role?(cloud_service_name)
+            sanitised_params[:cloud_service_name] = cloud_service_name
+            Provider.vm_manager.add_role(sanitised_params, sanitised_args)
+          else
+            Provider.vm_manager.create_virtual_machine(sanitised_params, sanitised_args)
+          end
           if data_disk_size_gb
-            create_disk(params[:vm_name], args[:cloud_service_name], data_disk_size_gb)
+            create_disk(params[:vm_name], cloud_service_name, data_disk_size_gb)
           end
         end
 

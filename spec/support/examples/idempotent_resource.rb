@@ -8,7 +8,11 @@ shared_examples 'an idempotent resource' do
   end
 
   it 'should run a second time without changes' do
-    second_result = @manifest.execute
+    if @manifest.is_a? String
+      second_result = PuppetRunProxy.execute(@manifest)
+    else
+      second_result = @manifest.execute
+    end
     expect(second_result.exit_code).to eq 0
   end
 end

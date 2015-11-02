@@ -384,22 +384,45 @@ class LocalRunner
   end
 
   private
-    def use_local_shell(cmd)
-      Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
-        @out = read_stream(stdout)
-        @error = read_stream(stderr)
-        @code = /(exit)(\s)(\d+)/.match(wait_thr.value.to_s)[3]
-      end
-      BeakerLikeResponse.new(@out, @error, @code, cmd)
-    end
+    def use_local_shell(cmd) # rubocop:disable Metrics/AbcSize
+      blocks = {
+        out: [],
+        err: [],
+      }
 
-    def read_stream(stream)
-      result = String.new
-      while line = stream.gets # rubocop:disable Lint/AssignmentInCondition
-        result << line if line.class == String
-        puts line
+      exit_code = -1
+
+      Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
+        stdin.close_write
+
+        files = [stdout, stderr]
+
+        until files.all?(&:eof) do
+          ready = IO.select(files)
+
+          if ready
+            ready[0].each do |f|
+              fileno = f.fileno
+              begin
+                data = f.read_nonblock(1024)
+                $stdout.write(data)
+
+                if fileno == stdout.fileno
+                  blocks[:out] << data
+                else
+                  blocks[:err] << data
+                end
+              rescue EOFError # rubocop:disable Lint/HandleExceptions
+                # pass on EOF
+              end
+            end
+          end
+        end
+
+        exit_code = wait_thr.value.exitstatus
       end
-      result
+
+      BeakerLikeResponse.new(blocks[:out].join, blocks[:err].join, exit_code, cmd)
     end
 end
 
@@ -507,7 +530,7 @@ def expect_failed_apply(config)
   expect(result.exit_code).not_to eq 0
 end
 
-def run_command_over_ssh(command, auth_method, port=22)
+def run_command_over_ssh(host, command, auth_method, port=22)
   # We retry failed attempts as although the VM has booted it takes some
   # time to start and expose SSH. This mirrors the behaviour of a typical SSH client
   allowed_errors = [
@@ -521,11 +544,16 @@ def run_command_over_ssh(command, auth_method, port=22)
     Errno::ECONNRESET,
     Errno::ETIMEDOUT,
   ]
+  handler = Proc.new do |exception, attempt_number, total_delay|
+    puts "Handler saw a #{exception.class}; retry attempt #{attempt_number}; #{total_delay} seconds have passed."
+    puts exception
+  end
   with_retries(:max_tries => 10,
                :base_sleep_seconds => 20,
                :max_sleep_seconds => 20,
-               :rescue => allowed_errors) do
-    Net::SSH.start(@ip,
+               :rescue => allowed_errors,
+               :handler => handler) do
+    Net::SSH.start(host,
                    @config[:optional][:user],
                    :port => port,
                    :password => @config[:optional][:password],
