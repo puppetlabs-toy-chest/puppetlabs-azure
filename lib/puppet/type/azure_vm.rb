@@ -20,11 +20,8 @@ Puppet::Type.newtype(:azure_vm) do
   validate do
     required_properties = [
       :location,
-      :password,
       :image,
       :size,
-      :resource_group,
-      :storage_account,
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
@@ -81,7 +78,7 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  newparam(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'User name for the virtual machine. This value is only used when creating the VM initially.'
   end
 
@@ -117,7 +114,7 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  newproperty(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated storage account'
     validate do |value|
       super value
@@ -125,22 +122,22 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  newproperty(:storage_account_type, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:storage_account_type, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated storage account type'
     defaultto 'Standard_GRS'
   end
 
-  newparam(:os_disk_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated os disk name'
     defaultto 'osdisk01'
   end
 
-  newparam(:os_disk_caching, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_caching, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The disk cache setting'
     defaultto 'ReadWrite'
   end
 
-  newparam(:os_disk_create_option, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_create_option, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk create option'
     defaultto 'fromImage'
   end
