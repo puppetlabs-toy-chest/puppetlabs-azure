@@ -58,12 +58,12 @@ shared_examples 'a removable ARM resource' do
     end
 
     it 'cleans up the resource group' do
-      @client.destroy_resource_group(@config[:optional][:resource_group])
+      @client.destroy_resource_group(@config[:optional][:resource_group]) if @client.get_resource_group(@config[:optional][:resource_group])
       expect(@client.get_resource_group(@config[:optional][:resource_group])).to be_nil
     end
 
     it 'cleans up the storage account' do
-      @client.destroy_storage_account(@config[:optional][:storage_account], @config[:optional][:resource_group])
+      @client.destroy_storage_account(@config[:optional][:storage_account], @config[:optional][:resource_group]) if @client.get_storage_account(@config[:optional][:storage_account])
       expect(@client.get_storage_account(@config[:optional][:storage_account])).to be_nil
     end
   end
