@@ -8,6 +8,9 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
 
   mk_resource_methods
 
+  read_only(:image, :resource_group, :location, :size, :user, :os_disk_name,
+            :os_disk_caching, :os_disk_create_option)
+
   def self.instances
     begin
       PuppetX::Puppetlabs::Azure::ProviderArm.new.get_all_vms.collect do |machine|
@@ -44,9 +47,9 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
     }
   end
 
-  def create
+  def create # rubocop:disable Metrics/AbcSize
     Puppet.info("Creating #{resource[:name]}")
-    create_arm_vm({
+    create_vm({
       name: resource[:name],
       image: resource[:image],
       location: resource[:location],
@@ -76,32 +79,12 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   end
 
   def destroy
-    Puppet.info("Deleting #{resource[:name]}")
-    delete_vm
+    Puppet.info("Deleting #{name}")
+    delete_vm(machine)
     @property_hash[:ensure] = :absent
-  end
-
-  def stop
-    Puppet.info("Stopping #{resource[:name]}")
-    stop_vm
-    @property_hash[:ensure] = :stopped
-  end
-
-  def start
-    Puppet.info("Starting #{resource[:name]}")
-    start_vm
-    @property_hash[:ensure] = :running
-  end
-
-  def exists?
-    true # TODO
   end
 
   def stopped?
     ! machine.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
-  end
-
-  def running?
-    !stopped?
   end
 end

@@ -1,7 +1,6 @@
 require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with all available properties' do
-
   before(:all) do
     @name = 'spectestvm'
     @config = {
