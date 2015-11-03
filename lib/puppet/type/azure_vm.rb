@@ -20,8 +20,6 @@ Puppet::Type.newtype(:azure_vm) do
   validate do
     required_properties = [
       :location,
-      :image,
-      :size,
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
@@ -76,6 +74,7 @@ Puppet::Type.newtype(:azure_vm) do
       super value
       fail("the image name must not be empty") if value.empty?
     end
+    # TODO should downcase both sides for comparison
   end
 
   newproperty(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do

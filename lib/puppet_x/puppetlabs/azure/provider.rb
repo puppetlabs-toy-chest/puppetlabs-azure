@@ -8,6 +8,15 @@ module PuppetX
     module Azure
       # Azure Classic API
       class Provider < ProviderBase
+        # all of this needs to happen once in the life-time of the runtime,
+        # but Puppet.feature does not allow us to add a feature-conditional
+        # initialization, so we need to be a little bit circumspect here.
+        begin
+          require 'azure'
+          ::Azure::Core::Logger.initialize_external_logger(LoggerAdapter.new)
+        rescue LoadError
+          Puppet.debug("Couldn't load azure SDK")
+        end
         # Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
         # This needs to be separate from the rescue above, as this might
         # get fixed on a different schedule.
@@ -31,6 +40,19 @@ module PuppetX
 
         def self.list_vms
           vm_manager.list_virtual_machines
+        end
+
+        def self.ensure_from(status)
+          case status
+          when 'StoppedDeallocated', 'Stopped'
+            :stopped
+          else
+            :running
+          end
+        end
+
+        def stopped?
+          ['StoppedDeallocated', 'Stopped'].include? machine.status
         end
 
         def self.get_cloud_service(service_name)
