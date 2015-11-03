@@ -138,7 +138,7 @@ Puppet::Type.newtype(:azure_vm) do
 
   newproperty(:os_disk_create_option, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk create option'
-    defaultto 'fromImage'
+    defaultto 'FromImage'
   end
 
   newparam(:os_disk_vhd_container_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do

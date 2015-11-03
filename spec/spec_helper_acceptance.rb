@@ -211,12 +211,18 @@ class AzureARMHelper
   end
 
   def get_all_vms
-    promise = AzureARMHelper.compute_client.virtual_machines.list_all
-    promise.value!.body.value
+    vms = AzureARMHelper.compute_client.virtual_machines.list_all.value!.body.value
+    vms.collect do |vm|
+      AzureARMHelper.compute_client.virtual_machines.get(get_resource_group_from(vm), vm.name, 'instanceView').value!.body
+    end
+  end
+
+  def get_resource_group_from(machine)
+    machine.id.split('/')[4].downcase
   end
 
   def get_vm(name)
-    get_all_vms.find { |vm| vm.name == name }
+    get_all_vms.select { |vm| vm.name == name }
   end
 
   def stop_vm(resource_group, name)
@@ -227,6 +233,22 @@ class AzureARMHelper
   def start_vm(resource_group, name)
     promise = AzureARMHelper.compute_client.virtual_machines.start(resource_group, name)
     promise.value!.response.env.body
+  end
+
+  def vm_running(name)
+    vm = get_vm(name).first
+    state = vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/running/ }
+    state.code == 'PowerState/running'
+  end
+
+  def vm_stopped(name)
+    vm = get_vm(name).first
+    state = vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }
+    begin
+      return state.code == 'PowerState stopped'
+    rescue StandardError => e
+      return false
+    end
   end
 end
 

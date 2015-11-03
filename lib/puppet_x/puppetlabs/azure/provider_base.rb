@@ -67,7 +67,7 @@ module PuppetX
                  @property_hash[:object]
                else
                  Puppet.debug("Looking up #{name}")
-                 get_vm(name)
+                 get_vm(name).first
                end
           raise Puppet::Error, "No virtual machine called #{name}" unless vm
           vm

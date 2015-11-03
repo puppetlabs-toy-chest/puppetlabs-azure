@@ -66,8 +66,6 @@ module PuppetX
           ProviderArm.resource_client.providers.register(name).value!.body
         end
 
-
-
         def register_providers
           register_azure_provider('Microsoft.Storage')
           register_azure_provider('Microsoft.Network')
@@ -84,7 +82,7 @@ module PuppetX
           params = ::Azure::ARM::Resources::Models::ResourceGroup.new
           params.location = location
           promise = ProviderArm.resource_client.resource_groups.create_or_update(@resource_group_name, params)
-          puts promise.value!.body
+          promise.value!.body
         end
 
         def find_resource_group(name)
@@ -154,8 +152,8 @@ module PuppetX
           storage_profile.image_reference = get_image_reference
           os_disk = OSDisk.new
           os_disk.caching = 'ReadWrite'
-          os_disk.create_option = 'fromImage'
-          os_disk.name = 'myosdisk1'
+          os_disk.create_option = 'FromImage'
+          os_disk.name = 'osdisk01'
           virtual_hard_disk = VirtualHardDisk.new
           virtual_hard_disk.uri = generate_os_vhd_uri
           os_disk.vhd = virtual_hard_disk
@@ -303,8 +301,8 @@ module PuppetX
         end
 
         def create_vm(args)
-          @resource_group_name = 'puppet_azure_res_group'
-          @storage_account = 'puppetstorageaccount'
+          @resource_group_name = 'puppettestresacc02'
+          @storage_account = 'puppetteststoracc02'
           @storage_account_type =  'Standard_GRS'
 
           location = args[:location]
@@ -312,7 +310,6 @@ module PuppetX
           user = args[:user]
           password = args[:password]
           vm_name = args[:name]
-
 
           register_providers
           create_resource_group(location)
@@ -324,15 +321,15 @@ module PuppetX
         end
 
         def delete_vm(machine)
-          ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name).value!
+          ProviderArm.compute_client.virtual_machines.delete(get_resource_group_from(machine), machine.name).value!
         end
 
         def stop_vm(machine)
-          ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name).value!
+          ProviderArm.compute_client.virtual_machines.power_off(get_resource_group_from(machine), machine.name).value!
         end
 
         def start_vm(machine)
-          ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name).value!
+          ProviderArm.compute_client.virtual_machines.start(get_resource_group_from(machine), machine.name).value!
         end
 
         def get_all_vms

@@ -59,7 +59,7 @@ describe 'azure_vm', :type => :type do
     {
       os_disk_name: 'testosdisk1',
       os_disk_caching: 'ReadWrite',
-      os_disk_create_option: 'fromImage',
+      os_disk_create_option: 'FromImage',
       os_disk_vhd_container_name: 'conttest1',
       os_disk_vhd_name: 'vhdtest1',
       dns_domain_name: 'mydomain01',

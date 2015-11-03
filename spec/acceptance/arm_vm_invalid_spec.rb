@@ -24,7 +24,7 @@ describe 'azure_vm when creating a machine with all available properties' do
   end
 
   it 'should run with errors' do
-    expect(@result.exit_code).to eq 0
+    expect(@result.exit_code).to eq 4
   end
 
   it 'should not exist' do
@@ -32,6 +32,6 @@ describe 'azure_vm when creating a machine with all available properties' do
   end
 
   it 'should return an exception' do
-    expect(@result.stderr).to eq(/TO DO/)
+    expect(@result.stderr.include?('MsRestAzure::AzureOperationError')).to be true
   end
 end

@@ -209,7 +209,7 @@ azure_vm { 'sample':
   resource_group                => 'testresacc01',
   storage_account               => 'teststoracc01',
   storage_account_type          => 'Standard_GRS',
-  os_disk_name                  => 'myosdisk01',
+  os_disk_name                  => 'osdisk01',
   os_disk_caching               => 'ReadWrite',
   os_disk_create_option         => 'fromImage',
   os_disk_vhd_container_name    => 'conttest1',

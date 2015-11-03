@@ -36,22 +36,10 @@ end
 shared_examples 'a removable ARM resource' do
   describe 'setting ensure => absent' do
     before(:all) do
-      old_config = @config
-      @config = {
-        name: @name,
-        ensure: 'absent',
-        optional: {
-          resource_group: old_config[:optional][:resource_group],
-          storage_account: old_config[:optional][:storage_account],
-        }
-      }
-
+      @config = @config.update({:ensure => 'absent'})
       @manifest = PuppetManifest.new(@template, @config)
       @result = @manifest.execute
     end
-
-    # note that @machine is still set to the "original" azure instance, making the "should exist" test here useless
-    it_behaves_like 'an idempotent resource'
 
     it 'has removed the VM' do
       expect(@client.get_vm(@name)).to be_empty

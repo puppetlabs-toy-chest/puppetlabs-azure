@@ -1,5 +1,13 @@
 require 'spec_helper_acceptance'
 
+test_config = {
+  size: 'Standard_A0',
+  location: 'eastus',
+  image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user: 'specuser',
+  resource_group: 'puppettestresacc02',
+}
+
 describe 'azure_vm when creating a machine with all available properties' do
   before(:all) do
     @name = 'spectestvm'
@@ -12,12 +20,12 @@ describe 'azure_vm when creating a machine with all available properties' do
         user: 'specuser',
         password: 'SpecPass123!@#$%',
         size: 'Standard_A0',
-        resource_group: 'puppettestresacc01',
-        storage_account: 'puppetteststoracc01',
+        resource_group: 'puppettestresacc02',
+        storage_account: 'puppetteststoracc02',
         storage_account_type: 'Standard_GRS',
-        os_disk_name: 'myosdisk01',
+        os_disk_name: 'osdisk01',
         os_disk_caching: 'ReadWrite',
-        os_disk_create_option: 'fromImage',
+        os_disk_create_option: 'FromImage',
         os_disk_vhd_container_name: 'conttest1',
         os_disk_vhd_name: 'vhdtest1',
         dns_domain_name: 'mydomain01',
@@ -37,7 +45,7 @@ describe 'azure_vm when creating a machine with all available properties' do
     @client = AzureARMHelper.new
     @manifest = PuppetManifest.new(@template, @config)
     @result = @manifest.execute
-    @machine = @client.get_vm(@name)
+    @machine = @client.get_vm(@name).first
   end
 
   it_behaves_like 'an idempotent resource'
@@ -54,29 +62,30 @@ describe 'azure_vm when creating a machine with all available properties' do
     expect(@machine.properties.hardware_profile.vm_size).to eq(@config[:optional][:size])
   end
 
-  context 'when looked for using puppet resource' do
-    include_context 'a puppet resource run'
-    puppet_resource_should_show('location', @config[:location])
-    puppet_resource_should_show('image', @config[:image])
-    puppet_resource_should_show('user', @config[:user])
-    puppet_resource_should_show('size', @config[:size])
-    puppet_resource_should_show('resource_group', @config[:resource_group])
+  it 'should be running' do
+    state = @client.vm_running(@name)
+    expect(state).to be true
   end
 
-  it 'it should destroy the vm' do
+  context 'should run puppet resource' do
+    include_context 'a puppet ARM resource run'
+    puppet_resource_should_show('location', test_config[:location])
+    puppet_resource_should_show('image', test_config[:image])
+    puppet_resource_should_show('user', test_config[:user])
+    puppet_resource_should_show('size', test_config[:size])
+    puppet_resource_should_show('resource_group', test_config[:resource_group])
+  end
+
+  context 'it should destroy the vm' do
     before(:all) do
-      it 'should be running' do
-        @running_machine = @client.get_vm(@name)
-        expect(@running_machine).to be('Running')
-      end
+      state = @client.vm_running(@name)
+      expect(state).to be true
 
       new_config = @config.update({:ensure => 'absent'})
       @manifest = PuppetManifest.new(@template, new_config)
       @result = @manifest.execute
       @machine = @client.get_vm(@name)
     end
-
-    it_behaves_like 'an idempotent resource'
 
     it 'should run without errors' do
       expect(@result.exit_code).to eq 2
@@ -87,7 +96,5 @@ describe 'azure_vm when creating a machine with all available properties' do
     end
   end
 
-  after(:all) do
-    it_behaves_like 'a removable ARM resource'
-  end
+  it_behaves_like 'a removable ARM resource'
 end
