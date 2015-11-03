@@ -28,7 +28,6 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
     end
   end
 
-
   def self.data_disk_size_gb_from(machine)
     if machine.data_disks.empty?
       0
@@ -121,16 +120,4 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
     end
     @property_hash[:ensure] = :absent
   end
-
-  def stop
-    Puppet.info("Stopping #{name}")
-    stop_vm(machine)
-    @property_hash[:ensure] = :stopped
-  end
-
-  def start
-    Puppet.info("Starting #{name}")
-    start_vm(machine)
-    @property_hash[:ensure] = :running
-  end
-end
+ end

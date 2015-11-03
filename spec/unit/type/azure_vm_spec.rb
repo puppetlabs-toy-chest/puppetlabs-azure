@@ -221,18 +221,6 @@ describe 'azure_vm', :type => :type do
     end
   end
 
-  context 'with no size' do
-    let :config do
-      result = default_config
-      result.delete(:size)
-      result
-    end
-
-    it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error, /You must provide a size/)
-    end
-  end
-
   context 'with a blank size' do
     let :config do
       result = default_config
@@ -257,15 +245,4 @@ describe 'azure_vm', :type => :type do
     end
   end
 
-  context 'with no image' do
-    let :config do
-      result = default_config
-      result.delete(:image)
-      result
-    end
-
-    it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /You must provide a image/)
-    end
-  end
 end

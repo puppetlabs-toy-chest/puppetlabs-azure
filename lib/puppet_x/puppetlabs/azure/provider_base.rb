@@ -20,18 +20,6 @@ module PuppetX
       end
 
       class ProviderBase < Puppet::Provider
-        # all of this needs to happen once in the life-time of the runtime,
-        # but Puppet.feature does not allow us to add a feature-conditional
-        # initialization, so we need to be a little bit circumspect here.
-        begin
-          require 'azure'
-
-          # re-route azure's messages to puppet
-          ::Azure::Core::Logger.initialize_external_logger(LoggerAdapter.new)
-        rescue LoadError
-          Puppet.debug("Couldn't load azure SDK")
-        end
-
         def self.read_only(*methods)
           methods.each do |method|
             define_method("#{method}=") do |v|
@@ -52,15 +40,6 @@ module PuppetX
           end
         end
 
-        def self.ensure_from(status)
-          case status
-          when 'StoppedDeallocated', 'Stopped'
-            :stopped
-          else
-            :running
-          end
-        end
-
         def exists?
           Puppet.info("Checking if #{name} exists")
           @property_hash[:ensure] and @property_hash[:ensure] != :absent
@@ -70,8 +49,16 @@ module PuppetX
           !stopped?
         end
 
-        def stopped?
-          ['StoppedDeallocated', 'Stopped'].include? machine.status
+        def stop
+          Puppet.info("Stopping #{name}")
+          stop_vm(machine)
+          @property_hash[:ensure] = :stopped
+        end
+
+        def start
+          Puppet.info("Starting #{name}")
+          start_vm(machine)
+          @property_hash[:ensure] = :running
         end
 
         private
