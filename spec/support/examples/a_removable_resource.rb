@@ -32,3 +32,27 @@ shared_examples 'a removable resource' do
     end
   end
 end
+
+shared_examples 'a removable ARM resource' do
+  describe 'setting ensure => absent' do
+    before(:all) do
+      @config = @config.update({:ensure => 'absent'})
+      @manifest = PuppetManifest.new(@template, @config)
+      @result = @manifest.execute
+    end
+
+    it 'has removed the VM' do
+      expect(@client.get_vm(@name)).to be_empty
+    end
+
+    it 'cleans up the resource group' do
+      @client.destroy_resource_group(@config[:optional][:resource_group]) if @client.get_resource_group(@config[:optional][:resource_group])
+      expect(@client.get_resource_group(@config[:optional][:resource_group])).to be_nil
+    end
+
+    it 'cleans up the storage account' do
+      @client.destroy_storage_account(@config[:optional][:storage_account], @config[:optional][:resource_group]) if @client.get_storage_account(@config[:optional][:storage_account])
+      expect(@client.get_storage_account(@config[:optional][:storage_account])).to be_nil
+    end
+  end
+end
