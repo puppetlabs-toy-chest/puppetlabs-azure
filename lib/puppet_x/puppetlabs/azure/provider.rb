@@ -1,38 +1,22 @@
 require 'stringio'
 require 'puppet_x/puppetlabs/azure/config'
-
 require 'puppet_x/puppetlabs/azure/not_finished'
+require 'puppet_x/puppetlabs/azure/provider_base'
 
 module PuppetX
   module Puppetlabs
     module Azure
-      class LoggerAdapter
-        def info(msg)
-          Puppet.info("azure-sdk: " + msg)
-        end
-
-        def warn(msg)
-          Puppet.warning("azure-sdk: " + msg)
-        end
-
-        def error(msg)
-          Puppet.err("azure-sdk: " + msg)
-        end
-      end
-
-      class Provider < Puppet::Provider
+      # Azure Classic API
+      class Provider < ProviderBase
         # all of this needs to happen once in the life-time of the runtime,
         # but Puppet.feature does not allow us to add a feature-conditional
         # initialization, so we need to be a little bit circumspect here.
         begin
           require 'azure'
-
-          # re-route azure's messages to puppet
           ::Azure::Core::Logger.initialize_external_logger(LoggerAdapter.new)
         rescue LoadError
           Puppet.debug("Couldn't load azure SDK")
         end
-
         # Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
         # This needs to be separate from the rescue above, as this might
         # get fixed on a different schedule.
@@ -40,44 +24,6 @@ module PuppetX
           require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
         rescue LoadError
           Puppet.debug("Couldn't load azure SDK")
-        end
-
-        def self.read_only(*methods)
-          methods.each do |method|
-            define_method("#{method}=") do |v|
-              fail "#{method} property is read-only once #{resource.type} created."
-            end
-          end
-        end
-
-        def self.config
-          PuppetX::Puppetlabs::Azure::Config.new
-        end
-
-        def self.arm_credentials
-          token_provider = ::MsRestAzure::ApplicationTokenProvider.new(config.tenant_id, config.client_id, config.client_secret)
-          ::MsRest::TokenCredentials.new(token_provider)
-        end
-
-        def self.with_subscription_id(client)
-          client.subscription_id = config.subscription_id
-          client
-        end
-
-        def self.arm_compute_client
-          @arm_compute_client ||= with_subscription_id ::Azure::ARM::Compute::ComputeManagementClient.new(arm_credentials)
-        end
-
-        def self.arm_network_client
-          @arm_network_client ||= with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(arm_credentials)
-        end
-
-        def self.arm_storage_client
-         @arm_storage_client ||= with_subscription_id ::Azure::ARM::Storage::StorageManagementClient.new(arm_credentials)
-        end
-
-        def self.arm_resource_client
-          @arm_resource_client ||= with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(arm_credentials)
         end
 
         def self.vm_manager
@@ -94,6 +40,19 @@ module PuppetX
 
         def self.list_vms
           vm_manager.list_virtual_machines
+        end
+
+        def self.ensure_from(status)
+          case status
+          when 'StoppedDeallocated', 'Stopped'
+            :stopped
+          else
+            :running
+          end
+        end
+
+        def stopped?
+          ['StoppedDeallocated', 'Stopped'].include? machine.status
         end
 
         def self.get_cloud_service(service_name)

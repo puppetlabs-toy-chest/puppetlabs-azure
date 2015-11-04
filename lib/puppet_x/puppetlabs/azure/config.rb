@@ -1,3 +1,5 @@
+require 'puppetlabs_spec_helper/module_spec_helper'
+
 module PuppetX
   module Puppetlabs
     module Azure
@@ -7,7 +9,7 @@ module PuppetX
           envs: ['AZURE_MANAGEMENT_CERTIFICATE', 'AZURE_SUBSCRIPTION_ID'],
         }
 
-        attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret
+        attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret, :image_reference
 
         def default_config_file
           Puppet.initialize_settings unless Puppet[:confdir]
