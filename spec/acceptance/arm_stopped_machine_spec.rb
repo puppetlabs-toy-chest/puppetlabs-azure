@@ -2,7 +2,7 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a stopped machine with minimal properties' do
   before(:all) do
-    @name = 'stoptestvm'
+    @name = 'stoptestvm1'
     @config = {
       name: @name,
       ensure: 'stopped',
@@ -36,8 +36,7 @@ describe 'azure_vm when creating a stopped machine with minimal properties' do
   end
 
   it 'should be stopped' do
-    state = @client.vm_stopped(@name)
-    expect(state).to be true
+    expect(@client.vm_stopped(@name)).to be true
   end
 
   it_behaves_like 'an idempotent resource'
@@ -62,42 +61,14 @@ describe 'azure_vm when creating a stopped machine with minimal properties' do
     end
 
     it 'should be started' do
-      state = @client.vm_running(@name)
-      expect(state).to be true
+      expect(@client.vm_running(@name)).to be true
     end
 
     context 'when looked for using puppet resource' do
       include_context 'a puppet ARM resource run'
       puppet_resource_should_show('ensure', 'running')
     end
-
-    context 'restarting the machine' do
-      before(:all) do
-        new_config = @config.update({:ensure => 'running'})
-        @manifest = PuppetManifest.new(@template, new_config)
-        @result = @manifest.execute
-        @started_machine = @client.get_vm(@name).first
-      end
-
-      it_behaves_like 'an idempotent resource'
-
-      it 'should be started' do
-        state = @client.vm_running(@name)
-        expect(state).to be true
-      end
-
-      it 'should run without errors' do
-        expect(@result.exit_code).to eq 2
-      end
-
-      context 'when looked for using puppet resource' do
-        include_context 'a puppet ARM resource run'
-        puppet_resource_should_show('ensure', 'running')
-      end
-    end
   end
 
-  after(:all) do
-    it_behaves_like 'a removable ARM resource'
-  end
+  it_behaves_like 'a removable ARM resource'
 end

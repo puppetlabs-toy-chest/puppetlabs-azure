@@ -245,8 +245,8 @@ class AzureARMHelper
     vm = get_vm(name).first
     state = vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }
     begin
-      return state.code == 'PowerState stopped'
-    rescue StandardError => e
+      return state.code == 'PowerState/stopped'
+    rescue
       return false
     end
   end

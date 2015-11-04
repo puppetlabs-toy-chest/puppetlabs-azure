@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-test_config = {
+resource_config = {
   size: 'Standard_A0',
   location: 'eastus',
   image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
@@ -15,12 +15,12 @@ describe 'azure_vm when creating a machine with all available properties' do
       name: @name,
       ensure: 'present',
       optional: {
-        image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
-        location: 'eastus',
-        user: 'specuser',
+        image: resource_config[:image],
+        location: resource_config[:location],
+        user: resource_config[:user],
+        size: resource_config[:size],
+        resource_group: resource_config[:resource_group],
         password: 'SpecPass123!@#$%',
-        size: 'Standard_A0',
-        resource_group: 'puppettestresacc02',
         storage_account: 'puppetteststoracc02',
         storage_account_type: 'Standard_GRS',
         os_disk_name: 'osdisk01',
@@ -63,17 +63,17 @@ describe 'azure_vm when creating a machine with all available properties' do
   end
 
   it 'should be running' do
-    state = @client.vm_running(@name)
-    expect(state).to be true
+    expect(@client.vm_running(@name)).to be true
   end
 
   context 'should run puppet resource' do
     include_context 'a puppet ARM resource run'
-    puppet_resource_should_show('location', test_config[:location])
-    puppet_resource_should_show('image', test_config[:image])
-    puppet_resource_should_show('user', test_config[:user])
-    puppet_resource_should_show('size', test_config[:size])
-    puppet_resource_should_show('resource_group', test_config[:resource_group])
+    puppet_resource_should_show('ensure', 'running')
+    puppet_resource_should_show('location', resource_config[:location])
+    puppet_resource_should_show('image', resource_config[:image])
+    puppet_resource_should_show('user', resource_config[:user])
+    puppet_resource_should_show('size', resource_config[:size])
+    puppet_resource_should_show('resource_group', resource_config[:resource_group])
   end
 
   context 'it should destroy the vm' do
