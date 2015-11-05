@@ -18,7 +18,12 @@ Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=Rqt
 
 ## Description
 
-TODO: Add brief description of what the module does.
+Microsoft Azure exposes a powerful API for creating and managing
+its Infrastructure as a Service platform. The azure module allows you to
+drive that API using Puppet code. This allows you to use Puppet to
+create, stop, restart and destroy Virtual Machines and eventually manage
+other resources, meaning you can manage even more of your infrastructure
+as code.
 
 ## Setup
 
