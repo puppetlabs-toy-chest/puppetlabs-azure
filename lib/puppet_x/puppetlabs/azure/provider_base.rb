@@ -29,7 +29,7 @@ module PuppetX
         end
 
         def self.config
-          PuppetX::Puppetlabs::Azure::Config.new
+          ::PuppetX::Puppetlabs::Azure::Config.new
         end
 
         def self.prefetch(resources)
