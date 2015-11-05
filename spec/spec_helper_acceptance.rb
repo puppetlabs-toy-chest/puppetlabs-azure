@@ -237,6 +237,10 @@ end
 
 class AzureHelper
   def initialize
+    configuration_from_env_or_file = ::PuppetX::Puppetlabs::Azure::Config.new
+    Azure.subscription_id = configuration_from_env_or_file.subscription_id
+    Azure.management_certificate = configuration_from_env_or_file.management_certificate
+
     @azure_vm = Azure.vm_management
     @azure_affinity_group = Azure.base_management
     @azure_cloud_service = Azure.cloud_service_management
@@ -357,6 +361,7 @@ class LocalRunner
   end
 
   def execute(manifest)
+    puts "Applied manifest [#{manifest}]" if ENV['DEBUG_MANIFEST']
     cmd = "bundle exec puppet apply --detailed-exitcodes -e #{manifest.delete("\n").shellescape} --modulepath ../ --debug --trace"
     use_local_shell(cmd)
   end

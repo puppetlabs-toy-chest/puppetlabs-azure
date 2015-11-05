@@ -1,4 +1,5 @@
 require 'puppetlabs_spec_helper/module_spec_helper'
+require 'hocon'
 
 module PuppetX
   module Puppetlabs
@@ -9,7 +10,7 @@ module PuppetX
           envs: ['AZURE_MANAGEMENT_CERTIFICATE', 'AZURE_SUBSCRIPTION_ID'],
         }
 
-        attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret, :image_reference
+        attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret
 
         def default_config_file
           Puppet.initialize_settings unless Puppet[:confdir]
@@ -61,9 +62,8 @@ module PuppetX
             begin
               conf = ::Hocon::ConfigFactory.parse_file(file_path)
               conf.root.unwrapped['azure']
-            rescue Hocon::ConfigError::ConfigParseError => e
-              raise Puppet::Error, """Your configuration file at #{file_path} is invalid. The error from the parser is
-  #{e.message}"""
+            rescue ::Hocon::ConfigError::ConfigParseError => e
+              raise Puppet::Error, """Your configuration file at #{file_path} is invalid. The error from the parser is #{e.message}"""
             end
           end
         end
