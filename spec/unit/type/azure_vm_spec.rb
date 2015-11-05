@@ -7,8 +7,6 @@ describe 'azure_vm', :type => :type do
     [
       :password,
       :name,
-      :os_disk_vhd_container_name,
-      :os_disk_vhd_name,
       :dns_domain_name,
       :dns_servers,
       :public_ip_address_name,
@@ -21,7 +19,6 @@ describe 'azure_vm', :type => :type do
       :private_ipallocation_method,
       :subnet_name,
       :subnet_address_prefix,
-      :network_interface_name,
       :storage_account,
       :storage_account_type,
     ]
@@ -38,6 +35,9 @@ describe 'azure_vm', :type => :type do
       :os_disk_caching,
       :os_disk_create_option,
       :resource_group,
+      :os_disk_vhd_container_name,
+      :os_disk_vhd_name,
+      :network_interface_name,
     ]
   end
 

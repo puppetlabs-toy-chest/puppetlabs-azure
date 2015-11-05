@@ -2,6 +2,7 @@ require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with all available properties' do
   include_context 'with a known name and storage account name'
+  include_context 'destroy left-over created ARM resources after use'
 
   before(:all) do
     config = {

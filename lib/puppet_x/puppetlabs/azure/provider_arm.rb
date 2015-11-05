@@ -115,7 +115,7 @@ module PuppetX
 
         def build_os_vhd_uri(args)
           container = "https://#{args[:storage_account]}.blob.core.windows.net/#{args[:os_disk_vhd_container_name]}"
-          "#{container}/os#{args[:os_disk_vhd_name]}.vhd"
+          "#{container}/#{args[:os_disk_vhd_name]}.vhd"
         end
 
         def build_image_reference(args)

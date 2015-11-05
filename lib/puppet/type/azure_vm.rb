@@ -141,12 +141,12 @@ Puppet::Type.newtype(:azure_vm) do
     defaultto 'FromImage'
   end
 
-  newparam(:os_disk_vhd_container_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_vhd_container_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd container name'
     defaultto 'osdiskvhdcont01'
   end
 
-  newparam(:os_disk_vhd_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_vhd_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd name'
     defaultto 'osdiskvhdnm01'
   end
@@ -206,7 +206,7 @@ Puppet::Type.newtype(:azure_vm) do
     defaultto 'Dynamic'
   end
 
-  newparam(:network_interface_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:network_interface_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The network interface name'
     defaultto 'nicpupaz01'
   end
