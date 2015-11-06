@@ -15,7 +15,7 @@ group :test do
   gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 3.8.0'
   gem 'facter', '>= 2.0'
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
-  gem 'puppetlabs_spec_helper'
+  gem 'puppetlabs_spec_helper', '< 1.0'
   gem 'metadata-json-lint'
   gem 'rubocop', '0.33.0', require: false
   gem 'simplecov'
