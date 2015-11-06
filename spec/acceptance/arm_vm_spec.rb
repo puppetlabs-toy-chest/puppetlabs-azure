@@ -21,7 +21,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         os_disk_caching: 'ReadWrite',
         os_disk_create_option: 'FromImage',
         os_disk_vhd_container_name: 'conttest1',
-        os_disk_vhd_name: 'vhdtest1',
+        os_disk_vhd_name: 'osvhdtest1',
         dns_domain_name: 'mydomain01',
         dns_servers: '10.1.1.1 10.1.2.4',
         public_ip_allocation_method: 'Dynamic',
@@ -64,6 +64,9 @@ describe 'azure_vm when creating a machine with all available properties' do
     puppet_resource_should_show('user')
     puppet_resource_should_show('size')
     puppet_resource_should_show('resource_group')
+    puppet_resource_should_show('network_interface_name')
+    puppet_resource_should_show('os_disk_vhd_container_name')
+    puppet_resource_should_show('os_disk_vhd_name')
   end
 
   context 'when we try and stop the VM' do

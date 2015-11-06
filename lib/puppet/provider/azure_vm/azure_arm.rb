@@ -9,7 +9,8 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   mk_resource_methods
 
   read_only(:image, :resource_group, :location, :size, :user, :os_disk_name,
-            :os_disk_caching, :os_disk_create_option)
+            :os_disk_caching, :os_disk_create_option, :os_disk_vhd_container_name,
+            :os_disk_vhd_name, :network_interface_name)
 
   def self.instances
     begin
@@ -32,6 +33,16 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     stopped = machine.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
     ensure_value = stopped ? :running : :stopped
+
+    network_interface_name = unless machine.properties.network_profile.network_interfaces.empty?
+      machine.properties.network_profile.network_interfaces.first.id.split('/').last
+    end
+
+    vhd_name, vhd_container_name = unless machine.properties.storage_profile.os_disk.vhd.nil?
+      parts = machine.properties.storage_profile.os_disk.vhd.uri.split('/')
+      [parts[-1].split('.').first, parts[-2]]
+    end
+
     {
       name: machine.name,
       ensure: ensure_value,
@@ -43,6 +54,9 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       os_disk_name: machine.properties.storage_profile.os_disk.name,
       os_disk_caching: machine.properties.storage_profile.os_disk.caching,
       os_disk_create_option: machine.properties.storage_profile.os_disk.create_option,
+      os_disk_vhd_container_name: vhd_container_name,
+      os_disk_vhd_name: vhd_name,
+      network_interface_name: network_interface_name,
       object: machine,
     }
   end
