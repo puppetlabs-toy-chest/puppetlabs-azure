@@ -36,15 +36,15 @@ module PuppetX
         end
 
         def self.vm_manager
-          @vm_manager ||= self.auth { ::Azure.vm_management }
+          @vm_manager ||= auth { ::Azure.vm_management }
         end
 
         def self.cloud_service_manager
-          @cloud_service_manager ||= self.auth { ::Azure.cloud_service_management }
+          @cloud_service_manager ||= auth { ::Azure.cloud_service_management }
         end
 
         def self.disk_manager
-          @disk_manager ||= self.auth { ::Azure.vm_disk_management }
+          @disk_manager ||= auth { ::Azure.vm_disk_management }
         end
 
         def self.list_vms
