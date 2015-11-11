@@ -26,16 +26,25 @@ module PuppetX
           Puppet.debug("Couldn't load azure SDK")
         end
 
+        def self.auth(&client)
+          unless @authenticated
+            ::Azure.subscription_id = self.config.subscription_id
+            ::Azure.management_certificate = self.config.management_certificate
+            @authenticated = true
+          end
+          yield client
+        end
+
         def self.vm_manager
-          ::Azure.vm_management
+          @vm_manager ||= auth { ::Azure.vm_management }
         end
 
         def self.cloud_service_manager
-          ::Azure.cloud_service_management
+          @cloud_service_manager ||= auth { ::Azure.cloud_service_management }
         end
 
         def self.disk_manager
-          ::Azure.vm_disk_management
+          @disk_manager ||= auth { ::Azure.vm_disk_management }
         end
 
         def self.list_vms
