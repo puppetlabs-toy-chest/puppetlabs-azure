@@ -10,13 +10,12 @@ describe 'azure_vm', :type => :type do
       :dns_domain_name,
       :dns_servers,
       :public_ip_address_name,
-      :public_ip_allocation_name,
       :public_ip_allocation_method,
       :public_ip_address_name,
       :ip_configuration_name,
       :virtual_network_name,
       :virtual_network_address_space,
-      :private_ipallocation_method,
+      :private_ip_allocation_method,
       :subnet_name,
       :subnet_address_prefix,
       :storage_account,
@@ -50,8 +49,6 @@ describe 'azure_vm', :type => :type do
       user: 'specuser',
       password: 'Pa55wd!',
       resource_group: 'testresourcegrp',
-      storage_account: 'teststorageaccount',
-      storage_account_type: 'Standard_GRS',
     }
   end
 
@@ -63,7 +60,7 @@ describe 'azure_vm', :type => :type do
       os_disk_vhd_container_name: 'conttest1',
       os_disk_vhd_name: 'vhdtest1',
       dns_domain_name: 'mydomain01',
-      dns_servers: '10.1.1.1.1 10.1.2.4',
+      dns_servers: '10.1.1.1 10.1.2.4',
       public_ip_allocation_method: 'Dynamic',
       public_ip_address_name: 'ip_name_test01pubip',
       virtual_network_name: 'vnettest01',
@@ -71,8 +68,10 @@ describe 'azure_vm', :type => :type do
       subnet_name: 'subnet111',
       subnet_address_prefix: '10.0.2.0/24',
       ip_configuration_name: 'ip_config_test01',
-      private_ipallocation_method: 'Dynamic',
+      private_ip_allocation_method: 'Dynamic',
       network_interface_name: 'nicspec01',
+      storage_account: 'teststorageaccount',
+      storage_account_type: 'Standard_GRS',
     }
   end
 
@@ -96,6 +95,7 @@ describe 'azure_vm', :type => :type do
     expect(params + [:provider]).to include(*type_class.parameters)
   end
 
+
   [
     'location',
     'image',
@@ -109,13 +109,6 @@ describe 'azure_vm', :type => :type do
     end
   end
 
-  it 'should default ensure to present' do
-    machine = type_class.new(
-      default_config
-    )
-    expect(machine[:ensure]).to eq(:present)
-  end
-
   context 'with a minimal set of properties' do
     let :config do
       minimal_config
@@ -127,6 +120,10 @@ describe 'azure_vm', :type => :type do
 
     it 'should be valid' do
       expect { machine }.not_to raise_error
+    end
+
+    it 'should ignore case differences for image' do
+      expect(machine.property(:image).insync?(minimal_config[:image].upcase)).to be true
     end
 
     it 'should alias running to present for ensure values' do
@@ -147,6 +144,7 @@ describe 'azure_vm', :type => :type do
       end
     end
 
+
     [
       :location,
     ].each do |key|
@@ -155,6 +153,24 @@ describe 'azure_vm', :type => :type do
           config.delete(key)
           expect { machine }.to raise_error(Puppet::Error, /You must provide a #{key}/)
         end
+      end
+    end
+
+    {
+      :ensure => :present,
+      :storage_account_type => 'Standard_GRS',
+      :os_disk_caching => 'ReadWrite',
+      :os_disk_create_option => 'FromImage',
+      :os_disk_vhd_container_name => 'vhds',
+      :dns_servers => '10.1.1.1 10.1.2.4',
+      :public_ip_allocation_method => 'Dynamic',
+      :virtual_network_address_space => '10.0.0.0/16',
+      :subnet_name => 'default',
+      :subnet_address_prefix => '10.0.2.0/24',
+      :private_ip_allocation_method => 'Dynamic',
+    }.each do |property, value|
+      it "should default #{property} to #{value}" do
+        expect(machine[property]).to eq(value)
       end
     end
   end
@@ -209,6 +225,30 @@ describe 'azure_vm', :type => :type do
     end
   end
 
+  context 'with a name greater than 15 characters' do
+    let :config do
+      result = default_config
+      result[:name] = SecureRandom.hex(8)
+      result
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /the name must be less that 16 characters/)
+    end
+  end
+
+  context 'with a resource group greater than 64 characters' do
+    let :config do
+      result = default_config
+      result[:resource_group] = SecureRandom.hex(33)
+      result
+    end
+
+    it 'should be invalid' do
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /the resource group must be less that 65 characters/)
+    end
+  end
+
   context 'with no location' do
     let :config do
       result = default_config
@@ -228,7 +268,7 @@ describe 'azure_vm', :type => :type do
       result
     end
 
-    it 'should be invalid' do
+    it 'should raise an error' do
       expect { type_class.new(config) }.to raise_error(Puppet::Error, /the size must not be empty/)
     end
   end
@@ -240,7 +280,7 @@ describe 'azure_vm', :type => :type do
       result
     end
 
-    it 'should be invalid' do
+    it 'should raise an error' do
       expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /the password must not be empty/)
     end
   end

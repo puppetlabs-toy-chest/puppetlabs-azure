@@ -156,7 +156,7 @@ updated path:
 
 You can create Azure Virtual Machines using the following:
 
-~~~
+~~~puppet
 azure_vm_classic { 'virtual-machine-name':
   ensure           => present,
   image            => 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_2-LTS-amd64-server-20150706-en-us-30GB',
@@ -179,7 +179,7 @@ puppet resource azure_vm_classic
 Note that this will output some information about the machines in your
 account:
 
-~~~
+~~~puppet
 azure_vm_classic { 'virtual-machine-name':
   ensure        => 'present',
   cloud_service => 'cloud-service-uptjy',
@@ -198,7 +198,21 @@ Azure management with azure_vm.
 
 You can create an Azure Virtual Manchine with the Azure ARM API with the following :
 
+~~~puppet
+azure_vm { 'sample':
+  ensure         => present,
+  location       => 'eastus',
+  image          => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user           => 'azureuser',
+  password       => 'Password',
+  size           => 'Standard_A0',
+  resource_group => 'testresacc01',
+}
 ~~~
+
+This type also has lots of other properties you can manage:
+
+~~~puppet
 azure_vm { 'sample':
   location                      => 'eastus',
   image                         => 'canonical:ubuntuserver:14.04.2-LTS:latest',
@@ -222,7 +236,7 @@ azure_vm { 'sample':
   subnet_name                   => 'subnet111',
   subnet_address_prefix         => '10.0.2.0/24',
   ip_configuration_name         => 'ip_config_test01',
-  private_ipallocation_method   => 'Dynamic',
+  private_ip_allocation_method  => 'Dynamic',
   network_interface_name        => 'nicspec01',
 }
 ~~~
@@ -467,29 +481,27 @@ D-Series sizes are already prefixed.
 *Required* The resource group for the new virtual machine. [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)
 
 #####`storage_account`
-*Required* The storage account name for the subscription id.
+The storage account name for the subscription id.
 Storage account name rules are defined [Storage accounts](https://msdn.microsoft.com/en-us/library/azure/hh264518.aspx)
 
 #####`storage_account_type`
 The type of storage account to be associated with the virtual machine.
 Valid types are listed [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx)
-Default's to Standard_GRS.
+Defaults to `Standard_GRS`.
 
 #####`os_disk_name`
 The name of the disk that is to be attached to the virtual machine.
-Default's to osdisk01.
 
 #####`os_disk_caching`
 The caching type for the attached disk. [Caching](https://azure.microsoft.com/en-gb/documentation/articles/storage-premium-storage-preview-portal/)
-Default's to ReadWrite.
+Defaults to `ReadWrite`.
 
 #####`os_disk_create_option`
 The create options are listed here [Options](https://msdn.microsoft.com/en-us/library/azure/mt163591.aspx)
-Default's to fromImage.
+Defaults to `FromImage`.
 
 #####`os_disk_vhd_container_name`
 The vhd container name is used to create the vhd uri of the virtual machine.
-Default's to osdiskvhdcont01.
 
 This will transpose with resource_group and the os_disk_vhd_name to become the URI of your virtual hard disk image.
 ~~~
@@ -498,51 +510,44 @@ https://#{resource_group}.blob.core.windows.net/#{os_disk_vhd_container_name}/#{
 
 #####`os_disk_vhd_name`
 The name of the vhd that forms the vhd URI for the virtual machine.
-Default's to osdiskvhdnm01.
 
 #####`dns_domain_name`
 The DNS domain name that to be associated with the virtual machine.
-Default's to pupazdomain01.
 
 #####`dns_servers`
 The DNS servers to be setup on the virtual machine.
-Default's to '10.1.1.1 10.1.2.4'
+Defaults to `10.1.1.1 10.1.2.4`
 
 #####`public_ip_allocation_method`
 The public ip allocation method [Static, Dynamic]
-Default's to Dynamic.
+Defaults to `Dynamic`.
 
 #####`public_ip_address_name`
 The key name of the public ip address.
-Default's to ip_name_01pubip.
 
 #####`virtual_network_name`
 The key name of the virtual network for the virtual machine. [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
-Default's to vnetpupaz01.
 
 #####`virtual_network_address_space`
 The ip range for the private virtual network. [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
-Default's to 10.0.0.0/16.
+Default's to `10.0.0.0/16`.
 
 #####`subnet_name`
 The private subnet name for the virtual network. [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
-Default's to subnetazpup01.
 
 #####`subnet_address_prefix`
 Details of the prefix are availabe at [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
-Default's to 10.0.2.0/24.
+Default's to `10.0.2.0/24`.
 
 #####`ip_configuration_name`
 The key name of the ip configuration for the VM.
-Default's to ip_config_az_pup01.
 
-#####`private_ipallocation_method`
+#####`private_ip_allocation_method`
 The private ip allocation method [Static, Dynamic]
-Default's to Dynamic.
+Defaults to `Dynamic`.
 
 #####`network_interface_name`
 The Network Interface Controller (nic) name for the virtual machine.
-Default's to nicpupaz01.
 
 ##Limitations
 This module is available only for Puppet Enterprise 3.8 and later.
