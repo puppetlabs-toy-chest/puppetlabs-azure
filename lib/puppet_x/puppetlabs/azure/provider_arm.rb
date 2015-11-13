@@ -2,14 +2,12 @@ require 'stringio'
 require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
 require 'puppet_x/puppetlabs/azure/provider_base'
-require 'puppet_x/puppetlabs/azure/provider'
 
 require 'azure_mgmt_compute'
 require 'azure_mgmt_resources'
 require 'azure_mgmt_storage'
 require 'azure_mgmt_network'
 require 'ms_rest_azure'
-
 
 module PuppetX
   module Puppetlabs
