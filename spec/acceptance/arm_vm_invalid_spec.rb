@@ -12,10 +12,9 @@ describe 'azure_vm when creating a machine with all available properties' do
         image: 'xxx:xxx:xxx:xxx',
         location: 'eastus',
         user: 'specuser',
-        password: 'SpecPass123!@#$%',
         size: 'Standard_A0',
-        resource_group: 'puppet-acceptance-tests',
-        storage_account: @storage_account_name,
+        resource_group: 'CLOUD-acceptance-tests',
+        password: 'SpecPass123!@#$%',
       },
     }
     template = 'azure_vm.pp.tmpl'

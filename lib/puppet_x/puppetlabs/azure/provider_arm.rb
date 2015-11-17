@@ -197,7 +197,7 @@ module PuppetX
               ip_configurations: [build(::Azure::ARM::Network::Models::NetworkInterfaceIpConfiguration, {
                 name: args[:ip_configuration_name],
                 properties: build(::Azure::ARM::Network::Models::NetworkInterfaceIpConfigurationPropertiesFormat, {
-                  private_ipallocation_method: 'Dynamic',
+                  private_ipallocation_method: args[:private_ip_allocation_method],
                   public_ipaddress: create_public_ip_address(args),
                   subnet: subnet,
                 }),

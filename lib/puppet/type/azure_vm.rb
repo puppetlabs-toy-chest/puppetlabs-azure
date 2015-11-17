@@ -11,7 +11,6 @@ require_relative '../../puppet_x/puppetlabs/azure/property/string'
 #   password         => 'Password',
 #   size             => 'Standard_A0',
 #   resource_group   => 'myresourcegroup',
-#   storage_account  => 'mystorageaccount',
 # }
 
 Puppet::Type.newtype(:azure_vm) do
@@ -66,6 +65,10 @@ Puppet::Type.newtype(:azure_vm) do
 
   newparam(:name, namevar: true, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the virtual machine.'
+    validate do |value|
+      super value
+      fail("the name must be less that 16 characters in length") if value.size > 15
+    end
   end
 
   newproperty(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -74,7 +77,9 @@ Puppet::Type.newtype(:azure_vm) do
       super value
       fail("the image name must not be empty") if value.empty?
     end
-    # TODO should downcase both sides for comparison
+    def insync?(is)
+      is.downcase == should.downcase
+    end
   end
 
   newproperty(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -110,6 +115,10 @@ Puppet::Type.newtype(:azure_vm) do
     validate do |value|
       super value
       fail 'the resource group must not be empty' if value.empty?
+      fail("the resource group must be less that 65 characters in length") if value.size > 64
+    end
+    def insync?(is)
+      is.downcase == should.downcase
     end
   end
 
@@ -128,7 +137,6 @@ Puppet::Type.newtype(:azure_vm) do
 
   newproperty(:os_disk_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated os disk name'
-    defaultto 'osdisk01'
   end
 
   newproperty(:os_disk_caching, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -143,22 +151,19 @@ Puppet::Type.newtype(:azure_vm) do
 
   newproperty(:os_disk_vhd_container_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd container name'
-    defaultto 'osdiskvhdcont01'
+    defaultto 'vhds'
   end
 
   newproperty(:os_disk_vhd_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd name'
-    defaultto 'osdiskvhdnm01'
   end
 
   newparam(:public_ip_address_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The public ip address name'
-    defaultto 'ip_name_01pubip'
   end
 
   newparam(:dns_domain_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The dns domain name for the vm'
-    defaultto 'pupazdomain01'
   end
 
   newparam(:dns_servers, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -171,14 +176,8 @@ Puppet::Type.newtype(:azure_vm) do
     defaultto 'Dynamic'
   end
 
-  newparam(:public_ip_allocation_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
-    desc 'The public ip allocation name'
-    defaultto 'pupaz_ip_alloc01'
-  end
-
   newparam(:virtual_network_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The virtual network name'
-    defaultto 'vnetpupaz01'
   end
 
   newparam(:virtual_network_address_space, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -188,7 +187,7 @@ Puppet::Type.newtype(:azure_vm) do
 
   newparam(:subnet_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The subnet name'
-    defaultto 'subnetazpup01'
+    defaultto 'default'
   end
 
   newparam(:subnet_address_prefix, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -198,16 +197,14 @@ Puppet::Type.newtype(:azure_vm) do
 
   newparam(:ip_configuration_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The ip configuration name'
-    defaultto 'ip_config_az_pup01'
   end
 
-  newparam(:private_ipallocation_method, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:private_ip_allocation_method, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The private ip allocation method'
     defaultto 'Dynamic'
   end
 
   newproperty(:network_interface_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The network interface name'
-    defaultto 'nicpupaz01'
   end
 end

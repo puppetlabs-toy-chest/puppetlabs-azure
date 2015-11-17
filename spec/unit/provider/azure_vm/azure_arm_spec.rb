@@ -28,7 +28,7 @@ describe provider_class do
       subnet_name: 'subnet111',
       subnet_address_prefix: '10.0.2.0/24',
       ip_configuration_name: 'ip_config_test01',
-      private_ipallocation_method: 'Dynamic',
+      private_ip_allocation_method: 'Dynamic',
       network_interface_name: 'nicspec01',
     )
   end
