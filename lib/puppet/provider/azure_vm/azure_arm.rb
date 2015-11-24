@@ -21,7 +21,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
           new(hash) if hash
         end
       end.compact
-    rescue StandardError => e
+    rescue Timeout::Error, StandardError => e
       raise PuppetX::Puppetlabs::Azure::PrefetchError.new(self.resource_type.name.to_s, e)
     end
   end
