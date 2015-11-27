@@ -71,6 +71,8 @@ namespace :acceptance do
       'centos6m_centos6a',
       'rhel7',
       'rhel7m_scientific7a',
+      'centos7m_windows2012a',
+      'centos7m_windows2012r2a',
     ]
   }.each do |ns, configs|
     namespace ns.to_sym do
