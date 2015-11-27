@@ -43,7 +43,7 @@ PE_RELEASES = {
 }
 
 desc "Run acceptance tests"
-RSpec::Core::RakeTask.new(:acceptance) do |t|
+RSpec::Core::RakeTask.new(:acceptance => [:spec_prep]) do |t|
   ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES['2015.2']
   ENV['BEAKER_set'] = ENV['BEAKER_set'] || 'vagrant/ubuntu1404'
   t.pattern = 'spec/acceptance'
@@ -76,8 +76,10 @@ namespace :acceptance do
       configs.each do |config|
         PE_RELEASES.each do |version, pe_dir|
           desc "Run acceptance tests for #{config} on #{ns} with PE #{version}"
-          RSpec::Core::RakeTask.new("#{config}_#{version}".to_sym) do |t|
+          RSpec::Core::RakeTask.new("#{config}_#{version}".to_sym => [:spec_prep]) do |t|
             ENV['BEAKER_PE_DIR'] = pe_dir
+            ENV['BEAKER_keyfile'] = '~/.ssh/id_rsa-acceptance' if ns == :pooler
+            ENV['BEAKER_debug'] = true if ENV['BEAKER_DEBUG']
             ENV['BEAKER_set'] = "#{ns}/#{config}"
             t.pattern = 'spec/acceptance'
           end

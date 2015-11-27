@@ -362,7 +362,7 @@ class LocalRunner
 
   def execute(manifest)
     puts "Applied manifest [#{manifest}]" if ENV['DEBUG_MANIFEST']
-    cmd = "bundle exec puppet apply --detailed-exitcodes -e #{manifest.delete("\n").shellescape} --modulepath ../ --debug --trace"
+    cmd = "bundle exec puppet apply --detailed-exitcodes -e #{manifest.delete("\n").shellescape} --modulepath spec/fixtures/modules --libdir lib --debug --trace"
     use_local_shell(cmd)
   end
 
@@ -382,7 +382,7 @@ class LocalRunner
     end
     cmd << "#{@name} "
     cmd << options
-    cmd << " --modulepath ../"
+    cmd << " --modulepath spec/fixtures/modules --libdir lib"
     cmd << " #{command_flags}"
 
     # apply the command
