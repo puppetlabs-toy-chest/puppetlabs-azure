@@ -196,7 +196,7 @@ azure_vm_classic { 'virtual-machine-name':
 
 Azure management with azure_vm.
 
-You can create an Azure Virtual Manchine with the Azure ARM API with the following :
+You can create an Azure Virtual Machine with the Azure ARM API with the following:
 
 ~~~puppet
 azure_vm { 'sample':
@@ -316,7 +316,7 @@ user.
 
 The name of the storage account to create for the virtual machine.
 Note that if the source image is a 'user' image, the storage account
-for the user image is used instead of the one provided here. The storage account 
+for the user image is used instead of the one provided here. The storage account
 must be between 3-24 characters, containing only numeric and/or lower case letters.
 
 ##### `cloud_service`
