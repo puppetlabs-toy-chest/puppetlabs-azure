@@ -86,7 +86,7 @@ principal on the Active Directory. The official documentation covers [creating t
    /opt/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network hocon retries --no-ri --no-rdoc
    ~~~
 
-   If you are running Puppet Enterprise 2015.2.0 [TODO: or later?], use the
+   If you are running Puppet Enterprise 2015.2.0 or later, use the
 updated path:
 
    ~~~
@@ -196,7 +196,7 @@ azure_vm_classic { 'virtual-machine-name':
 
 Azure management with azure_vm.
 
-You can create an Azure Virtual Manchine with the Azure ARM API with the following :
+You can create an Azure Virtual Machine with the Azure ARM API with the following:
 
 ~~~puppet
 azure_vm { 'sample':
@@ -316,7 +316,7 @@ user.
 
 The name of the storage account to create for the virtual machine.
 Note that if the source image is a 'user' image, the storage account
-for the user image is used instead of the one provided here. The storage account 
+for the user image is used instead of the one provided here. The storage account
 must be between 3-24 characters, containing only numeric and/or lower case letters.
 
 ##### `cloud_service`
@@ -551,6 +551,8 @@ The Network Interface Controller (nic) name for the virtual machine.
 
 ##Limitations
 This module is available only for Puppet Enterprise 3.8 and later.
+
+Due to the dependencies of the Azure Classic SDK (nokogiri), running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) which preinstalls nokogiri.
 
 ## Known Issues
 
