@@ -31,33 +31,50 @@ CHEAPEST_AZURE_LOCATION="East US"
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
 WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
 
+
 unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
   require 'beaker-rspec'
-  unless ENV['BEAKER_provision'] == 'no'
-    install_pe
+  install_pe unless ENV['BEAKER_provision'] == 'no'
 
-    hosts.each do |host|
-      on(host, 'apt-get install zlib1g-dev')
-      on(host, 'apt-get install patch')
-      on(host, 'apt-get install -y g++')
+  RSpec.configure do |c|
+    c.before :suite do
+      unless ENV['BEAKER_provision'] == 'no'
+        hosts.each do |host|
+          if host['platform'] =~ /^el/
+            on(host, 'yum install -y zlib-devel patch gcc-c++')
+          elsif host['platform'] =~ /^ubuntu|^debian/
+            on(host, 'apt-get install -y zlib1g-dev patch g++')
+          end
 
-      path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
-      on(host, "#{path}/gem install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage hocon retries azure")
-    end
-  end
+          gem_command = if host['platform'] =~ /^windows/
+                          'cmd.exe /c cmd.exe /c "C:\Program Files\Puppet Labs\puppet\sys\ruby\bin\gem.bat"'
+                        else
+                          host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem"
+                        end
+          if host['platform'] =~ /^windows/
+            # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
+            # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
+            # right thing on Windows
+            on(host, "#{gem_command} install unf")
+          end
+          on(host, "#{gem_command} install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage hocon retries azure")
+        end
+      end
 
-  proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-  hosts.each do |host|
-    # set :target_module_path manually to work around beaker-rspec bug that does not
-    # persist distmoduledir across runs with reused nodes
-    # TODO: ticket up this bug for beaker-rspec
-    install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
-  end
+      proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+      hosts.each do |host|
+        # set :target_module_path manually to work around beaker-rspec bug that does not
+        # persist distmoduledir across runs with reused nodes
+        # TODO: ticket up this bug for beaker-rspec
+        install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
+      end
 
-  # Deploy Azure credentials to all hosts
-  if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-    hosts.each do |host|
-      scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
+      # Deploy Azure credentials to all hosts
+      if ENV['AZURE_MANAGEMENT_CERTIFICATE']
+        hosts.each do |host|
+          scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
+        end
+      end
     end
   end
 end
