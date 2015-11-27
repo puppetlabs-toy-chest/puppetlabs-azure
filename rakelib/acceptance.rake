@@ -39,7 +39,8 @@ end
 
 PE_RELEASES = {
   '3.8.1' => 'http://pe-releases.puppetlabs.lan/3.8.1/',
-  '2015.2' => 'http://pe-releases.puppetlabs.lan/2015.2.0/',
+  '2015.2' => 'http://pe-releases.puppetlabs.lan/2015.2.3/',
+  '2015.3' => 'http://enterprise.delivery.puppetlabs.net/2015.3/preview/',
 }
 
 desc "Run acceptance tests"

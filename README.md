@@ -86,7 +86,7 @@ principal on the Active Directory. The official documentation covers [creating t
    /opt/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network hocon retries --no-ri --no-rdoc
    ~~~
 
-   If you are running Puppet Enterprise 2015.2.0 [TODO: or later?], use the
+   If you are running Puppet Enterprise 2015.2.0 or later, use the
 updated path:
 
    ~~~
@@ -551,6 +551,8 @@ The Network Interface Controller (nic) name for the virtual machine.
 
 ##Limitations
 This module is available only for Puppet Enterprise 3.8 and later.
+
+Due to the dependencies of the Azure Classic SDK (nokogiri), running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) which preinstalls nokogiri.
 
 ## Known Issues
 
