@@ -461,6 +461,9 @@ class BeakerRunnerBase
     @env ||= {
       'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
       'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+      'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
+      'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
+      'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
     }
   end
 
