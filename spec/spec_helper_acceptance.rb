@@ -31,6 +31,8 @@ CHEAPEST_AZURE_LOCATION="East US"
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
 WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
 
+BASE_GEMS='hocon retries azure'
+
 unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
   require 'beaker-rspec'
   unless ENV['BEAKER_provision'] == 'no'
@@ -40,9 +42,12 @@ unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
       on(host, 'apt-get install zlib1g-dev')
       on(host, 'apt-get install patch')
       on(host, 'apt-get install -y g++')
-
       path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
-      on(host, "#{path}/gem install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage hocon retries azure")
+      if ENV['PUPPET_AZURE_CLASSIC_API']
+        on(host, "#{path}/gem install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage #{BASE_GEMS}")
+      else
+        on(host, "#{path}/gem install #{BASE_GEMS}")
+      end
     end
   end
 
