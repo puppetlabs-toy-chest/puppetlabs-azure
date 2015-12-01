@@ -18,7 +18,7 @@ group :test do
   gem 'puppetlabs_spec_helper', '< 1.0'
   gem 'metadata-json-lint'
   gem 'rubocop', '0.33.0', require: false
-  gem 'simplecov'
+  gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
   gem 'parallel_tests'
 end
