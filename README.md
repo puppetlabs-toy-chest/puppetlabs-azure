@@ -29,7 +29,6 @@ as code.
 
 ### Requirements
 
-* Puppet Enterprise 3.8 or greater
 * [Azure gem](https://rubygems.org/gems/azure) 0.7.0 or greater
 
 ### Getting Azure credentials
@@ -550,15 +549,9 @@ Defaults to `Dynamic`.
 The Network Interface Controller (nic) name for the virtual machine.
 
 ##Limitations
-This module is available only for Puppet Enterprise 3.8 and later.
-
 Due to the dependencies of the Azure Classic SDK (nokogiri), running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) which preinstalls nokogiri.
 
-## Known Issues
-
-
 ## Development
-This module was built by Puppet Labs specifically for use with Puppet Enterprise (PE).
 
 If you run into an issue with this module, or if you would like to request a feature, please [file a ticket](https://tickets.puppetlabs.com/browse/MODULES/).
 
