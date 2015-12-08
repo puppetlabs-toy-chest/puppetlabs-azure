@@ -1,5 +1,5 @@
 [![Build
-Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPVz69Qso5L)](https://magnum.travis-ci.com/puppetlabs/puppetlabs-azure)
+Status](https://travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPVz69Qso5L)](https://travis-ci.com/puppetlabs/puppetlabs-azure)
 
 ####Table of Contents
 
