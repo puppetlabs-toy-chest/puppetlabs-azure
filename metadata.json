@@ -5,7 +5,7 @@
   "summary": "Create and manage machines running on Microsoft Azure with Puppet",
   "license": "Apache-2.0",
   "source": "https://github.com/puppetlabs/puppetlabs-azure",
-  "project_page": "https://forge.puppetlabs.com/puppetlabs/azure",
+  "project_page": "https://github.com/puppetlabs/puppetlabs-azure",
   "issues_url": "https://tickets.puppetlabs.com/browse/MODULES",
   "operatingsystem_support": [
     {

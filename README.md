@@ -1,5 +1,5 @@
 [![Build
-Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure.svg?token=RqtxRv25TsPVz69Qso5L)](https://magnum.travis-ci.com/puppetlabs/puppetlabs-msazure)
+Status](https://magnum.travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPVz69Qso5L)](https://magnum.travis-ci.com/puppetlabs/puppetlabs-azure)
 
 ####Table of Contents
 
@@ -145,7 +145,7 @@ updated path:
 3. Finally, install the module with:
 
    ~~~
-   puppet module install puppetlabs-msazure
+   puppet module install puppetlabs-azure
    ~~~
 
 
