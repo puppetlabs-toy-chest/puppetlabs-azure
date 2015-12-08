@@ -37,7 +37,7 @@ In order to use the Azure module, you'll need an Azure account. If you
 already have one you can skip this section, but otherwise you can sign
 up for a [Free Trial](http://azure.microsoft.com/en-gb/).
 
-You then need to install the Azure CLI. This is required to
+You then need to install the Azure CLI, which is a cross-platform node.js based tool that works on Windows and Linux. This is required to
 generate the certificate that we will use later for the Puppet module,
 but it's also a useful way of interacting with Azure. Follow this
 [installation
@@ -78,18 +78,23 @@ principal on the Active Directory. The official documentation covers [creating t
 
 ### Installing the Azure module
 
-1. Install the required gems with this command:
+1. Install the required gems with this command on Puppet Enterprise 2015.2.0 (puppet-agent 1.2) or later:
+
+   ~~~
+   /opt/puppetlabs/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network  hocon retries --no-ri --no-rdoc
+   ~~~
+
+   When installing on Windows, launch the `Start Command Prompt with Puppet` and simply type:
+
+   ~~~
+   gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network  hocon retries --no-ri --no-rdoc
+   ~~~
+
+   On versions of Puppet Enterprise older than 2015.2.0, use the older path to the `gem` binary:
 
    ~~~
    /opt/puppet/bin/gem install azure hocon retries --no-ri --no-rdoc
    /opt/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network hocon retries --no-ri --no-rdoc
-   ~~~
-
-   If you are running Puppet Enterprise 2015.2.0 or later, use the
-updated path:
-
-   ~~~
-   /opt/puppetlabs/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network  hocon retries --no-ri --no-rdoc
    ~~~
 
 2. Set the following environment variables specific to your Azure
@@ -102,6 +107,13 @@ updated path:
    export AZURE_SUBSCRIPTION_ID='your-subscription-id'
    ~~~
 
+   At a Windows cmd prompt, this should be specified like:
+
+   ~~~
+   SET AZURE_MANAGEMENT_CERTIFICATE=C:\Path\To\file.pem
+   SET AZURE_SUBSCRIPTION_ID=your-subscription-id
+   ~~~
+
    If using the Resource Management API, you need to provide:
 
    ~~~
@@ -111,10 +123,19 @@ updated path:
    export AZURE_CLIENT_SECRET='your-client-secret'
    ~~~
 
+   At a Windows cmd prompt, this should be specified like:
+
+   ~~~
+   SET AZURE_SUBSCRIPTION_ID=your-subscription-id
+   SET AZURE_TENANT_ID=your-tenant-id
+   SET AZURE_CLIENT_ID=your-client-id
+   SET AZURE_CLIENT_SECRET=your-client-secret
+   ~~~
+
    Note that you can provide all of the above credentials if you are
    working with **both** Resource Manager and Classic virtual machines.
 
-   Alternatively, you can provide the information in a configuration file. Store this as azure.conf in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html). This should be:
+   Alternatively, you can provide the information in a configuration file of [HOCON format](https://github.com/typesafehub/config). Store this as azure.conf in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html). This should be:
 
    * nix Systems: `/etc/puppetlabs/puppet`
    * Windows: `C:\ProgramData\PuppetLabs\puppet\etc`
@@ -126,6 +147,15 @@ updated path:
    azure: {
      subscription_id: "your-subscription-id"
      management_certificate: "/path/to/pem/file"
+   }
+   ~~~
+
+   When creating this file on Windows, note that as a JSON-based config file format, paths must be properly escaped like:
+
+   ~~~
+   azure: {
+     subscription_id: "your-subscription-id"
+     management_certificate: "C:\\path\\to\\file.pem"
    }
    ~~~
 
@@ -364,10 +394,11 @@ Whether or not the attached data disk should be deleted when the VM is deleted. 
 
 ##### `custom_data`
 
-A script to be executed on launch by cloud-init on Linux hosts. This can
-either be a single-line command (for example `touch /tmp/some-file`) which
-will be run under bash, or a multi-line file (for instance from a
-template) which can be any format supported by cloud-init.
+A block of data to be affiliated with a host upon launch.  On Linux hosts, this can be a script to
+be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command
+(for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a
+template) which can be any format supported by cloud-init.  For Windows hosts, the data is written to
+`%SYSTEMDRIVE%\AzureData\CustomData.bin`
 
 ##### `endpoints`
 
