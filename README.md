@@ -549,7 +549,7 @@ Defaults to `Dynamic`.
 The Network Interface Controller (nic) name for the virtual machine.
 
 ##Limitations
-Due to the dependencies of the Azure Classic SDK (nokogiri), running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) which preinstalls nokogiri.
+Due to a Ruby Azure SDK dependency on the nokogiri gem, running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) and newer.  In that situation, the correct version of nokogiri will be installed when performing the `gem install azure` command mentioned in [Installing the Azure module](#installing-the-azure-module).
 
 ## Development
 
