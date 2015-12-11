@@ -7,3 +7,4 @@ vendor
 Gemfile.lock
 coverage
 /log
+tmp
