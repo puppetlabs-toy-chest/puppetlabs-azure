@@ -29,35 +29,58 @@ require 'azure/virtual_machine_image_management/virtual_machine_image_management
 CHEAPEST_AZURE_LOCATION="East US"
 
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
-WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20150825-en.us-127GB.vhd'
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20151022-en.us-127GB.vhd'
 
+CERT_FILE='azure_cert.pem'
+WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}"
+LINUX_AZURE_CERT="/tmp/#{CERT_FILE}"
+WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}"
+
+# windows module install path
+# /cygdrive/c/ProgramData/PuppetLabs/code/modules
+#
 unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
   require 'beaker-rspec'
-  unless ENV['BEAKER_provision'] == 'no'
-    install_pe
+  install_pe unless ENV['BEAKER_provision'] == 'no'
 
-    hosts.each do |host|
-      on(host, 'apt-get install zlib1g-dev')
-      on(host, 'apt-get install patch')
-      on(host, 'apt-get install -y g++')
+  RSpec.configure do |c|
+    c.before :suite do
+      unless ENV['BEAKER_provision'] == 'no'
+        hosts.each do |host|
+          if host['platform'] =~ /^el/
+            on(host, 'yum install -y zlib-devel patch gcc-c++')
+          elsif host['platform'] =~ /^ubuntu|^debian/
+            on(host, 'apt-get install -y zlib1g-dev patch g++')
+          end
 
-      path = host.file_exist?("#{host['privatebindir']}/gem") ? host['privatebindir'] : host['puppetbindir']
-      on(host, "#{path}/gem install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage hocon retries azure")
-    end
-  end
+          gem_command = if host['platform'] =~ /^windows/
+                          'cmd.exe /c cmd.exe /c "C:\Program Files\Puppet Labs\puppet\sys\ruby\bin\gem.bat"'
+                        else
+                          host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem"
+                        end
+          if host['platform'] =~ /^windows/
+            # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
+            # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
+            # right thing on Windows
+            on(host, "#{gem_command} install unf")
+          end
+          on(host, "#{gem_command} install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage hocon retries azure")
+        end
+      end
 
-  proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-  hosts.each do |host|
-    # set :target_module_path manually to work around beaker-rspec bug that does not
-    # persist distmoduledir across runs with reused nodes
-    # TODO: ticket up this bug for beaker-rspec
-    install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => '/etc/puppetlabs/code/modules')
-  end
+      proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+      hosts.each do |host|
+        # set :target_module_path manually to work around beaker-rspec bug that does not
+        # persist distmoduledir across runs with reused nodes
+        # TODO: ticket up this bug for beaker-rspec
+        module_path = host['platform'] =~ /^windows/ ? '/cygdrive/c/ProgramData/PuppetLabs/code/modules' : '/etc/puppetlabs/code/modules'
+        install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => module_path)
+      end
 
-  # Deploy Azure credentials to all hosts
-  if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-    hosts.each do |host|
-      scp_to(host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], '/tmp/azure_cert.pem')
+      # Deploy Azure credentials to all hosts
+      if ENV['AZURE_MANAGEMENT_CERTIFICATE']
+        scp_to(default, ENV['AZURE_MANAGEMENT_CERTIFICATE'], default['platform'] =~ /^windows/ ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT)
+      end
     end
   end
 end
@@ -440,9 +463,10 @@ class BeakerRunnerBase
   include Beaker::DSL
   include MasterManipulator::Site
 
-  def remote_environment
+  def remote_environment(host)
+    azure_cert = host['platform'] =~ /^windows/ ? WINDOWS_DOS_FORMAT_AZURE_CERT : LINUX_AZURE_CERT
     @env ||= {
-      'AZURE_MANAGEMENT_CERTIFICATE' => '/tmp/azure_cert.pem',
+      'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
       'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
     }
   end
@@ -483,22 +507,21 @@ class BeakerRunnerBase
 
     on(default,
       puppet(cmd),
-      :environment => remote_environment,
+      :environment => remote_environment(default),
       :acceptable_exit_codes => (0...256),
       )
   end
 end
 
 class BeakerAgentRunner < BeakerRunnerBase
-  def execute(manifest)
+  def execute(manifest) # rubocop:disable Metrics/AbcSize
     environment_base_path = on(master, puppet('config', 'print', 'environmentpath')).stdout.rstrip
     prod_env_site_pp_path = File.join(environment_base_path, 'production', 'manifests', 'site.pp')
     site_pp = create_site_pp(master, :manifest => manifest)
     inject_site_pp(master, prod_env_site_pp_path, site_pp)
-
     on(default,
       puppet('agent', '-t', '--environment production'),
-      :environment => remote_environment,
+      :environment => remote_environment(default),
       :acceptable_exit_codes => (0...256),
       )
   end
@@ -513,7 +536,7 @@ class BeakerApplyRunner < BeakerRunnerBase
       :expect_changes => true,
       :debug => true,
       :trace => true,
-      :environment => remote_environment,
+      :environment => remote_environment(default),
       :acceptable_exit_codes => (0...256),
     )
   end

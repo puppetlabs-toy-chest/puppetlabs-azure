@@ -26,8 +26,12 @@ module PuppetX
           Puppet.debug("Couldn't load azure SDK")
         end
 
-        def self.auth(&client)
+        def self.auth(&client) # rubocop:disable Metrics/AbcSize
           unless @authenticated
+            if ! File.file?(self.config.management_certificate)
+              raise Puppet::Error, "Azure management_certificate does not exist [#{self.config.management_certificate}]"
+            end
+            Puppet.debug("Using management certificate at [#{self.config.management_certificate}]")
             ::Azure.subscription_id = self.config.subscription_id
             ::Azure.management_certificate = self.config.management_certificate
             @authenticated = true
