@@ -1,13 +1,13 @@
 require 'spec_helper_acceptance'
 
-describe 'azure_vm when creating a machine with all available properties' do
+describe 'azure_vm when creating a machine with minimum necessary properties' do
   include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
   before(:all) do
     @config = {
       name: @name,
-      ensure: 'present',
+      ensure: 'running',
       optional: {
         image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
         location: 'eastus',

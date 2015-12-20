@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'azure_vm when creating a machine with all available properties' do
+describe 'azure_vm when creating a machine with invalid image reference' do
   include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
@@ -33,6 +33,6 @@ describe 'azure_vm when creating a machine with all available properties' do
   end
 
   it 'should return an exception' do
-    expect(@result.stderr.include?('MsRestAzure::AzureOperationError')).to be true
+    expect(@result.stderr).to match /MsRestAzure::AzureOperationError/
   end
 end
