@@ -6,6 +6,13 @@ require 'puppet-lint/tasks/puppet-lint'
 require 'puppet-syntax/tasks/puppet-syntax'
 require 'rubocop/rake_task'
 
+require_relative 'rakelib/common_tasks'
+require_relative 'rakelib/puppet_acceptance_task'
+require_relative 'rakelib/dsl_extention'
+
+require_relative 'lib/env_var_checker'
+require_relative 'lib/color_text'
+
 # This gem isn't always present, for instance
 # on Travis with --without development
 begin
@@ -47,7 +54,7 @@ task :metadata do
   sh "bundle exec metadata-json-lint metadata.json --no-strict-license"
 end
 
-desc "Run syntax, lint, and spec tests."
+desc 'Run syntax, lint, and spec tests.'
 task :test => [
   :metadata,
   :syntax,
@@ -55,3 +62,17 @@ task :test => [
   :rubocop,
   :spec,
 ]
+
+desc 'Acceptance test for the Azure project'
+acceptance_task do |t|
+  puts green_text('Acceptance test task invoked')
+  # Setup rake env variables
+  t.track_env_var('AZURE_TENANT_ID', 'The tenant id is available on the URI when you access the portal or in powershell')
+  t.track_env_var('AZURE_CLIENT_ID', 'Available manage.windowsazure.com -> Active Directory -> Default Directory -> Applications Tab')
+  t.track_env_var('AZURE_CLIENT_SECRET', 'Available manage.windowsazure.com -> Active Directory -> Default Directory -> Applications Tab')
+  t.track_env_var('AZURE_SUBSCRIPTION_ID', 'Available manage.windowsazure.com -> Settings')
+  t.track_env_var('AZURE_MANAGEMENT_CERTIFICATE', 'To create : https://azure.microsoft.com/en-gb/documentation/articles/cloud-services-configure-ssl-certificate/')
+
+  # Set the framework
+  t.test_framework('beaker-rspec')
+end
