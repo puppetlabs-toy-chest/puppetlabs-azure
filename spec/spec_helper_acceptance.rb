@@ -4,6 +4,8 @@ require 'mustache'
 require 'open3'
 require 'master_manipulator'
 require 'beaker'
+require 'beaker-rspec' if ENV['BEAKER_TESTMODE'] != 'local'
+require 'beaker/testmode_switcher/dsl'
 require 'net/ssh'
 require 'ssh-exec'
 require 'retries'
@@ -39,13 +41,12 @@ WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}"
 # windows module install path
 # /cygdrive/c/ProgramData/PuppetLabs/code/modules
 #
-unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
-  require 'beaker-rspec'
-  install_pe unless ENV['BEAKER_provision'] == 'no'
-
-  RSpec.configure do |c|
-    c.before :suite do
+RSpec.configure do |c|
+  c.before :suite do
+    unless ENV['BEAKER_TESTMODE'] == 'local'
       unless ENV['BEAKER_provision'] == 'no'
+        install_pe
+
         hosts.each do |host|
           if host['platform'] =~ /^el/
             on(host, 'yum install -y zlib-devel patch gcc-c++')
@@ -53,12 +54,12 @@ unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
             on(host, 'apt-get install -y zlib1g-dev patch g++')
           end
 
-          gem_command = if host['platform'] =~ /^windows/
+          gem_command = if is_windows?(host)
                           'cmd.exe /c cmd.exe /c "C:\Program Files\Puppet Labs\puppet\sys\ruby\bin\gem.bat"'
                         else
                           host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem"
                         end
-          if host['platform'] =~ /^windows/
+          if is_windows?(host)
             # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
             # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
             # right thing on Windows
@@ -73,14 +74,14 @@ unless ENV['PUPPET_AZURE_BEAKER_MODE'] == 'local'
         # set :target_module_path manually to work around beaker-rspec bug that does not
         # persist distmoduledir across runs with reused nodes
         # TODO: ticket up this bug for beaker-rspec
-        module_path = host['platform'] =~ /^windows/ ? '/cygdrive/c/ProgramData/PuppetLabs/code/modules' : '/etc/puppetlabs/code/modules'
+        module_path = is_windows?(host) ? '/cygdrive/c/ProgramData/PuppetLabs/code/modules' : '/etc/puppetlabs/code/modules'
         install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => module_path)
       end
+    end
 
-      # Deploy Azure credentials to all hosts
-      if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-        scp_to(default, ENV['AZURE_MANAGEMENT_CERTIFICATE'], default['platform'] =~ /^windows/ ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT)
-      end
+    # Deploy Azure credentials
+    if ENV['AZURE_MANAGEMENT_CERTIFICATE']
+      scp_to_ex(ENV['AZURE_MANAGEMENT_CERTIFICATE'], is_windows? ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT)
     end
   end
 end
@@ -115,7 +116,7 @@ class PuppetManifest < Mustache
   end
 
   def execute
-    PuppetRunProxy.execute(self.render)
+    Beaker::TestmodeSwitcher::DSL.execute_manifest(self.render, beaker_opts)
   end
 
   def self.to_generalized_data(val)
@@ -338,226 +339,6 @@ class AzureHelper
   end
 end
 
-# This is a prototype to emulate a "local" hypervisor in beaker, and at the same time
-# provide a way to use a single set of "commands" to either run puppet agent against a master
-# or puppet apply standalone.
-# this is deliberately not done as a proper top-level DSL to make usage of this easily greppable
-class PuppetRunProxy
-  # proxy all other calls through to the runner
-  def self.method_missing(*args)
-    runner.send(*args)
-  end
-
-  def self.create_runner(mode)
-    case mode
-    when 'apply' then
-      BeakerApplyRunner.new
-    when 'agent' then
-      BeakerAgentRunner.new
-    when 'local'
-      LocalRunner.new
-    else
-      # Exception as the switch supplied is invalid
-      raise ArgumentException.new "Unknown PUPPET_AZURE_BEAKER_MODE supplied '#{mode}''"
-    end
-  end
-
-  def self.runner
-    @runner ||= create_runner(ENV['PUPPET_AZURE_BEAKER_MODE'] || 'apply')
-  end
-end
-
-# local commands use bundler to isolate the ruby runtime environment
-class LocalRunner
-  def create_remote_file_ex(file_path, file_content, options={})
-    File.open(file_path, 'w') { |file| file.write(file_content) }
-    if options[:mode]
-      use_local_shell("chmod #{options[:mode]} '#{file_path}'")
-    else
-      BeakerLikeResponse.success
-    end
-  end
-
-  def scp_to_ex(from, to)
-    FileUtils.cp(from, to)
-    BeakerLikeResponse.success
-  end
-
-  def execute(manifest)
-    puts "Applied manifest [#{manifest}]" if ENV['DEBUG_MANIFEST']
-    cmd = "bundle exec puppet apply --detailed-exitcodes -e #{manifest.delete("\n").shellescape} --modulepath spec/fixtures/modules --libdir lib --debug --trace"
-    use_local_shell(cmd)
-  end
-
-  # build and apply complex puppet resource commands
-  # the arguement resource is the type of the resource
-  # the opts hash must include a key 'name'
-  def resource(type, opts = {}, command_flags = '')
-    raise 'A name for the resource must be specified' unless opts[:name]
-    cmd = "bundle exec puppet resource #{type} "
-    options = String.new
-    opts.each do |k,v|
-      if k.to_s == 'name'
-        @name = v
-      else
-        options << "#{k.to_s}=#{v.to_s} "
-      end
-    end
-    cmd << "#{@name} "
-    cmd << options
-    cmd << " --modulepath spec/fixtures/modules --libdir lib"
-    cmd << " #{command_flags}"
-
-    # apply the command
-    use_local_shell(cmd)
-  end
-
-  def shell_ex(cmd)
-    use_local_shell(cmd)
-  end
-
-  private
-    def use_local_shell(cmd) # rubocop:disable Metrics/AbcSize
-      blocks = {
-        out: [],
-        err: [],
-      }
-
-      exit_code = -1
-
-      Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
-        stdin.close_write
-
-        files = [stdout, stderr]
-
-        until files.all?(&:eof) do
-          ready = IO.select(files)
-
-          if ready
-            ready[0].each do |f|
-              fileno = f.fileno
-              begin
-                data = f.read_nonblock(1024)
-                $stdout.write(data)
-
-                if fileno == stdout.fileno
-                  blocks[:out] << data
-                else
-                  blocks[:err] << data
-                end
-              rescue EOFError # rubocop:disable Lint/HandleExceptions
-                # pass on EOF
-              end
-            end
-          end
-        end
-
-        exit_code = wait_thr.value.exitstatus
-      end
-
-      BeakerLikeResponse.new(blocks[:out].join, blocks[:err].join, exit_code, cmd)
-    end
-end
-
-class BeakerRunnerBase
-  include Beaker::DSL
-  include MasterManipulator::Site
-
-  def remote_environment(host)
-    azure_cert = host['platform'] =~ /^windows/ ? WINDOWS_DOS_FORMAT_AZURE_CERT : LINUX_AZURE_CERT
-    @env ||= {
-      'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
-      'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
-    }
-  end
-
-  def create_remote_file_ex(file_path, file_content, options={})
-    hosts.each do |host|
-      mode = options[:mode] || '0644'
-      file_content.gsub!(/\\/, '\\')
-      file_content.gsub!(/\n/, '\\n')
-      apply_manifest "file { '#{file_path}': ensure => present, content => '#{file_content}', mode => '#{mode}' }", :catch_failures => true
-    end
-  end
-
-  def scp_to_ex(from, to)
-    hosts.each do |host|
-      scp_to host, from, to
-    end
-  end
-
-  def shell_ex(cmd)
-    shell(cmd)
-  end
-
-  def resource(type, opts = {}, command_flags = '') # rubocop:disable Metrics/AbcSize
-    raise 'A name for the resource must be specified' unless opts[:name]
-    cmd = "resource #{type} "
-    options = String.new
-    opts.each do |k,v|
-      if k.to_s == 'name'
-        @name = v
-      else
-        options << "#{k.to_s}=#{v.to_s} "
-      end
-    end
-    cmd << "#{@name} "
-    cmd << options
-    cmd << " #{command_flags}"
-
-    on(default,
-      puppet(cmd),
-      :environment => remote_environment(default),
-      :acceptable_exit_codes => (0...256),
-      )
-  end
-end
-
-class BeakerAgentRunner < BeakerRunnerBase
-  def execute(manifest) # rubocop:disable Metrics/AbcSize
-    environment_base_path = on(master, puppet('config', 'print', 'environmentpath')).stdout.rstrip
-    prod_env_site_pp_path = File.join(environment_base_path, 'production', 'manifests', 'site.pp')
-    site_pp = create_site_pp(master, :manifest => manifest)
-    inject_site_pp(master, prod_env_site_pp_path, site_pp)
-    on(default,
-      puppet('agent', '-t', '--environment production'),
-      :environment => remote_environment(default),
-      :acceptable_exit_codes => (0...256),
-      )
-  end
-end
-
-class BeakerApplyRunner < BeakerRunnerBase
-  def execute(manifest)
-    # acceptable_exit_codes and expect_changes are passed because we want detailed-exit-codes but want to
-    # make our own assertions about the responses
-    apply_manifest(
-      manifest,
-      :expect_changes => true,
-      :debug => true,
-      :trace => true,
-      :environment => remote_environment(default),
-      :acceptable_exit_codes => (0...256),
-    )
-  end
-end
-
-class BeakerLikeResponse
-  def self.success
-    BeakerLikeResponse.new('', '', 0, '')
-  end
-
-  attr_reader :stdout , :stderr, :output, :exit_code, :command
-
-  def initialize(standard_out, standard_error, exit, cmd)
-    @stdout = standard_out
-    @stderr = standard_error
-    @output = standard_out + "\n" + standard_error
-    @exit_code = exit.to_i
-    @command = cmd
-  end
-end
-
 def expect_failed_apply(config)
   result = PuppetManifest.new(@template, config).execute
   expect(result.exit_code).not_to eq 0
@@ -625,5 +406,34 @@ def puppet_resource_should_show(property_name, value=nil)
               /(#{property_name})(\s*)(=>)(\s*)('#{real_value}'|#{real_value})/
             end
     expect(@result.stdout).to match(regex)
+  end
+end
+
+def beaker_opts
+  azure_cert = is_windows? ? WINDOWS_DOS_FORMAT_AZURE_CERT : LINUX_AZURE_CERT
+  @env ||=
+  {
+    debug: true,
+    trace: true,
+    environment: {
+      'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
+      'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
+      'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
+      'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+      'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
+    }
+  }
+end
+
+def is_windows?(host = nil)
+  if host
+    host['platform'] =~ /^windows/
+  elsif defined?(default)
+    # since `default` is from the beaker DSL, it is not accessible in `local` TESTMODE
+    default['platform'] =~ /^windows/
+  else
+    # to support running the tests on windows in local TESTMODE,
+    # add proper platform detection here.
+    false
   end
 end

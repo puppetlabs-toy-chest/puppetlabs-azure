@@ -26,7 +26,7 @@ end
 namespace :parallel do
   desc "Run acceptance in parallel with parallel:acceptance[num_cpus]"
   task :acceptance, [:count, :options] do |t, args|
-    ENV['PUPPET_AZURE_BEAKER_MODE'] = 'local'
+    ENV['BEAKER_TESTMODE'] = 'local'
     count, options = ParallelTests::Tasks.parse_args(args)
     executable = 'parallel_test'
     command = "#{executable} spec --type rspec " \

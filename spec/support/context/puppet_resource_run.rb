@@ -1,6 +1,6 @@
 shared_context 'a puppet resource run' do
   before(:all) do
-    @result = PuppetRunProxy.resource('azure_vm_classic', {:name => @name})
+    @result = resource('azure_vm_classic', @name, beaker_opts)
   end
 
   it 'should not return an error' do
@@ -10,7 +10,7 @@ end
 
 shared_context 'a puppet ARM resource run' do
   before(:all) do
-    @result = PuppetRunProxy.resource('azure_vm', {:name => @name})
+    @result = resource('azure_vm', @name, beaker_opts)
   end
 
   it 'should not return an error' do
