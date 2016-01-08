@@ -36,6 +36,7 @@ group :acceptance do
   gem 'mustache'
   gem 'ssh-exec'
   gem "beaker-puppet_install_helper", :require => false
+  gem "beaker-testmode_switcher"
   gem 'beaker', '~> 2.0'
   gem 'master_manipulator', '~> 1.0'
   gem 'beaker-rspec'

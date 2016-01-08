@@ -63,7 +63,7 @@ describe 'azure_vm_classic when creating a multirole services' do
     }
 CONFIG
 
-    @result = PuppetRunProxy.execute(@manifest)
+    @result = execute_manifest(@manifest, beaker_opts)
 
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress if @machine
@@ -117,7 +117,7 @@ CONFIG
       }
 CONFIG
 
-      @result = PuppetRunProxy.execute(@manifest)
+      @result = execute_manifest(@manifest, beaker_opts)
 
       @machine = @client.get_virtual_machine(@name).first
       @second_machine = @client.get_virtual_machine(@second_name).first
@@ -159,7 +159,7 @@ CONFIG
       }
 CONFIG
 
-      @result = PuppetRunProxy.execute(@manifest)
+      @result = execute_manifest(@manifest, beaker_opts)
 
       @machine = @client.get_virtual_machine(@name).first
       @second_machine = @client.get_virtual_machine(@second_name).first
@@ -200,7 +200,7 @@ CONFIG
         }
 CONFIG
 
-        @result = PuppetRunProxy.execute(@manifest)
+        @result = execute_manifest(@manifest, beaker_opts)
 
         @machine = @client.get_virtual_machine(@name).first
         @second_machine = @client.get_virtual_machine(@second_name).first
