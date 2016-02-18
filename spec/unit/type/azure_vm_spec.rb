@@ -225,15 +225,15 @@ describe 'azure_vm', :type => :type do
     end
   end
 
-  context 'with a name greater than 15 characters' do
+  context 'with a name greater than 64 characters' do
     let :config do
       result = default_config
-      result[:name] = SecureRandom.hex(8)
+      result[:name] = SecureRandom.hex(33)
       result
     end
 
     it 'should be invalid' do
-      expect { type_class.new(config) }.to raise_error(Puppet::Error, /the name must be less that 16 characters/)
+      expect { type_class.new(config) }.to raise_error(Puppet::Error, /the name must be between 1 and 64 characters long/)
     end
   end
 

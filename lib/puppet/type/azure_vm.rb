@@ -67,7 +67,7 @@ Puppet::Type.newtype(:azure_vm) do
     desc 'Name of the virtual machine.'
     validate do |value|
       super value
-      fail("the name must be less that 16 characters in length") if value.size > 15
+      fail("the name must be between 1 and 64 characters long") if value.size > 64
     end
   end
 
