@@ -153,7 +153,7 @@ CONFIG
       azure_vm_classic {
         "#{@second_name}":
           ensure        => 'absent',
-          location      => CHEAPEST_AZURE_LOCATION,
+          location      => "#{CHEAPEST_AZURE_LOCATION}",
           cloud_service => "#{@cs_name}",
           purge_disk_on_delete => true,
       }
@@ -194,7 +194,7 @@ CONFIG
         azure_vm_classic {
           [ "#{@name}", "#{@second_name}", "#{@third_name}" ]:
             ensure        => 'absent',
-            location      => CHEAPEST_AZURE_LOCATION,
+            location      => '#{CHEAPEST_AZURE_LOCATION}',
             cloud_service => "#{@cs_name}",
             purge_disk_on_delete => true,
         }
