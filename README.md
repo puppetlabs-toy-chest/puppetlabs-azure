@@ -481,7 +481,7 @@ Values have the following effects:
 * 'absent': Ensures that the VM doesn't exist on Azure..
 
 #####`name`
-*Required* The name of the virtual machine.
+*Required* The name of the virtual machine. The name may have at most 64 characters. Some images may have more restrictive requirements.
 
 #####`image`
 *Required* Name of the image to use to create the virtual machine. This must be in the ARM image_refence format

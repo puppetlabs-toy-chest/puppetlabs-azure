@@ -31,7 +31,7 @@ require 'azure/virtual_machine_image_management/virtual_machine_image_management
 CHEAPEST_AZURE_LOCATION="East US"
 
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
-WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20151022-en.us-127GB.vhd'
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'
 
 CERT_FILE='azure_cert.pem'
 WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}"
