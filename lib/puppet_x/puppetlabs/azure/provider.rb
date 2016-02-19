@@ -75,7 +75,7 @@ module PuppetX
           @services[service_name]
         end
 
-        def find_vm(name)
+        def get_vm(name)
           Provider.vm_manager.list_virtual_machines.find { |x| x.vm_name == name }
         end
 
