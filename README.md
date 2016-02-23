@@ -81,21 +81,27 @@ principal on the Active Directory. The official documentation covers [creating t
 1. Install the required gems with this command on Puppet Enterprise 2015.2.0 (puppet-agent 1.2) or later:
 
    ~~~
-   /opt/puppetlabs/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network  hocon retries --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network retries --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
    ~~~
 
    When installing on Windows, launch the `Start Command Prompt with Puppet` and simply type:
 
    ~~~
-   gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network  hocon retries --no-ri --no-rdoc
+   gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network retries --no-ri --no-rdoc
+   gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
    ~~~
 
    On versions of Puppet Enterprise older than 2015.2.0, use the older path to the `gem` binary:
 
    ~~~
-   /opt/puppet/bin/gem install azure hocon retries --no-ri --no-rdoc
-   /opt/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network hocon retries --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure retries --no-ri --no-rdoc
+   /opt/puppet/bin/gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure azure_mgmt_compute azure_mgmt_storage azure_mgmt_resources azure_mgmt_network retries --no-ri --no-rdoc
+   /opt/puppet/bin/gem install hocon --versiom='~>1.0.0' --no-ri --no-rdoc
    ~~~
+
+**Note:** Example pins the hocon gem version to prevent possible incompatibilities.
 
 2. Set the following environment variables specific to your Azure
    installation:
