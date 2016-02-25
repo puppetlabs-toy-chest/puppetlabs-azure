@@ -241,12 +241,41 @@ module PuppetX
           })
         end
 
+        def build_extension_parameter
+          vm_extension = VirtualMachineExtension.new
+          vm_extension.properties = VirtualMachineExtensionProperties.new
+          vm_extension.properties.publisher = 'PuppetLabs'
+          vm_extension.properties.type = 'PuppetEnterpriseAgent'
+          vm_extension.properties.type_handler_version = '3.2.3'
+          vm_extension.propertiesq.auto_upgrade_minor_version = true
+
+          # Gets or sets Json formatted protected settings for the extension
+          # TODO: is this the same as PrivateConfiguration ??
+          master = 'puppetmaster.puppet.com'
+          # https://github.com/Azure/azure-powershell/blob/master/src/ServiceManagement/Compute/Commands.ServiceManagement/IaaS/Extensions/Puppet/VirtualMachinePuppetExtensionCmdletBase.cs#L25
+          vm_extension.properties.protected_settings = "{{ \"PUPPET_MASTER_SERVER\": \"#{master}\" }}"
+
+          vm_extension.tags = {}
+          # TODO: how to do PrivateConfiguration / PublicConfiguration
+          # vm_extension.tags['extensionTag1'] = '1'
+          # vm_extension.tags['extensionTag2'] = '2'
+          vm_extension.location = 'westus'
+
+          vm_extension
+        end
+
         def create_vm(args)
           register_providers
           create_resource_group(args)
           create_storage_account(args)
           params = build_params(args)
-          ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!
+          result = ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!
+
+          ext_name = 'PuppetExtension' # get_random_name('extension')
+          vm_extension = build_extension_parameter
+          ProviderArm.compute_client.virtual_machine_extensions.create_or_update(args[:resource_group], args[:name], ext_name, vm_extension).value!
+
+          result
         end
 
         def delete_vm(machine)
