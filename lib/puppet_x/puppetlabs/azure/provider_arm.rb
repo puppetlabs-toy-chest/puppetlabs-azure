@@ -23,6 +23,7 @@ module PuppetX
       # The application MUST be granted at least a contributor role for the ARM API to allow you access. This is done through
       # windows powershell.
       class ProviderArm < ::PuppetX::Puppetlabs::Azure::ProviderBase
+        # Class Methods
         def self.credentials
           token_provider = ::MsRestAzure::ApplicationTokenProvider.new(ProviderBase.config.tenant_id,
             ProviderBase.config.client_id, ProviderBase.config.client_secret)
@@ -51,9 +52,84 @@ module PuppetX
           @resource_client ||= ProviderArm.with_subscription_id ::Azure::ARM::Resources::ResourceManagementClient.new(ProviderArm.credentials)
         end
 
-        def register_azure_provider(name)
-          ProviderArm.resource_client.providers.register(name).value!.body
+        # Public instance methods
+        def create_vm(args) # rubocop:disable Metrics/AbcSize
+          begin
+            register_providers
+            create_resource_group(args)
+            create_storage_account(args)
+            params = build_params(args)
+            ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
+
+        def delete_vm(machine)
+          begin
+            ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name).value!
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def stop_vm(machine)
+          begin
+            ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name).value!
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def start_vm(machine)
+          begin
+            ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name).value!
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def get_all_vms # rubocop:disable Metrics/AbcSize
+          begin
+            vms = ProviderArm.compute_client.virtual_machines.list_all.value!.body.value
+            vms.collect do |vm|
+              ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView').value!.body
+            end
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def resource_group_from(machine)
+          machine.id.split('/')[4].downcase
+        end
+
+        def get_vm(name)
+          get_all_vms.find { |vm| vm.name == name }
+        end
+
+        # Private Methods
+        private
 
         def register_providers
           register_azure_provider('Microsoft.Storage')
@@ -61,12 +137,8 @@ module PuppetX
           register_azure_provider('Microsoft.Compute')
         end
 
-        def build(klass, data={})
-          model = klass.new
-          data.each do |k,v|
-            model.send "#{k}=", v
-          end
-          model
+        def register_azure_provider(name)
+          ProviderArm.resource_client.providers.register(name).value!.body
         end
 
         def create_resource_group(args)
@@ -109,6 +181,14 @@ module PuppetX
         def create_network_interface(args, subnet)
           params = build_network_interface_param(args, subnet)
           ProviderArm.network_client.network_interfaces.create_or_update(args[:resource_group], params.name, params).value!.body
+        end
+
+        def build(klass, data={})
+          model = klass.new
+          data.each do |k,v|
+            model.send "#{k}=", v
+          end
+          model
         end
 
         def build_os_vhd_uri(args)
@@ -239,41 +319,6 @@ module PuppetX
             properties: build_props(args),
             location: args[:location],
           })
-        end
-
-        def create_vm(args)
-          register_providers
-          create_resource_group(args)
-          create_storage_account(args)
-          params = build_params(args)
-          ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!
-        end
-
-        def delete_vm(machine)
-          ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name).value!
-        end
-
-        def stop_vm(machine)
-          ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name).value!
-        end
-
-        def start_vm(machine)
-          ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name).value!
-        end
-
-        def get_all_vms
-          vms = ProviderArm.compute_client.virtual_machines.list_all.value!.body.value
-          vms.collect do |vm|
-            ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView').value!.body
-          end
-        end
-
-        def resource_group_from(machine)
-          machine.id.split('/')[4].downcase
-        end
-
-        def get_vm(name)
-          get_all_vms.find { |vm| vm.name == name }
         end
       end
     end
