@@ -403,8 +403,7 @@ Whether or not the attached data disk should be deleted when the VM is deleted. 
 A block of data to be affiliated with a host upon launch.  On Linux hosts, this can be a script to
 be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command
 (for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a
-template) which can be any format supported by cloud-init.  For Windows hosts, the data is written to
-`%SYSTEMDRIVE%\AzureData\CustomData.bin`
+template) which can be any format supported by cloud-init.  This currently doesn't work for Windows hosts.
 
 ##### `endpoints`
 
