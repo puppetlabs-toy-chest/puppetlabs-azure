@@ -1,3 +1,12 @@
+##Supported Version 1.0.2
+
+This release includes:
+* (CLOUD-488) Windows agent support for the Azure module testing.
+* Several test improvements and fixes.
+* Fixes validation for name length.
+* Updates module for Hocon 1.0.0 compatibility.
+* Improves error reporting.
+
 ##2015-12-08 - Supported Version 1.0.1
 
 This release includes:
