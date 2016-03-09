@@ -6,6 +6,7 @@ This release includes:
 * Fixes validation for name length.
 * Updates module for Hocon 1.0.0 compatibility.
 * Improves error reporting.
+* Adds apt-get update before install for custom_data param.
 
 ##2015-12-08 - Supported Version 1.0.1
 
