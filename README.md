@@ -598,6 +598,10 @@ Defaults to `Dynamic`.
 #####`network_interface_name`
 The Network Interface Controller (nic) name for the virtual machine.
 
+##Known Issues
+
+In order for the puppetlabs-azure module to work, all [azure gems](#installing-the-azure-module) must be installed successfully. There is a known issue where these gems fail to install if [nokogiri](http://www.nokogiri.org/tutorials/installing_nokogiri.html) failed to install.
+
 ##Limitations
 Due to a Ruby Azure SDK dependency on the nokogiri gem, running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) and newer.  In that situation, the correct version of nokogiri will be installed when performing the `gem install azure` command mentioned in [Installing the Azure module](#installing-the-azure-module).
 
