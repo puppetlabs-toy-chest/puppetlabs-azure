@@ -2,17 +2,17 @@ source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
 gem 'azure', '~> 0.7.0'
 
-gem 'azure_mgmt_storage'
-gem 'azure_mgmt_compute'
-gem 'azure_mgmt_resources'
-gem 'azure_mgmt_network'
+gem 'azure_mgmt_storage', '~> 0.1.0'
+gem 'azure_mgmt_compute', '~> 0.1.0'
+gem 'azure_mgmt_resources', '~> 0.1.0'
+gem 'azure_mgmt_network', '~> 0.1.0'
 
 gem 'hocon'
 gem 'retries'
 
 group :test do
-  gem 'rake'
-  gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 3.8.0'
+  gem 'rake', '< 11' # avoid recent rubocop/rake incompatabilities
+  gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 4'
   gem 'facter', '>= 2.0'
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
   gem 'puppetlabs_spec_helper', '< 1.0'
@@ -37,7 +37,7 @@ group :acceptance do
   gem 'ssh-exec'
   gem "beaker-puppet_install_helper", :require => false
   gem "beaker-testmode_switcher"
-  gem 'beaker', '~> 2.0'
+  gem 'beaker', ENV['BEAKER_VERSION'] || '~> 2.0'
   gem 'master_manipulator', '~> 1.0'
   gem 'beaker-rspec'
 end
