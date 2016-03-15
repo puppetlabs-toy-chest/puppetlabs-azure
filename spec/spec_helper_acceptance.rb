@@ -65,7 +65,14 @@ RSpec.configure do |c|
             # right thing on Windows
             on(host, "#{gem_command} install unf")
           end
-          on(host, "#{gem_command} install azure_mgmt_compute azure_mgmt_network azure_mgmt_resources azure_mgmt_storage hocon retries azure")
+
+          on(host, "#{gem_command} install hocon retries")
+          # Azure gems require pinning because 0.2.x versions are not backwards compatible
+          on(host, "#{gem_command} install azure_mgmt_compute --version='~> 0.1.0'")
+          on(host, "#{gem_command} install azure_mgmt_network --version='~> 0.1.0'")
+          on(host, "#{gem_command} install azure_mgmt_resources --version='~> 0.1.0'")
+          on(host, "#{gem_command} install azure_mgmt_storage --version='~> 0.1.0'")
+          on(host, "#{gem_command} install azure --version='~> 0.7.0'")
         end
       end
 
