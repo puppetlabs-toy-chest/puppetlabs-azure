@@ -33,6 +33,6 @@ describe 'azure_vm when creating a machine with all available properties' do
   end
 
   it 'should return an exception' do
-    expect(@result.stderr.include?('MsRestAzure::AzureOperationError')).to be true
+    expect(@result.stderr.include?('InvalidParameter')).to be true
   end
 end
