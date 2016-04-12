@@ -94,12 +94,12 @@ principal on the Active Directory. The official documentation covers [creating t
 
    ~~~
    gem install retries --no-ri --no-rdoc
-   gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-   gem install azure_mgmt_compute --version='~>0.1.0' --no-ri --no-rdoc
-   gem install azure_mgmt_storage --version='~>0.1.0' --no-ri --no-rdoc
-   gem install azure_mgmt_resources --version='~>0.1.0' --no-ri --no-rdoc
-   gem install azure_mgmt_network --version='~>0.1.0' --no-ri --no-rdoc
-   gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
+   gem install azure --version="~>0.7.0" --no-ri --no-rdoc
+   gem install azure_mgmt_compute --version="~>0.1.0" --no-ri --no-rdoc
+   gem install azure_mgmt_storage --version="~>0.1.0" --no-ri --no-rdoc
+   gem install azure_mgmt_resources --version="~>0.1.0" --no-ri --no-rdoc
+   gem install azure_mgmt_network --version="~>0.1.0" --no-ri --no-rdoc
+   gem install hocon --version="~>1.0.0" --no-ri --no-rdoc
    ~~~
 
    On versions of Puppet Enterprise older than 2015.2.0, use the older path to the `gem` binary:
