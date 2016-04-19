@@ -74,7 +74,8 @@ info:    account list command OK
 ~~~
 
 To use the Resource Manager API instead, you need a service
-principal on the Active Directory. The official documentation covers [creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
+principal on the Active Directory. A quick way to create one for puppet is [pendrica/azure-credentials](https://github.com/pendrica/azure-credentials). Its [puppet mode](https://github.com/pendrica/azure-credentials#puppet-style-output-note--v-displays-the-file-on-screen-after-creation) can even create the `azure.conf` (see below) for you. Alternatively, the official documentation covers [creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
+
 
 ### Installing the Azure module
 
@@ -155,7 +156,7 @@ principal on the Active Directory. The official documentation covers [creating t
    Note that you can provide all of the above credentials if you are
    working with **both** Resource Manager and Classic virtual machines.
 
-   Alternatively, you can provide the information in a configuration file of [HOCON format](https://github.com/typesafehub/config). Store this as azure.conf in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html). This should be:
+   Alternatively, you can provide the information in a configuration file of [HOCON format](https://github.com/typesafehub/config). Store this as `azure.conf` in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html). This should be:
 
    * nix Systems: `/etc/puppetlabs/puppet`
    * Windows: `C:\ProgramData\PuppetLabs\puppet\etc`
