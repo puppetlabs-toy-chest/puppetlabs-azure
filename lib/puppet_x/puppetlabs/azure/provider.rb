@@ -13,6 +13,7 @@ module PuppetX
         # initialization, so we need to be a little bit circumspect here.
         begin
           require 'azure'
+          require 'azure/core'
           ::Azure::Core::Logger.initialize_external_logger(LoggerAdapter.new)
         rescue LoadError
           Puppet.debug("Couldn't load azure SDK")
