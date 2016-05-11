@@ -185,9 +185,9 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    ~~~
    azure: {
      subscription_id: "your-subscription-id"
-     tenant_id: 'your-tenant-id'
-     client_id: 'your-client-id'
-     client_secret: 'your-client-secret'
+     tenant_id: "your-tenant-id"
+     client_id: "your-client-id"
+     client_secret: "your-client-secret"
    }
    ~~~
 
