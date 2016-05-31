@@ -33,6 +33,18 @@ describe 'azure_vm when creating a machine with all available properties' do
         ip_configuration_name: 'ip_config_test01',
         private_ip_allocation_method: 'Dynamic',
         network_interface_name: 'nicspec01',
+        extensions: {
+          'CustomScriptForLinux' => {
+            'auto_upgrade_minor_version' => false,
+            'publisher'                  => 'Microsoft.OSTCExtensions',
+            'type'                       => 'CustomScriptForLinux',
+            'type_handler_version'       => '1.4',
+            'settings'                   => {
+              'commandToExecute' => 'sh script.sh',
+              'fileUris'         => ['https://iaasv2tempstoreeastus.blob.core.windows.net/vmextensionstemporary-0003bf']
+            },
+          },
+        },
       },
     }
     @template = 'azure_vm.pp.tmpl'
@@ -67,6 +79,7 @@ describe 'azure_vm when creating a machine with all available properties' do
     puppet_resource_should_show('network_interface_name')
     puppet_resource_should_show('os_disk_vhd_container_name')
     puppet_resource_should_show('os_disk_vhd_name')
+    puppet_resource_should_show('extensions')
   end
 
   context 'when we try and stop the VM' do

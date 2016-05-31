@@ -130,6 +130,23 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
+  newproperty(:extensions) do
+    desc 'The hash of extensions and their settings'
+    def insync?(is)
+      should.reduce(true) do |insync,(name,should_props)|
+        if is[name]
+          # Filter properties that are nil or unmanaged
+          is_props = is[name].reject { |k,v| v.nil? or k == 'provisioning_state' }
+          # Propagate any mismatches
+          insync && (is_props == should_props)
+        else
+          # Skip any extensions not defined to be managed
+          true
+        end
+      end
+    end
+  end
+
   newparam(:storage_account_type, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated storage account type'
     defaultto 'Standard_GRS'

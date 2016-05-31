@@ -678,7 +678,7 @@ The Network Interface Controller (nic) name for the virtual machine.
 ##### `extensions`
 The extension to configure on the VM. Azure VM Extensions implement behaviors or features that either help other programs work on Azure VMs. You can optionally configure this parameter to include an extension.
 This parameter can be either a single hash (single extension) or multiple hashes (multiple extensions).
-Removing the extension parameter will delete the extension from the VM.
+Setting the extension parameter to `absent` will delete the extension from the VM.
 
 As an example:  
 
