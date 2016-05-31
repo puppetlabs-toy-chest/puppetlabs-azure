@@ -105,6 +105,21 @@ module PuppetX
           end
         end
 
+        def get_all_sas # rubocop:disable Metrics/AbcSize
+          begin
+            sas = ProviderArm.storage_client.storage_accounts.list.value
+            sas.collect do |sa|
+              ProviderArm.storage_client.storage_accounts.get_properties(resource_group_from(sa), sa.name)
+            end
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def get_all_rgs # rubocop:disable Metrics/AbcSize
           begin
             rgs = []
@@ -191,6 +206,18 @@ module PuppetX
           ProviderArm.storage_client.storage_accounts.begin_create(args[:resource_group], args[:storage_account], params)
         end
 
+        def delete_storage_account(sa)
+          begin
+            ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def create_virtual_network(args)
           params = build_virtual_network_params(args)
           ProviderArm.network_client.virtual_networks.begin_create_or_update(args[:resource_group], args[:virtual_network_name], params)
@@ -241,7 +268,7 @@ module PuppetX
         def build_storage_account_create_parameters(args)
           build(::Azure::ARM::Storage::Models::StorageAccountCreateParameters, {
             location: args[:location],
-            kind: ::Azure::ARM::Storage::Models::Kind::Storage, # TODO Or BlobStorage
+            kind: Object.const_get("::Azure::ARM::Storage::Models::Kind::#{args[:storage_account_kind] || :Storage}"),
             sku: build(::Azure::ARM::Storage::Models::Sku, {
               name: args[:storage_account_type],
             })
