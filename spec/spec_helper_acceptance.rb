@@ -25,6 +25,7 @@ require 'ms_rest_azure'
 Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 
 # Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
+require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
