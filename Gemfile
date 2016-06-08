@@ -2,10 +2,10 @@ source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
 gem 'azure', '~> 0.7.0'
 
-gem 'azure_mgmt_storage', '~> 0.1.0'
-gem 'azure_mgmt_compute', '~> 0.1.0'
-gem 'azure_mgmt_resources', '~> 0.1.0'
-gem 'azure_mgmt_network', '~> 0.1.0'
+gem 'azure_mgmt_storage', '~> 0.3.0'
+gem 'azure_mgmt_compute', '~> 0.3.0'
+gem 'azure_mgmt_resources', '~> 0.3.0'
+gem 'azure_mgmt_network', '~> 0.3.0'
 
 gem 'hocon'
 gem 'retries'

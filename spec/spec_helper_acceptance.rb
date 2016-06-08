@@ -69,10 +69,10 @@ RSpec.configure do |c|
 
           on(host, "#{gem_command} install hocon retries")
           # Azure gems require pinning because 0.2.x versions are not backwards compatible
-          on(host, "#{gem_command} install azure_mgmt_compute --version='~> 0.1.0'")
-          on(host, "#{gem_command} install azure_mgmt_network --version='~> 0.1.0'")
-          on(host, "#{gem_command} install azure_mgmt_resources --version='~> 0.1.0'")
-          on(host, "#{gem_command} install azure_mgmt_storage --version='~> 0.1.0'")
+          on(host, "#{gem_command} install azure_mgmt_compute --version='~> 0.3.0'")
+          on(host, "#{gem_command} install azure_mgmt_network --version='~> 0.3.0'")
+          on(host, "#{gem_command} install azure_mgmt_resources --version='~> 0.3.0'")
+          on(host, "#{gem_command} install azure_mgmt_storage --version='~> 0.3.0'")
           on(host, "#{gem_command} install azure --version='~> 0.7.0'")
         end
       end
@@ -210,23 +210,20 @@ class AzureARMHelper
   end
 
   def list_resource_providers
-    promise = AzureARMHelper.resource_client.providers.list
-    promise.value!.body.value
+    AzureARMHelper.resource_client.providers.list
   end
 
   def get_resource_group(name)
-    resource_groups = AzureARMHelper.resource_client.resource_groups.list.value!.body
+    resource_groups = AzureARMHelper.resource_client.resource_groups.list
     resource_groups.value.find { |x| x.name == name }
   end
 
   def destroy_resource_group(resource_group_name)
-    promise = AzureARMHelper.resource_client.resource_groups.delete(resource_group_name)
-    promise.value!.body
+    AzureARMHelper.resource_client.resource_groups.begin_delete(resource_group_name)
   end
 
   def list_storage_accounts
-    promise = AzureARMHelper.storage_client.storage_accounts.list
-    promise.value!.body.value
+    AzureARMHelper.storage_client.storage_accounts.list.value
   end
 
   def get_storage_account(name)
@@ -235,14 +232,13 @@ class AzureARMHelper
   end
 
   def destroy_storage_account(resource_group_name, name)
-    promise = AzureARMHelper.storage_client.storage_accounts.delete(resource_group_name, name)
-    promise.value!.body
+    AzureARMHelper.storage_client.storage_accounts.delete(resource_group_name, name)
   end
 
   def get_all_vms
-    vms = AzureARMHelper.compute_client.virtual_machines.list_all.value!.body.value
+    vms = AzureARMHelper.compute_client.virtual_machines.list_all.value
     vms.collect do |vm|
-      AzureARMHelper.compute_client.virtual_machines.get(get_resource_group_from(vm), vm.name, 'instanceView').value!.body
+      AzureARMHelper.compute_client.virtual_machines.get(get_resource_group_from(vm), vm.name, 'instanceView')
     end
   end
 

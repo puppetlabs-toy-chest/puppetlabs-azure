@@ -41,7 +41,7 @@ module PuppetX
         end
 
         def self.network_client
-          @network_client ||= ProviderArm.with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(ProviderArm.credentials)
+          @network_client ||= ProviderArm.with_subscription_id ::Azure::ARM::Network::NetworkManagementClient.new(ProviderArm.credentials)
         end
 
         def self.storage_client
@@ -59,7 +59,7 @@ module PuppetX
             create_resource_group(args)
             create_storage_account(args)
             params = build_params(args)
-            ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!
+            ProviderArm.compute_client.virtual_machines.begin_create_or_update(args[:resource_group], args[:name], params)
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -71,7 +71,7 @@ module PuppetX
 
         def delete_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name).value!
+            ProviderArm.compute_client.virtual_machines.begin_delete(resource_group, machine.name)
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -83,7 +83,7 @@ module PuppetX
 
         def stop_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name).value!
+            ProviderArm.compute_client.virtual_machines.begin_power_off(resource_group, machine.name)
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -95,7 +95,7 @@ module PuppetX
 
         def start_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name).value!
+            ProviderArm.compute_client.virtual_machines.begin_start(resource_group, machine.name)
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -107,9 +107,15 @@ module PuppetX
 
         def get_all_vms # rubocop:disable Metrics/AbcSize
           begin
-            vms = ProviderArm.compute_client.virtual_machines.list_all.value!.body.value
+            vms = []
+            result = ProviderArm.compute_client.virtual_machines.list_all
+            vms += result.value
+            while ! result.next_link.nil? and ! result.next_link.empty? do
+              result = ProviderArm.compute_client.virtual_machines.list_all_next(result.next_link)
+              vms += result.value
+            end
             vms.collect do |vm|
-              ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView').value!.body
+              ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView')
             end
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
@@ -138,49 +144,43 @@ module PuppetX
         end
 
         def register_azure_provider(name)
-          ProviderArm.resource_client.providers.register(name).value!.body
+          ProviderArm.resource_client.providers.register(name)
         end
 
         def create_resource_group(args)
           params = ::Azure::ARM::Resources::Models::ResourceGroup.new
           params.location = args[:location]
-          promise = ProviderArm.resource_client.resource_groups.create_or_update(args[:resource_group], params)
-          promise.value!.body
+          ProviderArm.resource_client.resource_groups.create_or_update(args[:resource_group], params)
         end
 
         def create_storage_account(args)
           params = build_storage_account_create_parameters(args)
-          promise = ProviderArm.storage_client.storage_accounts.create(args[:resource_group], args[:storage_account], params)
-          result = promise.value!.body
-          result.name = args[:storage_account]
-          result
+          ProviderArm.storage_client.storage_accounts.begin_create(args[:resource_group], args[:storage_account], params)
         end
 
         def create_virtual_network(args)
           params = build_virtual_network_params(args)
-          promise = ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params)
-          promise.value!.body
+          ProviderArm.network_client.virtual_networks.begin_create_or_update(args[:resource_group], args[:virtual_network_name], params)
         end
 
         def create_public_ip_address(args)
           params = build_public_ip_params(args)
-          promise = ProviderArm.network_client.public_ip_addresses.create_or_update(args[:resource_group], args[:public_ip_address_name], params)
-          promise.value!.body
+          ProviderArm.network_client.public_ipaddresses.begin_create_or_update(args[:resource_group], args[:public_ip_address_name], params)
         end
 
         def create_subnet(virtual_network, args)
           params = build_subnet_params(args)
-          ProviderArm.network_client.subnets.create_or_update(
+          ProviderArm.network_client.subnets.begin_create_or_update(
             args[:resource_group],
             virtual_network.name,
             args[:subnet_name],
             params
-          ).value!.body
+          )
         end
 
         def create_network_interface(args, subnet)
           params = build_network_interface_param(args, subnet)
-          ProviderArm.network_client.network_interfaces.create_or_update(args[:resource_group], params.name, params).value!.body
+          ProviderArm.network_client.network_interfaces.begin_create_or_update(args[:resource_group], params.name, params)
         end
 
         def build(klass, data={})
@@ -208,9 +208,9 @@ module PuppetX
         def build_storage_account_create_parameters(args)
           build(::Azure::ARM::Storage::Models::StorageAccountCreateParameters, {
             location: args[:location],
-            name: args[:storage_account],
-            properties: build(::Azure::ARM::Storage::Models::StorageAccountPropertiesCreateParameters, {
-              account_type: args[:storage_account_type],
+            kind: ::Azure::ARM::Storage::Models::Kind::Storage, # TODO Or BlobStorage
+            sku: build(::Azure::ARM::Storage::Models::Sku, {
+              name: args[:storage_account_type],
             })
           })
         end
@@ -230,11 +230,11 @@ module PuppetX
         end
 
         def build_public_ip_params(args)
-          build(::Azure::ARM::Network::Models::PublicIpAddress, {
+          build(::Azure::ARM::Network::Models::PublicIPAddress, {
             location: args[:location],
-            properties: build(::Azure::ARM::Network::Models::PublicIpAddressPropertiesFormat, {
+            properties: build(::Azure::ARM::Network::Models::PublicIPAddressPropertiesFormat, {
               public_ipallocation_method: args[:public_ip_allocation_method],
-              dns_settings: build(::Azure::ARM::Network::Models::PublicIpAddressDnsSettings, {
+              dns_settings: build(::Azure::ARM::Network::Models::PublicIPAddressDnsSettings, {
                 domain_name_label: args[:dns_domain_name],
               })
             })
@@ -274,9 +274,9 @@ module PuppetX
             location: args[:location],
             name: args[:network_interface_name],
             properties: build(::Azure::ARM::Network::Models::NetworkInterfacePropertiesFormat, {
-              ip_configurations: [build(::Azure::ARM::Network::Models::NetworkInterfaceIpConfiguration, {
+              ip_configurations: [build(::Azure::ARM::Network::Models::NetworkInterfaceIPConfiguration, {
                 name: args[:ip_configuration_name],
-                properties: build(::Azure::ARM::Network::Models::NetworkInterfaceIpConfigurationPropertiesFormat, {
+                properties: build(::Azure::ARM::Network::Models::NetworkInterfaceIPConfigurationPropertiesFormat, {
                   private_ipallocation_method: args[:private_ip_allocation_method],
                   public_ipaddress: create_public_ip_address(args),
                   subnet: subnet,
