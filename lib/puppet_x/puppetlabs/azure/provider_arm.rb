@@ -105,6 +105,27 @@ module PuppetX
           end
         end
 
+        def get_all_rgs # rubocop:disable Metrics/AbcSize
+          begin
+            rgs = []
+            result = ProviderArm.resource_client.resource_groups.list
+            rgs += result.value
+            while ! result.next_link.nil? and ! result.next_link.empty? do
+              result = ProviderArm.resource_client.resource_groups.list_next(result.next_link)
+              rgs += result.value
+            end
+            rgs.collect do |rg|
+              ProviderArm.resource_client.resource_groups.get(rg.name)
+            end
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def get_all_vms # rubocop:disable Metrics/AbcSize
           begin
             vms = []
@@ -151,6 +172,18 @@ module PuppetX
           params = ::Azure::ARM::Resources::Models::ResourceGroup.new
           params.location = args[:location]
           ProviderArm.resource_client.resource_groups.create_or_update(args[:resource_group], params)
+        end
+
+        def delete_resource_group(rg)
+          begin
+            ProviderArm.resource_client.resource_groups.begin_delete(rg.name)
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def create_storage_account(args)
