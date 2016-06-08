@@ -22,7 +22,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         os_disk_create_option: 'FromImage',
         os_disk_vhd_container_name: 'conttest1',
         os_disk_vhd_name: 'osvhdtest1',
-        dns_domain_name: 'mydomain01',
+        dns_domain_name: 'puppetspecdomain01',
         dns_servers: '10.1.1.1 10.1.2.4',
         public_ip_allocation_method: 'Dynamic',
         public_ip_address_name: 'ip_name_test01pubip',
