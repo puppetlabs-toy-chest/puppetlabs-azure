@@ -63,14 +63,20 @@ module PuppetX
 
         private
         def machine
-          vm = if @property_hash[:object]
-                 @property_hash[:object]
-               else
-                 Puppet.debug("Looking up #{name}")
-                 get_vm(name)
-               end
-          raise Puppet::Error, "No virtual machine called #{name}" unless vm
-          vm
+          object(:vm)
+        end
+        def resource_group
+          object(:resource_group)
+        end
+        def object(type)
+          obj = if @property_hash[:object]
+                  @property_hash[:object]
+                else
+                  Puppet.debug("Looking up #{name}")
+                  self.send("get_#{type}", name)
+                end
+          raise Puppet::Error, "No #{type} called #{name}" unless obj
+          obj
         end
       end
     end
