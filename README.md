@@ -84,10 +84,10 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    ~~~
    /opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
    /opt/puppetlabs/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.1.0' --no-ri --no-rdoc
-   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.1.0' --no-ri --no-rdoc
-   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.1.0' --no-ri --no-rdoc
-   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.1.0' --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.3.0' --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.3.0' --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.3.0' --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.3.0' --no-ri --no-rdoc
    /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
    ~~~
 
@@ -96,10 +96,10 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    ~~~
    gem install retries --no-ri --no-rdoc
    gem install azure --version="~>0.7.0" --no-ri --no-rdoc
-   gem install azure_mgmt_compute --version="~>0.1.0" --no-ri --no-rdoc
-   gem install azure_mgmt_storage --version="~>0.1.0" --no-ri --no-rdoc
-   gem install azure_mgmt_resources --version="~>0.1.0" --no-ri --no-rdoc
-   gem install azure_mgmt_network --version="~>0.1.0" --no-ri --no-rdoc
+   gem install azure_mgmt_compute --version="~>0.3.0" --no-ri --no-rdoc
+   gem install azure_mgmt_storage --version="~>0.3.0" --no-ri --no-rdoc
+   gem install azure_mgmt_resources --version="~>0.3.0" --no-ri --no-rdoc
+   gem install azure_mgmt_network --version="~>0.3.0" --no-ri --no-rdoc
    gem install hocon --version="~>1.0.0" --no-ri --no-rdoc
    ~~~
 
@@ -108,10 +108,10 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    ~~~
    /opt/puppet/bin/gem install retries --no-ri --no-rdoc
    /opt/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-   /opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.1.0' --no-ri --no-rdoc
-   /opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.1.0' --no-ri --no-rdoc
-   /opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.1.0' --no-ri --no-rdoc
-   /opt/puppet/bin/gem install azure_mgmt_network --version='~>0.1.0' --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.3.0' --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.3.0' --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.3.0' --no-ri --no-rdoc
+   /opt/puppet/bin/gem install azure_mgmt_network --version='~>0.3.0' --no-ri --no-rdoc
    /opt/puppet/bin/gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
    ~~~
 
