@@ -21,6 +21,7 @@ group :test do
   gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
   gem 'parallel_tests'
+  gem 'listen', '~> 3.0.0'
 end
 
 group :development do
