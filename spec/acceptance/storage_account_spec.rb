@@ -5,6 +5,8 @@ describe 'azure_storage_account when creating a storage account' do
   include_context 'destroy left-over created ARM resources after use'
 
   before(:all) do
+    @client = AzureARMHelper.new
+    @name = @client.get_simple_name(@name)
     @config = {
       name: @name,
       ensure: 'present',
@@ -16,7 +18,6 @@ describe 'azure_storage_account when creating a storage account' do
       },
     }
     @template = 'azure_storage_account.pp.tmpl'
-    @client = AzureARMHelper.new
     @manifest = PuppetManifest.new(@template, @config)
     @result = @manifest.execute
     @machine = @client.get_storage_account(@name)
@@ -42,7 +43,7 @@ describe 'azure_storage_account when creating a storage account' do
       new_config = @config.update({:ensure => 'absent'})
       manifest = PuppetManifest.new(@template, new_config)
       @result = manifest.execute
-      @machine = @client.get_storage_account(@name.downcase)
+      @machine = @client.get_storage_account(@name)
     end
 
     it 'should run without errors' do
