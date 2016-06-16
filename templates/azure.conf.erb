@@ -1,0 +1,17 @@
+azure: {
+<% if @subscription_id -%>
+  subscription_id: "<%= @subscription_id %>"
+<% end -%>
+<% if @management_certificate -%>
+  management_certificate: "<%= @management_certificate %>"
+<% end -%>
+<% if @tenant_id -%>
+  tenant_id: "<%= @tenant_id %>"
+<% end -%>
+<% if @client_id -%>
+  client_id: "<%= @client_id %>"
+<% end -%>
+<% if @client_secret -%>
+  client_secret: "<%= @client_secret %>"
+<% end -%>
+}
