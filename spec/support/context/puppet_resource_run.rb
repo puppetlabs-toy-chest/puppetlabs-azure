@@ -8,9 +8,9 @@ shared_context 'a puppet resource run' do
   end
 end
 
-shared_context 'a puppet ARM resource run' do |type='azure_vm'|
+shared_context 'a puppet ARM resource run' do
   before(:all) do
-    @result = resource(type, @name, beaker_opts)
+    @result = resource('azure_vm', @name, beaker_opts)
   end
 
   it 'should not return an error' do
