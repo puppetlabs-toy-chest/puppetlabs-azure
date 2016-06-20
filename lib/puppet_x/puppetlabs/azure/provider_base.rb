@@ -68,9 +68,6 @@ module PuppetX
         def resource_group
           object(:resource_group)
         end
-        def storage_account
-          object(:storage_account)
-        end
         def object(type)
           obj = if @property_hash[:object]
                   @property_hash[:object]
