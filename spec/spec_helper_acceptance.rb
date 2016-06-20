@@ -246,10 +246,6 @@ class AzureARMHelper
     machine.id.split('/')[4].downcase
   end
 
-  def get_simple_name(value)
-    value.downcase.gsub(/[^0-9a-z]/i, '')
-  end
-
   def get_vm(name)
     get_all_vms.find { |vm| vm.name == name }
   end

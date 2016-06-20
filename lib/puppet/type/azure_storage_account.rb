@@ -16,7 +16,7 @@ Puppet::Type.newtype(:azure_storage_account) do
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
-      if self[:ensure] == :present and self[property].nil? and self.provider.send(property) == :absent
+      if self[:ensure] != :absent and self[property].nil? and self.provider.send(property) == :absent
         fail "You must provide a #{property}"
       end
     end
@@ -27,10 +27,6 @@ Puppet::Type.newtype(:azure_storage_account) do
     validate do |value|
       super value
       fail 'the name must not be empty' if value.empty?
-      fail("The name must be between 3 and 24 characters in length") if value.size > 24 or value.size < 3
-    end
-    def insync?(is)
-      is.downcase == should.downcase
     end
   end
 
