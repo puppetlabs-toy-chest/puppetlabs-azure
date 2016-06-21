@@ -115,8 +115,9 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    /opt/puppet/bin/gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
    ~~~
 
-**Note:** Azure gem installs must be pinned to the correct version detailed in the example above in order for the puppetlabs-azure module to work properly.
-**Note:** Example pins the hocon gem version to prevent possible incompatibilities.
+   **Note:** Azure gem installs must be pinned to the correct version detailed in the example above in order for the puppetlabs-azure module to work properly.
+
+   **Note:** Example pins the hocon gem version to prevent possible incompatibilities.
 
 2. Set the following environment variables specific to your Azure
    installation:
@@ -130,6 +131,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
 
    At a Windows cmd prompt, this should be specified like:
 
+   **Note:** Do not use quotes around any of the values specified below.
    ~~~
    SET AZURE_MANAGEMENT_CERTIFICATE=C:\Path\To\file.pem
    SET AZURE_SUBSCRIPTION_ID=your-subscription-id
@@ -146,6 +148,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
 
    At a Windows cmd prompt, this should be specified like:
 
+   **Note:** Do not use quotes around any of the values specified below.
    ~~~
    SET AZURE_SUBSCRIPTION_ID=your-subscription-id
    SET AZURE_TENANT_ID=your-tenant-id
