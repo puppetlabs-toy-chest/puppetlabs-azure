@@ -22,7 +22,7 @@ Puppet::Type.newtype(:azure_vm) do
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
-      if self[property].nil? and self.provider.send(property) == :absent
+      if self[:ensure] == :present and self[property].nil? and self.provider.send(property) == :absent
         fail "You must provide a #{property}"
       end
     end
