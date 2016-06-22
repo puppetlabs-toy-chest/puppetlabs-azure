@@ -207,7 +207,10 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
 
 ### Create Azure VMs
 
-You can create Azure Virtual Machines using the following:
+Azure has two modes for deployment: Classic and Resource Manager. For more information, see [Azure Resource Manager vs. classic deployment: Understand deployment models and the state of your resources](https://azure.microsoft.com/en-us/documentation/articles/resource-manager-deployment-model/). The module supports creating VMs in both deployment modes.
+
+#### Classic
+You can create Azure Classic Virtual Machines using the following:
 
 ~~~puppet
 azure_vm_classic { 'virtual-machine-name':
@@ -217,6 +220,91 @@ azure_vm_classic { 'virtual-machine-name':
   user             => 'username',
   size             => 'Medium',
   private_key_file => '/path/to/private/key',
+}
+~~~
+
+#### Resource Manager
+You can create Azure Resource Manager Virtual Machines using the following:
+
+~~~puppet
+azure_vm { 'sample':
+  ensure         => present,
+  location       => 'eastus',
+  image          => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user           => 'azureuser',
+  password       => 'Password_!',
+  size           => 'Standard_A0',
+  resource_group => 'testresacc01',
+}
+~~~
+
+You can also add a [virtual machine extension](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-extensions-features/) to the VM:
+
+~~~puppet
+azure_vm { 'sample':
+  ensure         => present,
+  location       => 'eastus',
+  image          => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user           => 'azureuser',
+  password       => 'Password_!',
+  size           => 'Standard_A0',
+  resource_group => 'testresacc01',
+  extensions     => {
+    'CustomScriptForLinux' => {
+       'auto_upgrade_minor_version' => false,
+       'publisher'                  => 'Microsoft.OSTCExtensions',
+       'type'                       => 'CustomScriptForLinux',
+       'type_handler_version'       => '1.4',
+       'settings'                   => {
+         'commandToExecute' => 'sh script.sh',
+         'fileUris'         => ['https://myAzureStorageAccount.blob.core.windows.net/pathToScript']
+       },
+     },
+  },
+}
+~~~
+
+
+This type also has lots of other properties you can manage:
+
+~~~puppet
+azure_vm { 'sample':
+  location                      => 'eastus',
+  image                         => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user                          => 'azureuser',
+  password                      => 'Password',
+  size                          => 'Standard_A0',
+  resource_group                => 'testresacc01',
+  storage_account               => 'teststoracc01',
+  storage_account_type          => 'Standard_GRS',
+  os_disk_name                  => 'osdisk01',
+  os_disk_caching               => 'ReadWrite',
+  os_disk_create_option         => 'fromImage',
+  os_disk_vhd_container_name    => 'conttest1',
+  os_disk_vhd_name              => 'vhdtest1',
+  dns_domain_name               => 'mydomain01',
+  dns_servers                   => '10.1.1.1.1 10.1.2.4',
+  public_ip_allocation_method   => 'Dynamic',
+  public_ip_address_name        => 'ip_name_test01pubip',
+  virtual_network_name          => 'vnettest01',
+  virtual_network_address_space => '10.0.0.0/16',
+  subnet_name                   => 'subnet111',
+  subnet_address_prefix         => '10.0.2.0/24',
+  ip_configuration_name         => 'ip_config_test01',
+  private_ip_allocation_method  => 'Dynamic',
+  network_interface_name        => 'nicspec01',
+  extensions     => {
+    'CustomScriptForLinux' => {
+       'auto_upgrade_minor_version' => false,
+       'publisher'                  => 'Microsoft.OSTCExtensions',
+       'type'                       => 'CustomScriptForLinux',
+       'type_handler_version'       => '1.4',
+       'settings'                   => {
+         'commandToExecute' => 'sh script.sh',
+         'fileUris'         => ['https://myAzureStorageAccount.blob.core.windows.net/pathToScript']
+       },
+     },
+  },
 }
 ~~~
 
@@ -247,58 +335,14 @@ azure_vm_classic { 'virtual-machine-name':
 }
 ~~~
 
-Azure management with azure_vm.
-
-You can create an Azure Virtual Machine with the Azure ARM API with the following:
-
-~~~puppet
-azure_vm { 'sample':
-  ensure         => present,
-  location       => 'eastus',
-  image          => 'canonical:ubuntuserver:14.04.2-LTS:latest',
-  user           => 'azureuser',
-  password       => 'Password',
-  size           => 'Standard_A0',
-  resource_group => 'testresacc01',
-}
-~~~
-
-This type also has lots of other properties you can manage:
-
-~~~puppet
-azure_vm { 'sample':
-  location                      => 'eastus',
-  image                         => 'canonical:ubuntuserver:14.04.2-LTS:latest',
-  user                          => 'azureuser',
-  password                      => 'Password',
-  size                          => 'Standard_A0',
-  resource_group                => 'testresacc01',
-  storage_account               => 'teststoracc01',
-  storage_account_type          => 'Standard_GRS',
-  os_disk_name                  => 'osdisk01',
-  os_disk_caching               => 'ReadWrite',
-  os_disk_create_option         => 'fromImage',
-  os_disk_vhd_container_name    => 'conttest1',
-  os_disk_vhd_name              => 'vhdtest1',
-  dns_domain_name               => 'mydomain01',
-  dns_servers                   => '10.1.1.1.1 10.1.2.4',
-  public_ip_allocation_method   => 'Dynamic',
-  public_ip_address_name        => 'ip_name_test01pubip',
-  virtual_network_name          => 'vnettest01',
-  virtual_network_address_space => '10.0.0.0/16',
-  subnet_name                   => 'subnet111',
-  subnet_address_prefix         => '10.0.2.0/24',
-  ip_configuration_name         => 'ip_config_test01',
-  private_ip_allocation_method  => 'Dynamic',
-  network_interface_name        => 'nicspec01',
-}
-~~~
-
-In addition to describing new machines using the DSL the module also supports
-listing and managing machines via `puppet resource`:
+Same command for Azure Resource Manager:
 
 ~~~
 $ puppet resource azure_vm
+~~~
+
+Lists Azure Resource Manager VMs:
+~~~puppet
 azure_vm { 'sample':
   location         => 'eastus',
   image            => 'canonical:ubuntuserver:14.04.2-LTS:latest',
@@ -308,6 +352,7 @@ azure_vm { 'sample':
   resource_group   => 'testresacc01',
 }
 ~~~
+
 
 
 ## Reference
@@ -601,6 +646,27 @@ Defaults to `Dynamic`.
 
 #####`network_interface_name`
 The Network Interface Controller (nic) name for the virtual machine.
+
+#####`extensions`
+The extension to configure on the VM. Supports the following parameters:
+
+#####`publisher`
+The name of the publisher of the extension.
+
+#####`type`
+The type of the extension (e.g. CustomScriptExtension).
+
+#####`type_handler_version`
+The version of the extension to use.
+
+#####`settings`
+The settings specific to an extension (e.g. CommandsToExecute).
+
+#####`protected_settings`
+The settings specific to an extension that are encrypted before passing to the VM.
+
+#####`auto_upgrade_minor_version`
+Indicates whether extension should automatically upgrade to latest minor version.
 
 ##Known Issues
 
