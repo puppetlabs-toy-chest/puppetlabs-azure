@@ -355,7 +355,7 @@ azure_vm { 'sample':
 
 ## Create Azure Storage Accounts
 
-You can create a Storage Account using the following:
+You can create a [Storage Account](https://azure.microsoft.com/en-us/documentation/articles/storage-create-storage-account/) using the following:
 
 ~~~puppet
 azure_storage_account { 'myStorageAccount':
@@ -367,6 +367,18 @@ azure_storage_account { 'myStorageAccount':
 ~~~
 **Note:** Storage Accounts are created with Azure Resource Manager API only.
 
+## Create Azure Resource Groups
+
+You can create a [Resource Group](https://azure.microsoft.com/en-us/documentation/articles/resource-group-overview/#resource-groups) using the following:
+
+~~~puppet
+azure_resource_group { 'testresacc01':
+  ensure         => present,
+  location       => 'eastus',
+}
+~~~
+**Note:** Resource Groups are created with Azure Resource Manager API only.
+
 ## Reference
 
 ### Types
@@ -374,6 +386,7 @@ azure_storage_account { 'myStorageAccount':
 * `azure_vm_classic`: Manages a virtual machine in Microsoft Azure with Classic Service Management API.
 * `azure_vm`: Manages a virtual machine in Microsoft Azure with Azure Resource Manager API.
 * `azure_storage_account`: Manages a Storage Account with Azure Resource Manager API.
+* `azure_resource_group`: Manages a Resource Group with Azure Resource Manager API.
 
 ### Parameters
 
@@ -708,6 +721,18 @@ Defaults to `Standard_GRS`.
 The kind of storage account. This indicates whether the storage account is general `Storage` or `BlobStorage`.
 Defaults to `Storage`.
 
+#### Type: azure_resource_group
+
+##### `ensure`
+Specifies the basic state of the resource group. Valid values are 'present' and 'absent'. Defaults to 'present'.
+
+##### `name`
+*Required* The name of the resource group. Must be no longer than 80 characters long. It can contain only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
+
+##### `location`
+*Required* The location where the resource group will be created. Details of
+available values can be found on the [Azure
+regions documentation](http://azure.microsoft.com/en-gb/regions/).
 
 ## Known Issues
 
