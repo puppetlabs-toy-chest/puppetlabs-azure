@@ -673,25 +673,42 @@ Defaults to `Dynamic`.
 ##### `network_interface_name`
 The Network Interface Controller (nic) name for the virtual machine.
 
-##### `extensions`
-The extension to configure on the VM. Supports the following parameters:
+### `extensions`
+The extension to configure on the VM. Azure VM Extensions implement behaviors or features that either help other programs work on Azure VMs. You can optionally configure this parameter to include an extension. As an example:  
 
-##### `publisher`
+~~~puppet
+extensions     => {
+  'CustomScriptForLinux' => {
+     'auto_upgrade_minor_version' => false,
+     'publisher'                  => 'Microsoft.OSTCExtensions',
+     'type'                       => 'CustomScriptForLinux',
+     'type_handler_version'       => '1.4',
+     'settings'                   => {
+       'commandToExecute' => 'sh script.sh',
+       'fileUris'         => ['https://myAzureStorageAccount.blob.core.windows.net/pathToScript']
+     },
+   },
+},
+~~~
+
+For more information on VM Extensions, see [About virtual machine extensions and features](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-extensions-features/). Azure VM Extensions support the following parameters:
+
+###### `publisher`
 The name of the publisher of the extension.
 
-##### `type`
+###### `type`
 The type of the extension (e.g. CustomScriptExtension).
 
-##### `type_handler_version`
+###### `type_handler_version`
 The version of the extension to use.
 
-##### `settings`
+###### `settings`
 The settings specific to an extension (e.g. CommandsToExecute).
 
-##### `protected_settings`
+###### `protected_settings`
 The settings specific to an extension that are encrypted before passing to the VM.
 
-##### `auto_upgrade_minor_version`
+###### `auto_upgrade_minor_version`
 Indicates whether extension should automatically upgrade to latest minor version.
 
 #### Type: azure_storage_account
