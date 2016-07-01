@@ -59,7 +59,7 @@ module PuppetX
             create_resource_group(args)
             create_storage_account(args)
             params = build_params(args)
-            ProviderArm.compute_client.virtual_machines.begin_create_or_update(args[:resource_group], args[:name], params)
+            ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!.body
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -71,7 +71,7 @@ module PuppetX
 
         def delete_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.begin_delete(resource_group, machine.name)
+            ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name).value!.body
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -83,7 +83,7 @@ module PuppetX
 
         def stop_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.begin_power_off(resource_group, machine.name)
+            ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name).value!.body
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -95,7 +95,7 @@ module PuppetX
 
         def start_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.begin_start(resource_group, machine.name)
+            ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name).value!.body
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -155,32 +155,32 @@ module PuppetX
 
         def create_storage_account(args)
           params = build_storage_account_create_parameters(args)
-          ProviderArm.storage_client.storage_accounts.begin_create(args[:resource_group], args[:storage_account], params)
+          ProviderArm.storage_client.storage_accounts.create(args[:resource_group], args[:storage_account], params).value!.body
         end
 
         def create_virtual_network(args)
           params = build_virtual_network_params(args)
-          ProviderArm.network_client.virtual_networks.begin_create_or_update(args[:resource_group], args[:virtual_network_name], params)
+          ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params).value!.body
         end
 
         def create_public_ip_address(args)
           params = build_public_ip_params(args)
-          ProviderArm.network_client.public_ipaddresses.begin_create_or_update(args[:resource_group], args[:public_ip_address_name], params)
+          ProviderArm.network_client.public_ipaddresses.create_or_update(args[:resource_group], args[:public_ip_address_name], params).value!.body
         end
 
         def create_subnet(virtual_network, args)
           params = build_subnet_params(args)
-          ProviderArm.network_client.subnets.begin_create_or_update(
+          ProviderArm.network_client.subnets.create_or_update(
             args[:resource_group],
             virtual_network.name,
             args[:subnet_name],
             params
-          )
+          ).value!.body
         end
 
         def create_network_interface(args, subnet)
           params = build_network_interface_param(args, subnet)
-          ProviderArm.network_client.network_interfaces.begin_create_or_update(args[:resource_group], params.name, params)
+          ProviderArm.network_client.network_interfaces.create_or_update(args[:resource_group], params.name, params).value!.body
         end
 
         def build(klass, data={})
