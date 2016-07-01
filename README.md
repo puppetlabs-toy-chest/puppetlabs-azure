@@ -79,7 +79,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
 
 ### Installing the Azure module
 
-1. Install the required gems with this command on Puppet Enterprise 2015.2.0 (puppet-agent 1.2) or later:
+1. Install the required gems with this command on `puppet-agent` 1.2 (included in Puppet Enterprise 2015.2.0) or later:
 
    ~~~
    /opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
@@ -103,7 +103,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    gem install hocon --version="~>1.0.0" --no-ri --no-rdoc
    ~~~
 
-   On versions of Puppet Enterprise older than 2015.2.0, use the older path to the `gem` binary:
+   On versions of `puppet agent` older than 1.2 (Puppet Enterprise 2015.2.0), use the older path to the `gem` binary:
 
    ~~~
    /opt/puppet/bin/gem install retries --no-ri --no-rdoc
@@ -760,7 +760,7 @@ regions documentation](http://azure.microsoft.com/en-gb/regions/).
 In order for the puppetlabs-azure module to work, all [azure gems](#installing-the-azure-module) must be installed successfully. There is a known issue where these gems fail to install if [nokogiri](http://www.nokogiri.org/tutorials/installing_nokogiri.html) failed to install.
 
 ## Limitations
-Due to a Ruby Azure SDK dependency on the nokogiri gem, running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) and newer.  In that situation, the correct version of nokogiri will be installed when performing the `gem install azure` command mentioned in [Installing the Azure module](#installing-the-azure-module).
+Due to a Ruby Azure SDK dependency on the nokogiri gem, running the module on a Windows Agent is only supported with puppet-agent 1.3.0 (included as part of Puppet Enterprise 2015.3) and newer.  In that situation, the correct version of nokogiri will be installed when performing the `gem install azure` command mentioned in [Installing the Azure module](#installing-the-azure-module).
 
 ## Development
 
