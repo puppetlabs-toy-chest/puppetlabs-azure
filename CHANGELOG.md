@@ -6,6 +6,13 @@ fixes a bug for Azure::Core
 ### Fixed
 - Update to 0.3.0 version of azure\_mgmt\* gems
 - Fix Azure::Core require
+- Fix paging of REST when lots of VMs
+- Fix puppet resource failing validation
+- Fix docs mentioning incorrect quoting in azure.conf
+- Fix bundlered listen gem failing on older rubies
+- Fix lint warnings in examples/\*.pp
+- Add Debian 8 to metadata
+- Fix domain to be spec-specific
 
 ## Supported Version 1.0.2
 
