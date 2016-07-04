@@ -78,7 +78,7 @@ Puppet::Type.newtype(:azure_vm) do
       fail("the image name must not be empty") if value.empty?
     end
     def insync?(is)
-      is.downcase == should.downcase
+      is.casecmp(should).zero?
     end
   end
 
@@ -118,7 +118,7 @@ Puppet::Type.newtype(:azure_vm) do
       fail("the resource group must be less that 65 characters in length") if value.size > 64
     end
     def insync?(is)
-      is.downcase == should.downcase
+      is.casecmp(should).zero?
     end
   end
 

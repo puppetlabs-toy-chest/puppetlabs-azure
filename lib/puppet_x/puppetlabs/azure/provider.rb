@@ -27,7 +27,7 @@ module PuppetX
           Puppet.debug("Couldn't load azure SDK")
         end
 
-        def self.auth(&client) # rubocop:disable Metrics/AbcSize
+        def self.auth(&client)
           unless @authenticated
             if ! File.file?(self.config.management_certificate)
               raise Puppet::Error, "Azure management_certificate does not exist [#{self.config.management_certificate}]"
@@ -88,7 +88,8 @@ module PuppetX
               disk_label: "data-disk-for-#{vm_name}",
               disk_size: data_disk_size_gb,
               import: false,
-            })
+            }
+          )
         end
 
         def adding_role?(cloud_service_name)
@@ -150,7 +151,8 @@ module PuppetX
                          # The following errors can occur when there are network issues
                          Errno::ECONNREFUSED,
                          Errno::ECONNRESET,
-                         Errno::ETIMEDOUT,]) do
+                         Errno::ETIMEDOUT,
+                       ]) do
             Puppet.debug("Trying to deleting disk #{disk_name}")
             begin
               Provider.disk_manager.delete_virtual_machine_disk(disk_name)
@@ -158,6 +160,10 @@ module PuppetX
                 Puppet.debug("Disk was not deleted. Retrying to deleting disk #{disk_name}")
                 raise NotFinished.new
               end
+            rescue NotFinished
+              raise
+            rescue ::Azure::Core::Error
+              raise
             rescue RuntimeError => err
               # The disk may already be in the process of being deleted by Azure,
               # therefore we might have lost that race
@@ -171,10 +177,6 @@ module PuppetX
               else
                 raise
               end
-            rescue NotFinished
-              raise
-            rescue ::Azure::Core::Error
-              raise
             rescue => err
               # Sometimes azure throws weird ConflictErrors that do not seem to be
               # ::Azure::Core::Error . Of course as soon as I added these debugs

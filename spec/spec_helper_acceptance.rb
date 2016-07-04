@@ -29,15 +29,15 @@ require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
-CHEAPEST_AZURE_LOCATION="East US"
+CHEAPEST_AZURE_LOCATION="East US".freeze
 
-UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
-WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'
+UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'.freeze
 
-CERT_FILE='azure_cert.pem'
-WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}"
-LINUX_AZURE_CERT="/tmp/#{CERT_FILE}"
-WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}"
+CERT_FILE='azure_cert.pem'.freeze
+WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}".freeze
+LINUX_AZURE_CERT="/tmp/#{CERT_FILE}".freeze
+WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}".freeze
 
 # windows module install path
 # /cygdrive/c/ProgramData/PuppetLabs/code/modules
@@ -419,18 +419,17 @@ end
 
 def beaker_opts
   azure_cert = is_windows? ? WINDOWS_DOS_FORMAT_AZURE_CERT : LINUX_AZURE_CERT
-  @env ||=
-  {
-    debug: true,
-    trace: true,
-    environment: {
-      'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
-      'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
-      'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
-      'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
-      'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
+  @env ||= {
+      debug: true,
+      trace: true,
+      environment: {
+        'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
+        'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
+        'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
+        'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+        'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
+      }
     }
-  }
 end
 
 def is_windows?(host = nil)

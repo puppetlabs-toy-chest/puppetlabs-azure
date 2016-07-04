@@ -8,7 +8,7 @@ module PuppetX
         REQUIRED = {
           names: [:subscription_id, :management_certificate],
           envs: ['AZURE_MANAGEMENT_CERTIFICATE', 'AZURE_SUBSCRIPTION_ID'],
-        }
+        }.freeze
 
         attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret
 

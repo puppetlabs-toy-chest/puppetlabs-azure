@@ -44,7 +44,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
   end
 
   it 'should have the correct SSH port' do
-    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name].downcase == 'ssh' }
+    ssh_endpoint = @machine.tcp_endpoints.find { |endpoint| endpoint[:name].casecmp('ssh').zero? }
     expect(ssh_endpoint).not_to be_nil
     expect(ssh_endpoint[:public_port].to_i).to eq(22)
   end
