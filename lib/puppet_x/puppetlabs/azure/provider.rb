@@ -29,8 +29,9 @@ module PuppetX
 
         def self.auth(&client)
           unless @authenticated
-            if ! File.file?(self.config.management_certificate)
-              raise Puppet::Error, "Azure management_certificate does not exist [#{self.config.management_certificate}]"
+            cert_file = self.config.management_certificate
+            unless cert_file && File.file?(cert_file)
+              raise Puppet::Error, "Azure management certificate does not exist [#{self.config.management_certificate}]. Please set AZURE_MANAGEMENT_CERTIFICATE environment variable, or management_certificate config entry to the full path."
             end
             Puppet.debug("Using management certificate at [#{self.config.management_certificate}]")
             ::Azure.subscription_id = self.config.subscription_id

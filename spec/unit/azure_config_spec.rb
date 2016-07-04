@@ -20,7 +20,7 @@ end
 def create_incomplete_config_file(path, config)
   file_contents = %{
 azure: {
-  subscription_id: #{config[:subscription_id]}
+  tenant_id: #{config[:tenant_id]}
 }
   }
   File.open(path, 'w') { |f| f.write(file_contents) }
@@ -127,21 +127,20 @@ describe PuppetX::Puppetlabs::Azure::Config do
 
   context 'with incomplete configuration in environment variables' do
     before(:all) do
-      ENV['AZURE_SUBSCRIPTION_ID'] = 'abcv123'
-      ENV['AZURE_MANAGEMENT_CERTIFICATE'] = nil
+      ENV['AZURE_SUBSCRIPTION_ID'] = nil
     end
 
     it 'should raise an error about the missing variables' do
       expect do
         PuppetX::Puppetlabs::Azure::Config.new
-      end.to raise_error(Puppet::Error, /To use this module you must provide the following settings: management_certificate/)
+      end.to raise_error(Puppet::Error, /You must provide credentials in either environment variables or a config file./)
     end
   end
 
   context 'with no environment variables and an incomplete config file' do
     before(:all) do
       @config = {
-        subscription_id: 'abc123',
+        tenant_id: '995e062e-4f67-4189-8943-595dadd1bccf'
       }
       @path = File.join(Dir.pwd, '.puppet_azure.conf')
       create_incomplete_config_file(@path, @config)
@@ -155,7 +154,7 @@ describe PuppetX::Puppetlabs::Azure::Config do
     it 'should raise an error about the missing variables' do
       expect do
         PuppetX::Puppetlabs::Azure::Config.new(@path)
-      end.to raise_error(Puppet::Error, /To use this module you must provide the following settings: management_certificate/)
+      end.to raise_error(Puppet::Error, /To use this module you must provide the following settings: subscription_id/)
     end
   end
 
