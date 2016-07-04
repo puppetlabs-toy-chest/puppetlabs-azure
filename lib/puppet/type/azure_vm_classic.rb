@@ -222,12 +222,12 @@ Puppet::Type.newtype(:azure_vm_classic) do
     end
 
     def compare_values(keys, a, b)
-      keys.all? { |k| a[k].to_s.downcase == b[k].to_s.downcase }
+      keys.all? { |k| a[k].to_s.casecmp(b[k].to_s).zero? }
     end
 
     def insync?(current)
       current.all? do |endpoint|
-        should = @should.find { |s| s[:name].downcase == endpoint[:name].downcase }
+        should = @should.find { |s| s[:name].casecmp(endpoint[:name]).zero? }
 
         if should
           compare_values(should.keys + endpoint.keys - [:load_balancer, :name], endpoint, should)

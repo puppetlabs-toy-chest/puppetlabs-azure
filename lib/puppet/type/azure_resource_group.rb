@@ -30,10 +30,10 @@ Puppet::Type.newtype(:azure_resource_group) do
       # parenthesis, and period. The name cannot end with a period."
       fail("The name must be less than 80 characters in length") if value.size > 80
       fail("The name must not end in a period") if value[-1] == "."
-      fail("The name can contain only alphanumeric characters, dash, underscore, open/close parentheses, and period.") unless value.match(%r{^[\w\-\(\)\.]+$})
+      fail("The name can contain only alphanumeric characters, dash, underscore, open/close parentheses, and period.") unless value =~ %r{^[\w\-\(\)\.]+$}
     end
     def insync?(is)
-      is.downcase == should.downcase
+      is.casecmp(should).zero?
     end
   end
 

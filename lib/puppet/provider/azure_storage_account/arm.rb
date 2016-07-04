@@ -33,7 +33,7 @@ Puppet::Type.type(:azure_storage_account).provide(:arm, :parent => PuppetX::Pupp
   # Allow differing case
   def self.prefetch(resources)
     instances.each do |prov|
-      if resource = (resources.find { |k,v| k.downcase == prov.name.downcase } || [])[1] # rubocop:disable Lint/AssignmentInCondition
+      if resource = (resources.find { |k,v| k.casecmp(prov.name).zero? } || [])[1] # rubocop:disable Lint/AssignmentInCondition
         resource.provider = prov
       end
     end

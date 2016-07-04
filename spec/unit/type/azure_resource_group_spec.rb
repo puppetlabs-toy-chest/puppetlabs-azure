@@ -24,7 +24,7 @@ describe 'azure_resource_group', :type => :type do
   end
 
   it 'should have expected properties' do
-    expect(type_class.properties.map(&:name)).to include(*(properties))
+    expect(type_class.properties.map(&:name)).to include(*properties)
   end
 
   it 'should have expected parameters' do

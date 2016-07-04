@@ -5,7 +5,7 @@ require 'puppet_x/puppetlabs/azure/provider'
 
 
 Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Puppetlabs::Azure::Provider) do
-  confine feature: :azure
+  confine feature: :azure_classic
   confine feature: :azure_hocon
   confine feature: :azure_retries
 
@@ -17,11 +17,9 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
   def self.instances
     begin
       list_vms.collect do |machine|
-        begin
-          hash = machine_to_hash(machine)
-          Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
-          new(hash) if hash
-        end
+        hash = machine_to_hash(machine)
+        Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
+        new(hash) if hash
       end.compact
     rescue Timeout::Error, StandardError => e
       raise PuppetX::Puppetlabs::Azure::PrefetchError.new(self.resource_type.name.to_s, e)
@@ -107,7 +105,7 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       affinity_group_name: resource[:affinity_group],
     }
     create_vm(params)
-    update_endpoints(resource[:endpoints]) if resource[:endpoints] and resource[:endpoints].size > 0
+    update_endpoints(resource[:endpoints]) if resource[:endpoints] and !resource[:endpoints].empty?
   end
 
   def destroy # rubocop:disable Metrics/AbcSize

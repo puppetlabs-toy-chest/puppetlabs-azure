@@ -15,11 +15,9 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   def self.instances
     begin
       PuppetX::Puppetlabs::Azure::ProviderArm.new.get_all_vms.collect do |machine|
-        begin
-          hash = machine_to_hash(machine)
-          Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
-          new(hash) if hash
-        end
+        hash = machine_to_hash(machine)
+        Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
+        new(hash) if hash
       end.compact
     rescue Timeout::Error, StandardError => e
       raise PuppetX::Puppetlabs::Azure::PrefetchError.new(self.resource_type.name.to_s, e)
