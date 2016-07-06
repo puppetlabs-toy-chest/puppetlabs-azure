@@ -56,25 +56,35 @@ RSpec.configure do |c|
             on(host, 'apt-get install -y zlib1g-dev patch g++')
           end
 
-          gem_command = if is_windows?(host)
-                          'cmd.exe /c cmd.exe /c "C:\Program Files\Puppet Labs\puppet\sys\ruby\bin\gem.bat"'
-                        else
-                          host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem"
-                        end
-          if is_windows?(host)
-            # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
-            # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
-            # right thing on Windows
-            on(host, "#{gem_command} install unf")
-          end
+          gems = [
+              # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
+              # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
+              # right thing on Windows
+            [ 'unf' ],
+            [ 'hocon', 'retries' ],
+            # Azure gems require pinning because they are still under heavy development and change their API frequently
+            [ 'azure_mgmt_compute', '--version=~> 0.3.0' ],
+            [ 'azure_mgmt_network', '--version=~> 0.3.0' ],
+            [ 'azure_mgmt_resources', '--version=~> 0.3.0' ],
+            [ 'azure_mgmt_storage', '--version=~> 0.3.0' ],
+            [ 'azure', '--version=~> 0.7.0' ],
+          ]
 
-          on(host, "#{gem_command} install hocon retries")
-          # Azure gems require pinning because 0.2.x versions are not backwards compatible
-          on(host, "#{gem_command} install azure_mgmt_compute --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure_mgmt_network --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure_mgmt_resources --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure_mgmt_storage --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure --version='~> 0.7.0'")
+          additional_gem_opts = ["--no-ri", "--no-rdoc"]
+
+          if is_windows?(host)
+            # shield the quoting from beaker's autoquoting to correctly quote the space
+            # also avoid the gem.bat, as that cannot pass arguments with spaces and other special characters through
+            windows_cmd = [ '/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin/ruby.exe', 'C:\Program Files\Puppet Labs\Puppet\sys\ruby\bin\gem' , 'install' ]
+            gems.each do |args|
+              command = (windows_cmd + args + additional_gem_opts).collect { |a| "\\\"#{a}\\\"" }.join(" ")
+              on(host, "bash -c \"#{command}\"")
+            end
+          else
+            linux_cmd = [ host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem" , 'install' ]
+            command = (linux_cmd + args + additional_gem_opts).collect { |a| "#{a}'" }.join(" ")
+            on(host, command)
+          end
         end
       end
 
