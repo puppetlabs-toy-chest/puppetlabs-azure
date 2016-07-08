@@ -183,6 +183,8 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    }
    ~~~
 
+   > Attention: due to [HC-82](https://tickets.puppetlabs.com/browse/HC-82), please make sure that the file is saved as UTF-8 without a byte order mark (BOM). Otherwise it will be parsed incorrectly.
+
    Or, with the Resource Management API:
 
    ~~~
