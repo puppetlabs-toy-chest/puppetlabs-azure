@@ -27,6 +27,8 @@ end
 group :development do
   gem 'pry'
   gem 'puppet-blacksmith'
+  # required by puppet-blacksmith
+  gem 'rest-client', '~> 1.8.0' # for ruby 1.9 compatibility
   gem 'guard-rake'
   gem 'pry-rescue'
   gem 'pry-stack_explorer'
