@@ -5,6 +5,7 @@ require 'open3'
 require 'master_manipulator'
 require 'beaker'
 require 'beaker-rspec' if ENV['BEAKER_TESTMODE'] != 'local'
+require 'beaker/puppet_install_helper'
 require 'beaker/testmode_switcher/dsl'
 require 'net/ssh'
 require 'ssh-exec'
@@ -46,7 +47,7 @@ RSpec.configure do |c|
   c.before :suite do
     unless ENV['BEAKER_TESTMODE'] == 'local'
       unless ENV['BEAKER_provision'] == 'no'
-        install_pe
+        run_puppet_install_helper
 
         hosts.each do |host|
           if host['platform'] =~ /^el/
