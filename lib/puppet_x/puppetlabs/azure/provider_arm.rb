@@ -145,10 +145,10 @@ module PuppetX
           begin
             vms = []
             result = ProviderArm.compute_client.virtual_machines.list_all
-            vms += result.value
+            vms += result.value || []
             while ! result.next_link.nil? and ! result.next_link.empty? do
               result = ProviderArm.compute_client.virtual_machines.list_all_next(result.next_link)
-              vms += result.value
+              vms += result.value || []
             end
             vms.collect do |vm|
               ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView')
