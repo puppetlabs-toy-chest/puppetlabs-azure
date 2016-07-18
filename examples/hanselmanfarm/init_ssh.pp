@@ -16,6 +16,8 @@ $web_load_balancer = {
     },
   }
 
+  $install_apache = 'sudo apt-get update && sudo apt-get install apache2 libapache2-mod-php5 php5 -y"
+  $create_php = "sudo sh -c "echo \'<?php echo gethostbyname(trim(\"`hostname`\")); ?><?php phpinfo(); ?>\' > /var/www/html/test.php"'
 # these defaults are used by all three machines
 Azure_vm_classic {
   ensure        => present,
@@ -25,7 +27,7 @@ Azure_vm_classic {
   password      => 'secretpw',
   # private_key_file => '/path/to/id_rsa',
   size          => 'Small',
-  custom_data   => 'sudo apt-get update && sudo apt-get install apache2 libapache2-mod-php5 php5 -y && sudo sh -c "echo \'<?php echo gethostbyname(trim(\"`hostname`\")); ?><?php phpinfo(); ?>\' > /var/www/html/test.php"',
+  custom_data   => "${install_apache} && ${create_php}",
   cloud_service => 'hanselmanfarmcs', # change this
   availability_set => 'hanselmanfarmas'
 }
