@@ -53,7 +53,7 @@ module PuppetX
         end
 
         # Public instance methods
-        def create_vm(args) # rubocop:disable Metrics/AbcSize
+        def create_vm(args)
           begin
             register_providers
             create_resource_group(args)
@@ -105,7 +105,7 @@ module PuppetX
           end
         end
 
-        def get_all_sas # rubocop:disable Metrics/AbcSize
+        def get_all_sas
           begin
             sas = ProviderArm.storage_client.storage_accounts.list.value
             sas.collect do |sa|
