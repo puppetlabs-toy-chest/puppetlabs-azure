@@ -88,7 +88,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.3.0' --no-ri --no-rdoc
    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.3.0' --no-ri --no-rdoc
    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.3.0' --no-ri --no-rdoc
-   /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
+   /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
    ~~~
 
    When installing on Windows, launch the `Start Command Prompt with Puppet` and simply type:
@@ -100,7 +100,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    gem install azure_mgmt_storage --version="~>0.3.0" --no-ri --no-rdoc
    gem install azure_mgmt_resources --version="~>0.3.0" --no-ri --no-rdoc
    gem install azure_mgmt_network --version="~>0.3.0" --no-ri --no-rdoc
-   gem install hocon --version="~>1.0.0" --no-ri --no-rdoc
+   gem install hocon --version="~>1.1.2" --no-ri --no-rdoc
    ~~~
 
    On versions of Puppet Enterprise older than 2015.2.0, use the older path to the `gem` binary:
@@ -112,7 +112,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    /opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.3.0' --no-ri --no-rdoc
    /opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.3.0' --no-ri --no-rdoc
    /opt/puppet/bin/gem install azure_mgmt_network --version='~>0.3.0' --no-ri --no-rdoc
-   /opt/puppet/bin/gem install hocon --version='~>1.0.0' --no-ri --no-rdoc
+   /opt/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
    ~~~
 
    **Note:** Azure gem installs must be pinned to the correct version detailed in the example above in order for the puppetlabs-azure module to work properly.
@@ -183,7 +183,7 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    }
    ~~~
 
-   > Attention: due to [HC-82](https://tickets.puppetlabs.com/browse/HC-82), please make sure that the file is saved as UTF-8 without a byte order mark (BOM). Otherwise it will be parsed incorrectly.
+   > Attention: Make sure to have at least hocon 1.1.2 installed on windows. Before you would have had to make sure to make sure that the `azure.conf` was encoded as UTF-8 without a byte order mark (BOM). See [HC-82](https://tickets.puppetlabs.com/browse/HC-82), and [HC-83](https://tickets.puppetlabs.com/browse/HC-83) for technical details. Starting with hocon 1.1.2, UTF-8 with and without BOM are both working now.
 
    Or, with the Resource Management API:
 
