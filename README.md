@@ -629,9 +629,9 @@ Defaults to `FromImage`.
 ##### `os_disk_vhd_container_name`
 The vhd container name is used to create the vhd uri of the virtual machine.
 
-This will transpose with resource_group and the os_disk_vhd_name to become the URI of your virtual hard disk image.
+This will transpose with storage_account and the os_disk_vhd_name to become the URI of your virtual hard disk image.
 ~~~
-https://#{resource_group}.blob.core.windows.net/#{os_disk_vhd_container_name}/#{os_disk_vhd_name}.vhd
+https://#{storage_account}.blob.core.windows.net/#{os_disk_vhd_container_name}/#{os_disk_vhd_name}.vhd
 ~~~
 
 ##### `os_disk_vhd_name`
