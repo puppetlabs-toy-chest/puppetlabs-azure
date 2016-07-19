@@ -494,7 +494,9 @@ Whether or not the attached data disk should be deleted when the VM is deleted. 
 A block of data to be affiliated with a host upon launch.  On Linux hosts, this can be a script to
 be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command
 (for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a
-template) which can be any format supported by cloud-init.  This currently doesn't work for Windows hosts.
+template) which can be any format supported by cloud-init.
+
+Windows images (and Linux images without cloud-init) need to provide their own mechanism to execute or act on the provided data.
 
 ##### `endpoints`
 
