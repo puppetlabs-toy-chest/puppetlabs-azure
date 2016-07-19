@@ -60,8 +60,6 @@ module PuppetX
             create_storage_account(args)
             params = build_params(args)
             ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!.body
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -72,8 +70,6 @@ module PuppetX
         def delete_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name).value!.body
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -84,8 +80,6 @@ module PuppetX
         def stop_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name).value!.body
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -96,8 +90,6 @@ module PuppetX
         def start_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name).value!.body
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -105,14 +97,12 @@ module PuppetX
           end
         end
 
-        def get_all_sas # rubocop:disable Metrics/AbcSize
+        def get_all_sas
           begin
             sas = ProviderArm.storage_client.storage_accounts.list.value
             sas.collect do |sa|
               ProviderArm.storage_client.storage_accounts.get_properties(resource_group_from(sa), sa.name)
             end
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -132,8 +122,6 @@ module PuppetX
             rgs.collect do |rg|
               ProviderArm.resource_client.resource_groups.get(rg.name)
             end
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -153,8 +141,6 @@ module PuppetX
             vms.collect do |vm|
               ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView')
             end
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -192,8 +178,6 @@ module PuppetX
         def delete_resource_group(rg)
           begin
             ProviderArm.resource_client.resource_groups.begin_delete(rg.name)
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -209,8 +193,6 @@ module PuppetX
         def delete_storage_account(sa)
           begin
             ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
