@@ -37,6 +37,7 @@ describe 'azure_vm', :type => :type do
       :os_disk_vhd_container_name,
       :os_disk_vhd_name,
       :network_interface_name,
+      :extensions,
     ]
   end
 
@@ -72,6 +73,18 @@ describe 'azure_vm', :type => :type do
       network_interface_name: 'nicspec01',
       storage_account: 'teststorageaccount',
       storage_account_type: 'Standard_GRS',
+      extensions: {
+        'CustomScriptForLinux' => {
+          'auto_upgrade_minor_version' => false,
+          'publisher'                  => 'Microsoft.OSTCExtensions',
+          'type'                       => 'CustomScriptForLinux',
+          'type_handler_version'       => '1.4',
+          'settings'                   => {
+            'commandToExecute' => 'sh script.sh',
+            'fileUris'         => ['https://iaasv2tempstoreeastus.blob.core.windows.net/vmextensionstemporary-0003bf']
+          },
+        },
+      },
     }
   end
 
@@ -168,6 +181,7 @@ describe 'azure_vm', :type => :type do
       :subnet_name => 'default',
       :subnet_address_prefix => '10.0.2.0/24',
       :private_ip_allocation_method => 'Dynamic',
+      :extensions => nil,
     }.each do |property, value|
       it "should default #{property} to #{value}" do
         expect(machine[property]).to eq(value)

@@ -218,6 +218,23 @@ module PuppetX
           end
         end
 
+        def create_extension(args)
+          params = build_virtual_machine_extensions(args)
+          ProviderArm.compute_client.virtual_machine_extensions.begin_create_or_update(args[:resource_group], args[:vm_name], args[:name], params)
+        end
+
+        def delete_extension(sa)
+          begin
+            ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+          rescue MsRest::HttpOperationError => err
+            raise Puppet::Error, err.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def create_virtual_network(args)
           params = build_virtual_network_params(args)
           ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params).value!.body
@@ -272,6 +289,25 @@ module PuppetX
             sku: build(::Azure::ARM::Storage::Models::Sku, {
               name: args[:storage_account_type],
             })
+          })
+        end
+
+        def build_virtual_machine_extensions(args) # rubocop:disable Metrics/AbcSize
+          props = if args[:properties].is_a?(Hash)
+                    build(::Azure::ARM::Compute::Models::VirtualMachineExtensionProperties, {
+                            'force_update_tag'           => args[:properties]['force_update_tag'],
+                            'publisher'                  => args[:properties]['publisher'],
+                            'type'                       => args[:properties]['type'],
+                            'type_handler_version'       => args[:properties]['type_handler_version'],
+                            'auto_upgrade_minor_version' => args[:properties]['auto_upgrade_minor_version'],
+                            'settings'                   => args[:properties]['settings'],
+                            'protected_settings'         => args[:properties]['protected_settings'],
+                          })
+                  end
+          build(::Azure::ARM::Compute::Models::VirtualMachineExtension, {
+            location: args[:location],
+            name: args[:name],
+            properties: props,
           })
         end
 
