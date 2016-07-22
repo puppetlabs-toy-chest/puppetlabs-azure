@@ -59,9 +59,7 @@ module PuppetX
             create_resource_group(args)
             create_storage_account(args)
             params = build_params(args)
-            ProviderArm.compute_client.virtual_machines.begin_create_or_update(args[:resource_group], args[:name], params)
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
+            ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -71,9 +69,7 @@ module PuppetX
 
         def delete_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.begin_delete(resource_group, machine.name)
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
+            ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name).value!.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -83,9 +79,7 @@ module PuppetX
 
         def stop_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.begin_power_off(resource_group, machine.name)
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
+            ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name).value!.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -95,9 +89,7 @@ module PuppetX
 
         def start_vm(machine)
           begin
-            ProviderArm.compute_client.virtual_machines.begin_start(resource_group, machine.name)
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
+            ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name).value!.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -105,14 +97,12 @@ module PuppetX
           end
         end
 
-        def get_all_sas # rubocop:disable Metrics/AbcSize
+        def get_all_sas
           begin
             sas = ProviderArm.storage_client.storage_accounts.list.value
             sas.collect do |sa|
               ProviderArm.storage_client.storage_accounts.get_properties(resource_group_from(sa), sa.name)
             end
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -132,8 +122,6 @@ module PuppetX
             rgs.collect do |rg|
               ProviderArm.resource_client.resource_groups.get(rg.name)
             end
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -153,8 +141,6 @@ module PuppetX
             vms.collect do |vm|
               ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView')
             end
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -192,8 +178,6 @@ module PuppetX
         def delete_resource_group(rg)
           begin
             ProviderArm.resource_client.resource_groups.begin_delete(rg.name)
-          rescue MsRest::HttpOperationError => err
-            raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -203,10 +187,25 @@ module PuppetX
 
         def create_storage_account(args)
           params = build_storage_account_create_parameters(args)
-          ProviderArm.storage_client.storage_accounts.begin_create(args[:resource_group], args[:storage_account], params)
+          ProviderArm.storage_client.storage_accounts.create(args[:resource_group], args[:storage_account], params).value!.body
         end
 
         def delete_storage_account(sa)
+          begin
+            ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def create_extension(args)
+          params = build_virtual_machine_extensions(args)
+          ProviderArm.compute_client.virtual_machine_extensions.begin_create_or_update(args[:resource_group], args[:vm_name], args[:name], params)
+        end
+
+        def delete_extension(sa)
           begin
             ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
           rescue MsRest::HttpOperationError => err
@@ -220,27 +219,27 @@ module PuppetX
 
         def create_virtual_network(args)
           params = build_virtual_network_params(args)
-          ProviderArm.network_client.virtual_networks.begin_create_or_update(args[:resource_group], args[:virtual_network_name], params)
+          ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params).value!.body
         end
 
         def create_public_ip_address(args)
           params = build_public_ip_params(args)
-          ProviderArm.network_client.public_ipaddresses.begin_create_or_update(args[:resource_group], args[:public_ip_address_name], params)
+          ProviderArm.network_client.public_ipaddresses.create_or_update(args[:resource_group], args[:public_ip_address_name], params).value!.body
         end
 
         def create_subnet(virtual_network, args)
           params = build_subnet_params(args)
-          ProviderArm.network_client.subnets.begin_create_or_update(
+          ProviderArm.network_client.subnets.create_or_update(
             args[:resource_group],
             virtual_network.name,
             args[:subnet_name],
             params
-          )
+          ).value!.body
         end
 
         def create_network_interface(args, subnet)
           params = build_network_interface_param(args, subnet)
-          ProviderArm.network_client.network_interfaces.begin_create_or_update(args[:resource_group], params.name, params)
+          ProviderArm.network_client.network_interfaces.create_or_update(args[:resource_group], params.name, params).value!.body
         end
 
         def build(klass, data={})
@@ -272,6 +271,25 @@ module PuppetX
             sku: build(::Azure::ARM::Storage::Models::Sku, {
               name: args[:storage_account_type],
             })
+          })
+        end
+
+        def build_virtual_machine_extensions(args) # rubocop:disable Metrics/AbcSize
+          props = if args[:properties].is_a?(Hash)
+                    build(::Azure::ARM::Compute::Models::VirtualMachineExtensionProperties, {
+                            'force_update_tag'           => args[:properties]['force_update_tag'],
+                            'publisher'                  => args[:properties]['publisher'],
+                            'type'                       => args[:properties]['type'],
+                            'type_handler_version'       => args[:properties]['type_handler_version'],
+                            'auto_upgrade_minor_version' => args[:properties]['auto_upgrade_minor_version'],
+                            'settings'                   => args[:properties]['settings'],
+                            'protected_settings'         => args[:properties]['protected_settings'],
+                          })
+                  end
+          build(::Azure::ARM::Compute::Models::VirtualMachineExtension, {
+            location: args[:location],
+            name: args[:name],
+            properties: props,
           })
         end
 

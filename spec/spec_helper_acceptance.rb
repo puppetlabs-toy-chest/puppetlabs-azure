@@ -5,6 +5,7 @@ require 'open3'
 require 'master_manipulator'
 require 'beaker'
 require 'beaker-rspec' if ENV['BEAKER_TESTMODE'] != 'local'
+require 'beaker/puppet_install_helper'
 require 'beaker/testmode_switcher/dsl'
 require 'net/ssh'
 require 'ssh-exec'
@@ -29,15 +30,15 @@ require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
-CHEAPEST_AZURE_LOCATION="East US"
+CHEAPEST_AZURE_LOCATION="East US".freeze
 
-UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'
-WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'
+UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'.freeze
 
-CERT_FILE='azure_cert.pem'
-WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}"
-LINUX_AZURE_CERT="/tmp/#{CERT_FILE}"
-WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}"
+CERT_FILE='azure_cert.pem'.freeze
+WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}".freeze
+LINUX_AZURE_CERT="/tmp/#{CERT_FILE}".freeze
+WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}".freeze
 
 # windows module install path
 # /cygdrive/c/ProgramData/PuppetLabs/code/modules
@@ -46,7 +47,7 @@ RSpec.configure do |c|
   c.before :suite do
     unless ENV['BEAKER_TESTMODE'] == 'local'
       unless ENV['BEAKER_provision'] == 'no'
-        install_pe
+        run_puppet_install_helper
 
         hosts.each do |host|
           if host['platform'] =~ /^el/
@@ -55,25 +56,35 @@ RSpec.configure do |c|
             on(host, 'apt-get install -y zlib1g-dev patch g++')
           end
 
-          gem_command = if is_windows?(host)
-                          'cmd.exe /c cmd.exe /c "C:\Program Files\Puppet Labs\puppet\sys\ruby\bin\gem.bat"'
-                        else
-                          host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem"
-                        end
-          if is_windows?(host)
-            # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
-            # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
-            # right thing on Windows
-            on(host, "#{gem_command} install unf")
-          end
+          gems = [
+              # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
+              # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
+              # right thing on Windows
+            [ 'unf' ],
+            [ 'hocon', 'retries' ],
+            # Azure gems require pinning because they are still under heavy development and change their API frequently
+            [ 'azure_mgmt_compute', '--version=~> 0.3.0' ],
+            [ 'azure_mgmt_network', '--version=~> 0.3.0' ],
+            [ 'azure_mgmt_resources', '--version=~> 0.3.0' ],
+            [ 'azure_mgmt_storage', '--version=~> 0.3.0' ],
+            [ 'azure', '--version=~> 0.7.0' ],
+          ]
 
-          on(host, "#{gem_command} install hocon retries")
-          # Azure gems require pinning because 0.2.x versions are not backwards compatible
-          on(host, "#{gem_command} install azure_mgmt_compute --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure_mgmt_network --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure_mgmt_resources --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure_mgmt_storage --version='~> 0.3.0'")
-          on(host, "#{gem_command} install azure --version='~> 0.7.0'")
+          additional_gem_opts = ["--no-ri", "--no-rdoc"]
+
+          if is_windows?(host)
+            # shield the quoting from beaker's autoquoting to correctly quote the space
+            # also avoid the gem.bat, as that cannot pass arguments with spaces and other special characters through
+            windows_cmd = [ '/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin/ruby.exe', 'C:\Program Files\Puppet Labs\Puppet\sys\ruby\bin\gem' , 'install' ]
+            gems.each do |args|
+              command = (windows_cmd + args + additional_gem_opts).collect { |a| "\\\"#{a}\\\"" }.join(" ")
+              on(host, "bash -c \"#{command}\"")
+            end
+          else
+            linux_cmd = [ host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem" , 'install' ]
+            command = (linux_cmd + args + additional_gem_opts).collect { |a| "#{a}'" }.join(" ")
+            on(host, command)
+          end
         end
       end
 
@@ -419,18 +430,17 @@ end
 
 def beaker_opts
   azure_cert = is_windows? ? WINDOWS_DOS_FORMAT_AZURE_CERT : LINUX_AZURE_CERT
-  @env ||=
-  {
-    debug: true,
-    trace: true,
-    environment: {
-      'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
-      'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
-      'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
-      'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
-      'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
+  @env ||= {
+      debug: true,
+      trace: true,
+      environment: {
+        'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
+        'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
+        'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
+        'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+        'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
+      }
     }
-  }
 end
 
 def is_windows?(host = nil)

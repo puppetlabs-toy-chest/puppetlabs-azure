@@ -22,7 +22,7 @@ Puppet::Type.newtype(:azure_vm) do
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
-      if self[property].nil? and self.provider.send(property) == :absent
+      if self[:ensure] == :present and self[property].nil? and self.provider.send(property) == :absent
         fail "You must provide a #{property}"
       end
     end
@@ -78,7 +78,7 @@ Puppet::Type.newtype(:azure_vm) do
       fail("the image name must not be empty") if value.empty?
     end
     def insync?(is)
-      is.downcase == should.downcase
+      is.casecmp(should).zero?
     end
   end
 
@@ -118,7 +118,7 @@ Puppet::Type.newtype(:azure_vm) do
       fail("the resource group must be less that 65 characters in length") if value.size > 64
     end
     def insync?(is)
-      is.downcase == should.downcase
+      is.casecmp(should).zero?
     end
   end
 
@@ -127,6 +127,23 @@ Puppet::Type.newtype(:azure_vm) do
     validate do |value|
       super value
       fail 'the storage account must not be empty' if value.empty?
+    end
+  end
+
+  newproperty(:extensions) do
+    desc 'The hash of extensions and their settings'
+    def insync?(is)
+      should.reduce(true) do |insync,(name,should_props)|
+        if is[name]
+          # Filter properties that are nil or unmanaged
+          is_props = is[name].reject { |k,v| v.nil? or k == 'provisioning_state' }
+          # Propagate any mismatches
+          insync && (is_props == should_props)
+        else
+          # Skip any extensions not defined to be managed
+          true
+        end
+      end
     end
   end
 

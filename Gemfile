@@ -11,13 +11,13 @@ gem 'hocon'
 gem 'retries'
 
 group :test do
-  gem 'rake', '< 11' # avoid recent rubocop/rake incompatabilities
+  gem 'rake'
   gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 4'
   gem 'facter', '>= 2.0'
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
   gem 'puppetlabs_spec_helper', '< 1.0'
   gem 'metadata-json-lint'
-  gem 'rubocop', '0.33.0', require: false
+  gem 'rubocop'
   gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
   gem 'parallel_tests'
@@ -27,6 +27,8 @@ end
 group :development do
   gem 'pry'
   gem 'puppet-blacksmith'
+  # required by puppet-blacksmith
+  gem 'rest-client', '~> 1.8.0' # for ruby 1.9 compatibility
   gem 'guard-rake'
   gem 'pry-rescue'
   gem 'pry-stack_explorer'

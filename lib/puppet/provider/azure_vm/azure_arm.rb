@@ -15,11 +15,9 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   def self.instances
     begin
       PuppetX::Puppetlabs::Azure::ProviderArm.new.get_all_vms.collect do |machine|
-        begin
-          hash = machine_to_hash(machine)
-          Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
-          new(hash) if hash
-        end
+        hash = machine_to_hash(machine)
+        Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
+        new(hash) if hash
       end.compact
     rescue Timeout::Error, StandardError => e
       raise PuppetX::Puppetlabs::Azure::PrefetchError.new(self.resource_type.name.to_s, e)
@@ -42,6 +40,21 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       parts = machine.properties.storage_profile.os_disk.vhd.uri.split('/')
       [parts[-1].split('.').first, parts[-2]]
     end
+    if machine.resources
+      extensions = machine.resources.inject(Hash.new) do |memo,res|
+        memo[res.name] = {
+          'auto_upgrade_minor_version' => res.properties.auto_upgrade_minor_version,
+          'force_update_tag'           => res.properties.force_update_tag,
+          'publisher'                  => res.properties.publisher,
+          'type'                       => res.properties.type,
+          'type_handler_version'       => res.properties.type_handler_version,
+          'settings'                   => res.properties.settings,
+          'protected_settings'         => res.properties.protected_settings,
+          'provisioning_state'         => res.properties.provisioning_state, #read-only
+        }
+        memo
+      end
+    end
 
     {
       name: machine.name,
@@ -57,6 +70,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       os_disk_vhd_container_name: vhd_container_name,
       os_disk_vhd_name: vhd_name,
       network_interface_name: network_interface_name,
+      extensions: extensions,
       object: machine,
     }
   end
@@ -103,6 +117,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       subnet_name: resource[:subnet_name],
       subnet_address_prefix: resource[:subnet_address_prefix],
       private_ip_allocation_method: resource[:private_ip_allocation_method],
+      extensions: extensions,
       # provider defaults recreate the defaults from the Azure Portal
       storage_account: default_based_on_resource_group(resource[:storage_account]),
       os_disk_name: default_to_name(resource[:os_disk_name]),
@@ -113,6 +128,33 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       ip_configuration_name: default_to_name(resource[:ip_configuration_name]),
       network_interface_name: default_based_on_name(resource[:network_interface_name]),
     })
+
+    self.extensions = resource[:extensions]
+  end
+
+  def extensions=(value) # rubocop:disable Metrics/AbcSize
+    value.each do |name, properties|
+      Puppet.debug("Updating extension #{name} on vm #{resource[:name]}")
+
+      if properties.is_a?(Hash)
+        create_extension({
+          :resource_group => resource[:resource_group],
+          :location       => resource[:location],
+          :vm_name        => resource[:name],
+          :name           => name,
+          :properties     => properties,
+        })
+      elsif properties == "absent"
+        delete_extension({
+          :resource_group => resource[:resource_group],
+          :location       => resource[:location],
+          :vm_name        => resource[:name],
+          :name           => name,
+        })
+      else
+        fail %{Expected extension properties to be a hash or "absent" but it was #{properties.inspect}}
+      end
+    end
   end
 
   def destroy
