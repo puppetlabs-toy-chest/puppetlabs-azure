@@ -80,7 +80,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
     # so we retry this a few times
     5.times do
       @result = run_command_over_ssh(@ip, "test -f #{@custom_data_file}", 'password', 22)
-      break if @result.exit_status == 0
+      break if @result.exit_status.zero?
       sleep 10
     end
     expect(@result.exit_status).to eq 0

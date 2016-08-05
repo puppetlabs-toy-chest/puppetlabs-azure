@@ -82,8 +82,10 @@ RSpec.configure do |c|
             end
           else
             linux_cmd = [ host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem" , 'install' ]
-            command = (linux_cmd + args + additional_gem_opts).collect { |a| "#{a}'" }.join(" ")
-            on(host, command)
+            gems.each do |args|
+              command = (linux_cmd + (args + additional_gem_opts).collect { |a| "'#{a}'" }).join(" ")
+              on(host, command)
+            end
           end
         end
       end
