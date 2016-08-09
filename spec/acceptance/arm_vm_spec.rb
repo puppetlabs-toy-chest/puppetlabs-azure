@@ -33,6 +33,8 @@ describe 'azure_vm when creating a machine with all available properties' do
         ip_configuration_name: 'ip_config_test01',
         private_ip_allocation_method: 'Dynamic',
         network_interface_name: 'nicspec01',
+      },
+      nonstring: {
         extensions: {
           'CustomScriptForLinux' => {
             'auto_upgrade_minor_version' => false,
