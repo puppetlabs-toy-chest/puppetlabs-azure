@@ -647,7 +647,7 @@ The DNS servers to be setup on the virtual machine.
 Defaults to `10.1.1.1 10.1.2.4`
 
 ##### `public_ip_allocation_method`
-The public ip allocation method [Static, Dynamic]
+The public ip allocation method [Static, Dynamic, None]
 Defaults to `Dynamic`.
 
 ##### `public_ip_address_name`
