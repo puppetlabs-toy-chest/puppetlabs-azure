@@ -44,6 +44,8 @@ WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}".freeze
 # /cygdrive/c/ProgramData/PuppetLabs/code/modules
 #
 RSpec.configure do |c|
+  c.filter_run :focus => true
+  c.run_all_when_everything_filtered = true
   c.before :suite do
     unless ENV['BEAKER_TESTMODE'] == 'local'
       unless ENV['BEAKER_provision'] == 'no'
