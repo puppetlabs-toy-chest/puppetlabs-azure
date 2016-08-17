@@ -11,8 +11,8 @@ describe 'azure_storage_account when creating a storage account' do
       name: @name,
       ensure: 'present',
       optional: {
-        location: 'eastus',
-        resource_group: 'cloud-acceptance-tests',
+        location: CHEAPEST_ARM_LOCATION,
+        resource_group: SPEC_RESOURCE_GROUP,
         account_type: 'Standard_GRS',
         account_kind: 'Storage',
       },
@@ -35,7 +35,7 @@ describe 'azure_storage_account when creating a storage account' do
     puppet_resource_should_show('location', 'eastus')
     puppet_resource_should_show('account_type', 'Standard_GRS')
     puppet_resource_should_show('account_kind', 'Storage')
-    puppet_resource_should_show('resource_group', 'cloud-acceptance-tests')
+    puppet_resource_should_show('resource_group', SPEC_RESOURCE_GROUP.downcase)
   end
 
   context 'when we try and destroy the SA' do

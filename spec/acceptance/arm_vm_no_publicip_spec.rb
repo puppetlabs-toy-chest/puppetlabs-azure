@@ -10,10 +10,10 @@ describe 'azure_vm when creating a machine with no public IP' do
       ensure: 'present',
       optional: {
         image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
-        location: 'eastus',
+        location: CHEAPEST_ARM_LOCATION,
         user: 'specuser',
         size: 'Standard_A0',
-        resource_group: 'cloud-acceptance-tests',
+        resource_group: SPEC_RESOURCE_GROUP,
         password: 'SpecPass123!@#$%',
         public_ip_allocation_method: 'None',
       },

@@ -6,8 +6,6 @@ describe 'azure_vm_classic when creating a multirole services' do
   include_context 'with known network'
 
   before(:all) do
-    @cs_name = "CLOUD-CS-#{SecureRandom.hex(8)}"
-
     @second_name = @name[0..-2] + "x"
     @third_name = @name[0..-2] + "y"
 
@@ -23,11 +21,11 @@ describe 'azure_vm_classic when creating a multirole services' do
       "#{@name}":
         ensure          => 'present',
         image           => "#{UBUNTU_IMAGE}",
-        location        => "#{CHEAPEST_AZURE_LOCATION}",
+        location        => "#{CHEAPEST_CLASSIC_LOCATION}",
         user            => '#{@config[:optional][:user]}',
         password        => '#{@config[:optional][:password]}',
         size            => 'Small',
-        cloud_service   => "#{@cs_name}",
+        cloud_service   => "#{SPEC_CLOUD_SERVICE}",
         purge_disk_on_delete => true,
         custom_data     => "touch /tmp/#{@name}",
         storage_account => "#{@storage_account_name}",
@@ -44,11 +42,11 @@ describe 'azure_vm_classic when creating a multirole services' do
       "#{@second_name}":
         ensure          => 'present',
         image           => "#{UBUNTU_IMAGE}",
-        location        => "#{CHEAPEST_AZURE_LOCATION}",
+        location        => "#{CHEAPEST_CLASSIC_LOCATION}",
         user            => '#{@config[:optional][:user]}',
         password        => '#{@config[:optional][:password]}',
         size            => 'Small',
-        cloud_service   => "#{@cs_name}",
+        cloud_service   => "#{SPEC_CLOUD_SERVICE}",
         purge_disk_on_delete => true,
         custom_data     => "touch /tmp/#{@second_name}",
         storage_account => "#{@storage_account_name}",
@@ -98,11 +96,11 @@ CONFIG
         "#{@third_name}":
           ensure          => 'present',
           image           => "#{UBUNTU_IMAGE}",
-          location        => "#{CHEAPEST_AZURE_LOCATION}",
+          location        => "#{CHEAPEST_CLASSIC_LOCATION}",
           user            => '#{@config[:optional][:user]}',
           password        => '#{@config[:optional][:password]}',
           size            => 'Small',
-          cloud_service   => "#{@cs_name}",
+          cloud_service   => "#{SPEC_CLOUD_SERVICE}",
           purge_disk_on_delete => true,
           custom_data     => "touch /tmp/#{@third_name}",
           storage_account => "#{@storage_account_name}",
@@ -153,8 +151,8 @@ CONFIG
       azure_vm_classic {
         "#{@second_name}":
           ensure        => 'absent',
-          location      => "#{CHEAPEST_AZURE_LOCATION}",
-          cloud_service => "#{@cs_name}",
+          location      => "#{CHEAPEST_CLASSIC_LOCATION}",
+          cloud_service => "#{SPEC_CLOUD_SERVICE}",
           purge_disk_on_delete => true,
       }
 CONFIG
@@ -194,8 +192,8 @@ CONFIG
         azure_vm_classic {
           [ "#{@name}", "#{@second_name}", "#{@third_name}" ]:
             ensure        => 'absent',
-            location      => '#{CHEAPEST_AZURE_LOCATION}',
-            cloud_service => "#{@cs_name}",
+            location      => '#{CHEAPEST_CLASSIC_LOCATION}',
+            cloud_service => "#{SPEC_CLOUD_SERVICE}",
             purge_disk_on_delete => true,
         }
 CONFIG

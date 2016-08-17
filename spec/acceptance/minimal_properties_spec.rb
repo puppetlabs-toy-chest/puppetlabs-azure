@@ -11,7 +11,7 @@ describe 'azure_vm_classic when creating a new machine with the minimum properti
       ensure: 'present',
       optional: {
         image: UBUNTU_IMAGE,
-        location: CHEAPEST_AZURE_LOCATION,
+        location: CHEAPEST_CLASSIC_LOCATION,
         user: 'specuser',
         private_key_file: @remote_private_key_path,
         storage_account: @storage_account_name, # required in order to tidy up created storage groups

@@ -9,7 +9,7 @@ describe 'azure_vm_classic when providing an invalid image' do
       name: @name,
       ensure: 'present',
       optional: {
-        location: CHEAPEST_AZURE_LOCATION,
+        location: CHEAPEST_CLASSIC_LOCATION,
         image: 'INVALID_IMAGE_NAME',
       }
     }
