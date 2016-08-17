@@ -177,7 +177,7 @@ module PuppetX
 
         def delete_resource_group(rg)
           begin
-            ProviderArm.resource_client.resource_groups.begin_delete(rg.name)
+            ProviderArm.resource_client.resource_groups.delete(rg.name).value!.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -202,7 +202,7 @@ module PuppetX
 
         def create_extension(args)
           params = build_virtual_machine_extensions(args)
-          ProviderArm.compute_client.virtual_machine_extensions.begin_create_or_update(args[:resource_group], args[:vm_name], args[:name], params)
+          ProviderArm.compute_client.virtual_machine_extensions.create_or_update(args[:resource_group], args[:vm_name], args[:name], params).value!.body
         end
 
         def delete_extension(sa)

@@ -234,7 +234,7 @@ class AzureARMHelper
   end
 
   def destroy_resource_group(resource_group_name)
-    AzureARMHelper.resource_client.resource_groups.begin_delete(resource_group_name)
+    AzureARMHelper.resource_client.resource_groups.delete(resource_group_name).value!.body
   end
 
   def list_storage_accounts
@@ -270,7 +270,7 @@ class AzureARMHelper
   end
 
   def destroy_vm(machine)
-    AzureARMHelper.compute_client.virtual_machines.delete(get_resource_group_from_vm(machine), machine.name).value!
+    AzureARMHelper.compute_client.virtual_machines.delete(get_resource_group_from_vm(machine), machine.name).value!.body
   end
 
   def vm_running?(vm)
