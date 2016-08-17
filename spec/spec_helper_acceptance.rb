@@ -30,7 +30,12 @@ require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
-CHEAPEST_AZURE_LOCATION="East US".freeze
+CHEAPEST_ARM_LOCATION="eastus".freeze
+CHEAPEST_CLASSIC_LOCATION="East US".freeze
+
+# For personal resource groups
+SPEC_RESOURCE_GROUP="CLOUD-ARM-#{ENV['USER'] || 'tests'}".freeze
+SPEC_CLOUD_SERVICE="CLOUD-CS-#{ENV['USER'] || 'tests'}".freeze
 
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
 WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'.freeze
@@ -343,7 +348,7 @@ class AzureHelper
       ]
       dns_servers = [{name: 'dns', ip_address: '1.2.3.4'}]
       options = {:subnet => subnets, :dns => dns_servers}
-      @azure_network.set_network_configuration(name, CHEAPEST_AZURE_LOCATION, address_space, options)
+      @azure_network.set_network_configuration(name, CHEAPEST_ARM_LOCATION, address_space, options)
     end
   end
 
@@ -352,7 +357,7 @@ class AzureHelper
   end
 
   def create_affinity_group(name)
-    @azure_affinity_group.create_affinity_group(name, CHEAPEST_AZURE_LOCATION, 'Temporary group for acceptance tests')
+    @azure_affinity_group.create_affinity_group(name, CHEAPEST_ARM_LOCATION, 'Temporary group for acceptance tests')
   end
 
   def destroy_affinity_group(name)
@@ -424,7 +429,7 @@ def puppet_resource_should_show(property_name, value=nil)
     regex = if real_value.nil?
               /(#{property_name})(\s*)(=>)(\s*)/
             else
-              /(#{property_name})(\s*)(=>)(\s*)('#{real_value}'|#{real_value})/
+              /(#{property_name})(\s*)(=>)(\s*)('#{real_value}'|#{real_value})/i
             end
     expect(@result.stdout).to match(regex)
   end

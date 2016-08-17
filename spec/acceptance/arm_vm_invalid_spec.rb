@@ -10,10 +10,10 @@ describe 'azure_vm when creating a machine with all available properties' do
       ensure: 'present',
       optional: {
         image: 'xxx:xxx:xxx:xxx',
-        location: 'eastus',
+        location: CHEAPEST_ARM_LOCATION,
         user: 'specuser',
         size: 'Standard_A0',
-        resource_group: 'CLOUD-acceptance-tests',
+        resource_group: SPEC_RESOURCE_GROUP,
         password: 'SpecPass123!@#$%',
       },
     }

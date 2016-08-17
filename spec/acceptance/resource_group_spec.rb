@@ -8,7 +8,7 @@ describe 'azure_resource_group when creating a resource group' do
     @config = {
       name: @name,
       ensure: 'present',
-      location: 'eastus',
+      location: CHEAPEST_ARM_LOCATION,
       optional: {}
     }
     @template = 'azure_resource_group.pp.tmpl'
