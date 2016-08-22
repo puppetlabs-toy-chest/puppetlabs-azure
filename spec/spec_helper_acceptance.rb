@@ -350,7 +350,7 @@ class AzureHelper
       ]
       dns_servers = [{name: 'dns', ip_address: '1.2.3.4'}]
       options = {:subnet => subnets, :dns => dns_servers}
-      @azure_network.set_network_configuration(name, CHEAPEST_ARM_LOCATION, address_space, options)
+      @azure_network.set_network_configuration(name, CHEAPEST_CLASSIC_LOCATION, address_space, options)
     end
   end
 
@@ -359,7 +359,7 @@ class AzureHelper
   end
 
   def create_affinity_group(name)
-    @azure_affinity_group.create_affinity_group(name, CHEAPEST_ARM_LOCATION, 'Temporary group for acceptance tests')
+    @azure_affinity_group.create_affinity_group(name, CHEAPEST_CLASSIC_LOCATION, 'Temporary group for acceptance tests')
   end
 
   def destroy_affinity_group(name)
