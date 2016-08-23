@@ -703,7 +703,25 @@ extensions     => {
 },
 ~~~
 
-For more information on VM Extensions, see [About virtual machine extensions and features](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-extensions-features/). Azure VM Extensions support the following parameters:
+Another example is to install the Puppet Agent as an extension on a Windows VM:
+
+~~~puppet
+extensions     => {
+  'PuppetExtension' => {
+     'auto_upgrade_minor_version' => true,
+     'publisher'                  => 'Puppet',
+     'type'                       => 'PuppetAgent',
+     'type_handler_version'       => '1.5',
+     'protected_settings'                   => {
+       'PUPPET_MASTER_SERVER': 'mypuppetmaster.com'
+     },
+   },
+},
+~~~
+
+For more information on VM Extensions, see [About virtual machine extensions and features](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-extensions-features/). For information on how to configure a particular extension, see [Azure Windows VM Extension Configuration Samples](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-extensions-configuration-samples/).
+
+Azure VM Extensions support the following parameters:
 
 ###### `publisher`
 The name of the publisher of the extension.
