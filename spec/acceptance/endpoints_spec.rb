@@ -13,7 +13,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
       ensure: 'present',
       optional: {
         image: UBUNTU_IMAGE,
-        location: CHEAPEST_AZURE_LOCATION,
+        location: CHEAPEST_CLASSIC_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
         storage_account: @storage_account_name, # required in order to tidy up created storage groups

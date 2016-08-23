@@ -10,10 +10,10 @@ describe 'azure_vm when creating a machine with all available properties' do
       ensure: 'present',
       optional: {
         image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
-        location: 'eastus',
+        location: CHEAPEST_ARM_LOCATION,
         user: 'specuser',
         size: 'Standard_A0',
-        resource_group: 'cloud-acceptance-tests',
+        resource_group: SPEC_RESOURCE_GROUP,
         password: 'SpecPass123!@#$%',
         storage_account: @storage_account_name,
         storage_account_type: 'Standard_GRS',
@@ -33,6 +33,8 @@ describe 'azure_vm when creating a machine with all available properties' do
         ip_configuration_name: 'ip_config_test01',
         private_ip_allocation_method: 'Dynamic',
         network_interface_name: 'nicspec01',
+      },
+      nonstring: {
         extensions: {
           'CustomScriptForLinux' => {
             'auto_upgrade_minor_version' => false,

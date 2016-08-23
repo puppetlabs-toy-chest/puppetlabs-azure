@@ -30,7 +30,12 @@ require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
-CHEAPEST_AZURE_LOCATION="East US".freeze
+CHEAPEST_ARM_LOCATION="eastus".freeze
+CHEAPEST_CLASSIC_LOCATION="East US".freeze
+
+# For personal resource groups
+SPEC_RESOURCE_GROUP="CLOUD-ARM-#{ENV['USER'] || 'tests'}".freeze
+SPEC_CLOUD_SERVICE="CLOUD-CS-#{ENV['USER'] || 'tests'}".freeze
 
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
 WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'.freeze
@@ -44,6 +49,8 @@ WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}".freeze
 # /cygdrive/c/ProgramData/PuppetLabs/code/modules
 #
 RSpec.configure do |c|
+  c.filter_run :focus => true
+  c.run_all_when_everything_filtered = true
   c.before :suite do
     unless ENV['BEAKER_TESTMODE'] == 'local'
       unless ENV['BEAKER_provision'] == 'no'
@@ -82,8 +89,10 @@ RSpec.configure do |c|
             end
           else
             linux_cmd = [ host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem" , 'install' ]
-            command = (linux_cmd + args + additional_gem_opts).collect { |a| "#{a}'" }.join(" ")
-            on(host, command)
+            gems.each do |args|
+              command = (linux_cmd + (args + additional_gem_opts).collect { |a| "'#{a}'" }).join(" ")
+              on(host, command)
+            end
           end
         end
       end
@@ -230,7 +239,7 @@ class AzureARMHelper
   end
 
   def destroy_resource_group(resource_group_name)
-    AzureARMHelper.resource_client.resource_groups.begin_delete(resource_group_name)
+    AzureARMHelper.resource_client.resource_groups.delete(resource_group_name).value!.body
   end
 
   def list_storage_accounts
@@ -266,7 +275,7 @@ class AzureARMHelper
   end
 
   def destroy_vm(machine)
-    AzureARMHelper.compute_client.virtual_machines.delete(get_resource_group_from_vm(machine), machine.name).value!
+    AzureARMHelper.compute_client.virtual_machines.delete(get_resource_group_from_vm(machine), machine.name).value!.body
   end
 
   def vm_running?(vm)
@@ -341,7 +350,7 @@ class AzureHelper
       ]
       dns_servers = [{name: 'dns', ip_address: '1.2.3.4'}]
       options = {:subnet => subnets, :dns => dns_servers}
-      @azure_network.set_network_configuration(name, CHEAPEST_AZURE_LOCATION, address_space, options)
+      @azure_network.set_network_configuration(name, CHEAPEST_CLASSIC_LOCATION, address_space, options)
     end
   end
 
@@ -350,7 +359,7 @@ class AzureHelper
   end
 
   def create_affinity_group(name)
-    @azure_affinity_group.create_affinity_group(name, CHEAPEST_AZURE_LOCATION, 'Temporary group for acceptance tests')
+    @azure_affinity_group.create_affinity_group(name, CHEAPEST_CLASSIC_LOCATION, 'Temporary group for acceptance tests')
   end
 
   def destroy_affinity_group(name)
@@ -422,7 +431,7 @@ def puppet_resource_should_show(property_name, value=nil)
     regex = if real_value.nil?
               /(#{property_name})(\s*)(=>)(\s*)/
             else
-              /(#{property_name})(\s*)(=>)(\s*)('#{real_value}'|#{real_value})/
+              /(#{property_name})(\s*)(=>)(\s*)('#{real_value}'|#{real_value})/i
             end
     expect(@result.stdout).to match(regex)
   end

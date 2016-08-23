@@ -177,7 +177,7 @@ module PuppetX
 
         def delete_resource_group(rg)
           begin
-            ProviderArm.resource_client.resource_groups.begin_delete(rg.name)
+            ProviderArm.resource_client.resource_groups.delete(rg.name).value!.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -202,7 +202,7 @@ module PuppetX
 
         def create_extension(args)
           params = build_virtual_machine_extensions(args)
-          ProviderArm.compute_client.virtual_machine_extensions.begin_create_or_update(args[:resource_group], args[:vm_name], args[:name], params)
+          ProviderArm.compute_client.virtual_machine_extensions.create_or_update(args[:resource_group], args[:vm_name], args[:name], params).value!.body
         end
 
         def delete_extension(sa)
@@ -348,17 +348,20 @@ module PuppetX
         end
 
         def build_network_interface_param(args, subnet)
+          network_interface_properties = {
+            private_ipallocation_method: args[:private_ip_allocation_method],
+            subnet: subnet,
+          }
+          if args[:public_ip_allocation_method] != 'None'
+            network_interface_properties[:public_ipaddress] = create_public_ip_address(args)
+          end
           build(::Azure::ARM::Network::Models::NetworkInterface, {
             location: args[:location],
             name: args[:network_interface_name],
             properties: build(::Azure::ARM::Network::Models::NetworkInterfacePropertiesFormat, {
               ip_configurations: [build(::Azure::ARM::Network::Models::NetworkInterfaceIPConfiguration, {
                 name: args[:ip_configuration_name],
-                properties: build(::Azure::ARM::Network::Models::NetworkInterfaceIPConfigurationPropertiesFormat, {
-                  private_ipallocation_method: args[:private_ip_allocation_method],
-                  public_ipaddress: create_public_ip_address(args),
-                  subnet: subnet,
-                }),
+                properties: build(::Azure::ARM::Network::Models::NetworkInterfaceIPConfigurationPropertiesFormat, network_interface_properties),
               })],
             })
           })

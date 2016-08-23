@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'azure_vm when creating a machine with all available properties' do
+describe 'azure_vm when creating a machine with no public IP' do
   include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
@@ -15,6 +15,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         size: 'Standard_A0',
         resource_group: SPEC_RESOURCE_GROUP,
         password: 'SpecPass123!@#$%',
+        public_ip_allocation_method: 'None',
       },
     }
     @template = 'azure_vm.pp.tmpl'
@@ -28,10 +29,6 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   it 'should have the correct name' do
     expect(@machine.name).to eq(@name)
-  end
-
-  it 'should have the correct size' do
-    expect(@machine.properties.hardware_profile.vm_size).to eq(@config[:optional][:size])
   end
 
   it 'should be running' do
@@ -49,46 +46,6 @@ describe 'azure_vm when creating a machine with all available properties' do
     puppet_resource_should_show('network_interface_name')
     puppet_resource_should_show('os_disk_vhd_container_name')
     puppet_resource_should_show('os_disk_vhd_name')
-  end
-
-  context 'when we try and stop the VM' do
-    before(:all) do
-      new_config = @config.update({:ensure => 'stopped'})
-      @manifest = PuppetManifest.new(@template, new_config)
-      @result = @manifest.execute
-      @machine = @client.get_vm(@name)
-    end
-
-    it_behaves_like 'an idempotent resource'
-
-    it 'should be stopped' do
-      expect(@client.vm_stopped?(@machine)).to be true
-    end
-
-    context 'when looked for using puppet resource' do
-      include_context 'a puppet ARM resource run'
-      puppet_resource_should_show('ensure', 'stopped')
-    end
-
-    context 'when we try and restart the VM' do
-      before(:all) do
-        new_config = @config.update({:ensure => 'running'})
-        @manifest = PuppetManifest.new(@template, new_config)
-        @result = @manifest.execute
-        @machine = @client.get_vm(@name)
-      end
-
-      it_behaves_like 'an idempotent resource'
-
-      it 'should be running' do
-        expect(@client.vm_running?(@machine)).to be true
-      end
-
-      context 'when looked for using puppet resource' do
-        include_context 'a puppet ARM resource run'
-        puppet_resource_should_show('ensure', 'running')
-      end
-    end
   end
 
   context 'when we try and destroy the VM' do

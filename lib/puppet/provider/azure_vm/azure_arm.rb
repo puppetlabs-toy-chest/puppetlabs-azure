@@ -129,7 +129,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       network_interface_name: default_based_on_name(resource[:network_interface_name]),
     })
 
-    self.extensions = resource[:extensions]
+    self.extensions = resource[:extensions] if resource[:extensions]
   end
 
   def extensions=(value) # rubocop:disable Metrics/AbcSize

@@ -12,12 +12,12 @@ describe 'azure_vm_classic when creating a machine with all available properties
       ensure: 'present',
       optional: {
         image: UBUNTU_IMAGE,
-        location: CHEAPEST_AZURE_LOCATION,
+        location: CHEAPEST_CLASSIC_LOCATION,
         user: 'specuser',
         password: 'SpecPass123!@#$%',
         size: 'Small',
         deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
-        cloud_service: "CLOUD-CS-#{SecureRandom.hex(8)}",
+        cloud_service: SPEC_CLOUD_SERVICE,
         data_disk_size_gb: 53,
         purge_disk_on_delete: true,
         custom_data: "touch #{@custom_data_file}",
@@ -80,7 +80,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
     # so we retry this a few times
     5.times do
       @result = run_command_over_ssh(@ip, "test -f #{@custom_data_file}", 'password', 22)
-      break if @result.exit_status == 0
+      break if @result.exit_status.zero?
       sleep 10
     end
     expect(@result.exit_status).to eq 0
