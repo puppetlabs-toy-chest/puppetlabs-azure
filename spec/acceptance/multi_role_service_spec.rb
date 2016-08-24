@@ -6,13 +6,13 @@ describe 'azure_vm_classic when creating a multirole services' do
   include_context 'with known network'
 
   before(:all) do
-    @second_name = @name[0..-2] + "x"
-    @third_name = @name[0..-2] + "y"
+    @second_name = @name[0..-2] + 'x'
+    @third_name = @name[0..-2] + 'y'
 
     @config = {
       optional: {
         user: 'specuser',
-        password: 'SpecPass123!@#$%',
+        password: 'SpecPass123!@#$%'
       }
     }
 
@@ -77,14 +77,14 @@ CONFIG
       # verify that we're on the right machine. This would require polling until the
       # cloud init has run and make this much more complicated to shore up against
       # a very unlikely error.
-      result = run_command_over_ssh(@ip, "true", 'password', 2201)
+      result = run_command_over_ssh(@ip, 'true', 'password', 2201)
       expect(result.exit_status).to eq 0
     end
   end
 
   describe 'the second machine' do
     it 'is accessible on its own port' do
-      result = run_command_over_ssh(@ip, "true", 'password', 2202)
+      result = run_command_over_ssh(@ip, 'true', 'password', 2202)
       expect(result.exit_status).to eq 0
     end
   end
@@ -126,20 +126,20 @@ CONFIG
 
     describe 'the first machine' do
       it 'is accessible on its own port' do
-        result = run_command_over_ssh(@ip, "true", 'password', 2201)
+        result = run_command_over_ssh(@ip, 'true', 'password', 2201)
         expect(result.exit_status).to eq 0
       end
     end
 
     describe 'the second machine' do
       it 'is accessible on its own port' do
-        result = run_command_over_ssh(@ip, "true", 'password', 2202)
+        result = run_command_over_ssh(@ip, 'true', 'password', 2202)
         expect(result.exit_status).to eq 0
       end
     end
     describe 'the third machine' do
       it 'is accessible on its own port' do
-        result = run_command_over_ssh(@ip, "true", 'password', 2203)
+        result = run_command_over_ssh(@ip, 'true', 'password', 2203)
         expect(result.exit_status).to eq 0
       end
     end
@@ -174,14 +174,14 @@ CONFIG
 
     describe 'the first machine' do
       it 'is still accessible on its own port' do
-        result = run_command_over_ssh(@ip, "true", 'password', 2201)
+        result = run_command_over_ssh(@ip, 'true', 'password', 2201)
         expect(result.exit_status).to eq 0
       end
     end
 
     describe 'the third machine' do
       it 'is still accessible on its own port' do
-        result = run_command_over_ssh(@ip, "true", 'password', 2203)
+        result = run_command_over_ssh(@ip, 'true', 'password', 2203)
         expect(result.exit_status).to eq 0
       end
     end

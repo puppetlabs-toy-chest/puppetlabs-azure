@@ -16,16 +16,16 @@ end
 # This gem isn't always present, for instance
 # on Travis with --without acceptance
 begin
-require 'master_manipulator'
+  require 'master_manipulator'
 rescue LoadError # rubocop:disable Lint/HandleExceptions
 end
 
 RuboCop::RakeTask.new
 
 exclude_paths = [
-  "pkg/**/*",
-  "vendor/**/*",
-  "spec/**/*",
+  'pkg/**/*',
+  'vendor/**/*',
+  'spec/**/*'
 ]
 
 Rake::Task[:lint].clear
@@ -42,16 +42,16 @@ PuppetSyntax.exclude_paths = exclude_paths
 
 # Use our own metadata task so we can ignore the non-SPDX PE licence
 Rake::Task[:metadata].clear
-desc "Check metadata is valid JSON"
+desc 'Check metadata is valid JSON'
 task :metadata do
-  sh "bundle exec metadata-json-lint metadata.json --no-strict-license"
+  sh 'bundle exec metadata-json-lint metadata.json --no-strict-license'
 end
 
-desc "Run syntax, lint, and spec tests."
-task :test => [
+desc 'Run syntax, lint, and spec tests.'
+task test: [
   :metadata,
   :syntax,
   :lint,
   :rubocop,
-  :spec,
+  :spec
 ]

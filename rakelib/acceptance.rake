@@ -24,8 +24,8 @@ module ParallelTests
 end
 
 namespace :parallel do
-  desc "Run acceptance in parallel with parallel:acceptance[num_cpus]"
-  task :acceptance, [:count, :options] do |t, args|
+  desc 'Run acceptance in parallel with parallel:acceptance[num_cpus]'
+  task :acceptance, [:count, :options] do |_t, args|
     ENV['BEAKER_TESTMODE'] = 'local'
     count, options = ParallelTests::Tasks.parse_args(args)
     executable = 'parallel_test'
@@ -40,11 +40,11 @@ end
 PE_RELEASES = {
   '3.8.1' => 'http://pe-releases.puppetlabs.lan/3.8.1/',
   '2015.2' => 'http://pe-releases.puppetlabs.lan/2015.2.3/',
-  '2015.3' => 'http://enterprise.delivery.puppetlabs.net/2015.3/preview/',
+  '2015.3' => 'http://enterprise.delivery.puppetlabs.net/2015.3/preview/'
 }.freeze
 
-desc "Run acceptance tests"
-RSpec::Core::RakeTask.new(:acceptance => [:spec_prep]) do |t|
+desc 'Run acceptance tests'
+RSpec::Core::RakeTask.new(acceptance: [:spec_prep]) do |t|
   ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES['2015.2']
   ENV['BEAKER_set'] = ENV['BEAKER_set'] || 'vagrant/ubuntu1404'
   t.pattern = 'spec/acceptance'
@@ -52,28 +52,28 @@ end
 
 namespace :acceptance do
   {
-    :vagrant => [
-      'ubuntu1404',
-      'centos7',
-      'centos6',
-      'ubuntu1404m_debian7a',
-      'ubuntu1404m_ubuntu1404a',
-      'centos7m_centos7a',
-      'centos6m_centos6a',
-    ],
-    :pooler => [
-      'ubuntu1404',
-      'centos7',
-      'centos6',
-      'ubuntu1404m_debian7a',
-      'ubuntu1404m_ubuntu1404a',
-      'centos7m_centos7a',
-      'centos6m_centos6a',
-      'rhel7',
-      'rhel7m_scientific7a',
-      'centos7m_windows2012a',
-      'centos7m_windows2012r2a',
-    ]
+    vagrant: %w(
+      ubuntu1404
+      centos7
+      centos6
+      ubuntu1404m_debian7a
+      ubuntu1404m_ubuntu1404a
+      centos7m_centos7a
+      centos6m_centos6a
+    ),
+    pooler: %w(
+      ubuntu1404
+      centos7
+      centos6
+      ubuntu1404m_debian7a
+      ubuntu1404m_ubuntu1404a
+      centos7m_centos7a
+      centos6m_centos6a
+      rhel7
+      rhel7m_scientific7a
+      centos7m_windows2012a
+      centos7m_windows2012r2a
+    )
   }.each do |ns, configs|
     namespace ns.to_sym do
       configs.each do |config|

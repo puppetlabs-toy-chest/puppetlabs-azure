@@ -1,4 +1,4 @@
-source ENV['GEM_SOURCE'] || "https://rubygems.org"
+source ENV['GEM_SOURCE'] || 'https://rubygems.org'
 
 gem 'azure', '~> 0.7.0'
 
@@ -14,13 +14,14 @@ group :test do
   gem 'rake'
   gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 4'
   gem 'facter', '>= 2.0'
-  gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
+  gem 'rspec-puppet', git: 'https://github.com/rodjek/rspec-puppet.git'
   gem 'puppetlabs_spec_helper', '< 1.0'
   gem 'metadata-json-lint'
   # json_pure 2.0.2 added a requirement on ruby >= 2. We pin to json_pure 2.0.1
   # if using ruby 1.x
-  gem 'json_pure', '<=2.0.1', :require => false if RUBY_VERSION =~ /^1\./
+  gem 'json_pure', '<=2.0.1', require: false if RUBY_VERSION =~ /^1\./
   gem 'rubocop', '~> 0.41.0'
+  gem 'rubocop-rspec'
   gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
   gem 'parallel_tests'
@@ -41,8 +42,8 @@ group :acceptance do
   gem 'winrm', '~> 1.3'
   gem 'mustache'
   gem 'ssh-exec'
-  gem "beaker-puppet_install_helper", :require => false
-  gem "beaker-testmode_switcher"
+  gem 'beaker-puppet_install_helper', require: false
+  gem 'beaker-testmode_switcher'
   gem 'beaker', ENV['BEAKER_VERSION'] || '~> 2.0'
   gem 'master_manipulator', '~> 1.0'
   gem 'beaker-rspec'

@@ -1,5 +1,5 @@
 HOSTS:
-  rhel7:
+  't1rccetehnf0qi5.delivery.puppetlabs.net':
     roles:
       - master
       - dashboard

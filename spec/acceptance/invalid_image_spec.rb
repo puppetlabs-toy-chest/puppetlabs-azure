@@ -10,14 +10,14 @@ describe 'azure_vm_classic when providing an invalid image' do
       ensure: 'present',
       optional: {
         location: CHEAPEST_CLASSIC_LOCATION,
-        image: 'INVALID_IMAGE_NAME',
+        image: 'INVALID_IMAGE_NAME'
       }
     }
     @result = PuppetManifest.new(@template, config).execute
   end
 
   it 'reports errors from the API' do
-    expect(@result.output).to match /Failed to create virtual machine.*:.*The virtual machine image source is not valid\./
+    expect(@result.output).to match(/Failed to create virtual machine.*:.*The virtual machine image source is not valid\./)
   end
 
   it 'reports the error in the exit code' do

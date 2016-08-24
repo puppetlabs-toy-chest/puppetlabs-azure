@@ -32,7 +32,7 @@ describe 'azure_vm_classic when creating a new Windows machine' do
 
   it 'should be accessible via WinRM with the provided details' do
     pending 'the Azure firewall is not by default open to WinRM, pending work in CLOUD-429'
-    run_command_over_winrm('ipconfig /all', 5986) do |stdout, stderr|
+    run_command_over_winrm('ipconfig /all', 5986) do |_stdout, stderr|
       expect(stderr).to be_empty?
     end
   end

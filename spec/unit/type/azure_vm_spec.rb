@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'azure_vm', :type => :type do
+describe 'azure_vm', type: :type do
   let(:type_class) { Puppet::Type.type(:azure_vm) }
 
   let :params do
@@ -19,7 +19,7 @@ describe 'azure_vm', :type => :type do
       :subnet_name,
       :subnet_address_prefix,
       :storage_account,
-      :storage_account_type,
+      :storage_account_type
     ]
   end
 
@@ -37,7 +37,7 @@ describe 'azure_vm', :type => :type do
       :os_disk_vhd_container_name,
       :os_disk_vhd_name,
       :network_interface_name,
-      :extensions,
+      :extensions
     ]
   end
 
@@ -49,7 +49,7 @@ describe 'azure_vm', :type => :type do
       size: 'Standard_A0',
       user: 'specuser',
       password: 'Pa55wd!',
-      resource_group: 'testresourcegrp',
+      resource_group: 'testresourcegrp'
     }
   end
 
@@ -82,14 +82,14 @@ describe 'azure_vm', :type => :type do
           'settings'                   => {
             'commandToExecute' => 'sh script.sh',
             'fileUris'         => ['https://iaasv2tempstoreeastus.blob.core.windows.net/vmextensionstemporary-0003bf']
-          },
-        },
-      },
+          }
+        }
+      }
     }
   end
 
   let :default_config do
-     minimal_config.merge(optional_config)
+    minimal_config.merge(optional_config)
   end
 
   it 'should have expected properties' do
@@ -108,15 +108,14 @@ describe 'azure_vm', :type => :type do
     expect(params + [:provider]).to include(*type_class.parameters)
   end
 
-
-  [
-    'location',
-    'image',
-    'size',
-    'resource_group',
-    'storage_account',
-    'storage_account_type',
-  ].each do |property|
+  %w(
+    location
+    image
+    size
+    resource_group
+    storage_account
+    storage_account_type
+  ).each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
     end
@@ -157,12 +156,11 @@ describe 'azure_vm', :type => :type do
       end
     end
 
-
     [
-      :location,
+      :location
     ].each do |key|
       context "when missing the #{key} property" do
-        it "should fail" do
+        it 'should fail' do
           config.delete(key)
           expect { machine }.to raise_error(Puppet::Error, /You must provide a #{key}/)
         end
@@ -170,18 +168,18 @@ describe 'azure_vm', :type => :type do
     end
 
     {
-      :ensure => :present,
-      :storage_account_type => 'Standard_GRS',
-      :os_disk_caching => 'ReadWrite',
-      :os_disk_create_option => 'FromImage',
-      :os_disk_vhd_container_name => 'vhds',
-      :dns_servers => '10.1.1.1 10.1.2.4',
-      :public_ip_allocation_method => 'Dynamic',
-      :virtual_network_address_space => '10.0.0.0/16',
-      :subnet_name => 'default',
-      :subnet_address_prefix => '10.0.2.0/24',
-      :private_ip_allocation_method => 'Dynamic',
-      :extensions => nil,
+      ensure: :present,
+      storage_account_type: 'Standard_GRS',
+      os_disk_caching: 'ReadWrite',
+      os_disk_create_option: 'FromImage',
+      os_disk_vhd_container_name: 'vhds',
+      dns_servers: '10.1.1.1 10.1.2.4',
+      public_ip_allocation_method: 'Dynamic',
+      virtual_network_address_space: '10.0.0.0/16',
+      subnet_name: 'default',
+      subnet_address_prefix: '10.0.2.0/24',
+      private_ip_allocation_method: 'Dynamic',
+      extensions: nil
     }.each do |property, value|
       it "should default #{property} to #{value}" do
         expect(machine[property]).to eq(value)
@@ -199,7 +197,6 @@ describe 'azure_vm', :type => :type do
     end
   end
 
-
   context 'with a image specified' do
     let :config do
       default_config
@@ -209,7 +206,7 @@ describe 'azure_vm', :type => :type do
       expect { type_class.new(config) }.to_not raise_error
     end
 
-    it "should require image to have a value" do
+    it 'should require image to have a value' do
       expect do
         config[:image] = ''
         type_class.new(config)

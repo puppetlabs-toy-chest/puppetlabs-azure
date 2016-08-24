@@ -18,12 +18,12 @@ Puppet::Type.newtype(:azure_vm) do
 
   validate do
     required_properties = [
-      :location,
+      :location
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
-      if self[:ensure] == :present and self[property].nil? and self.provider.send(property) == :absent
-        fail "You must provide a #{property}"
+      if self[:ensure] == :present && self[property].nil? && provider.send(property) == :absent
+        raise "You must provide a #{property}"
       end
     end
   end
@@ -53,90 +53,91 @@ Puppet::Type.newtype(:azure_vm) do
     end
     def change_to_s(current, desired)
       current = :running if current == :present
-      desired = current if desired == :present and current != :absent
+      desired = current if desired == :present && current != :absent
       current == desired ? current : "changed #{current} to #{desired}"
     end
+
     def insync?(is)
-      is.to_s == should.to_s or
-        (is.to_s == 'running' and should.to_s == 'present') or
-        (is.to_s == 'stopped' and should.to_s == 'present')
+      is.to_s == should.to_s ||
+        (is.to_s == 'running' && should.to_s == 'present') ||
+        (is.to_s == 'stopped' && should.to_s == 'present')
     end
   end
 
-  newparam(:name, namevar: true, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:name, namevar: true, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the virtual machine.'
     validate do |value|
       super value
-      fail("the name must be between 1 and 64 characters long") if value.size > 64
+      raise('the name must be between 1 and 64 characters long') if value.size > 64
     end
   end
 
-  newproperty(:image, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:image, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the image to use to create the virtual machine.'
     validate do |value|
       super value
-      fail("the image name must not be empty") if value.empty?
+      raise('the image name must not be empty') if value.empty?
     end
     def insync?(is)
       is.casecmp(should).zero?
     end
   end
 
-  newproperty(:user, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:user, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'User name for the virtual machine. This value is only used when creating the VM initially.'
   end
 
-  newparam(:password, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:password, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The password for the virtual machine. This value is only used when creating the VM initially.'
     validate do |value|
       super value
-      fail 'the password must not be empty' if value.empty?
+      raise 'the password must not be empty' if value.empty?
     end
   end
 
-  newproperty(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:location, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The location where the virtual machine will be created.'
     validate do |value|
       super value
-      fail 'the location must not be empty' if value.empty?
+      raise 'the location must not be empty' if value.empty?
     end
   end
 
-  newproperty(:size, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:size, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The size of the virtual machine instance.'
     validate do |value|
       super value
-      fail 'the size must not be empty' if value.empty?
+      raise 'the size must not be empty' if value.empty?
     end
   end
 
-  newproperty(:resource_group, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:resource_group, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated resource group'
     validate do |value|
       super value
-      fail 'the resource group must not be empty' if value.empty?
-      fail("the resource group must be less that 65 characters in length") if value.size > 64
+      raise 'the resource group must not be empty' if value.empty?
+      raise('the resource group must be less that 65 characters in length') if value.size > 64
     end
     def insync?(is)
       is.casecmp(should).zero?
     end
   end
 
-  newparam(:storage_account, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:storage_account, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated storage account'
     validate do |value|
       super value
-      fail 'the storage account must not be empty' if value.empty?
+      raise 'the storage account must not be empty' if value.empty?
     end
   end
 
   newproperty(:extensions) do
     desc 'The hash of extensions and their settings'
     def insync?(is)
-      should.reduce(true) do |insync,(name,should_props)|
+      should.reduce(true) do |insync, (name, should_props)|
         if is[name]
           # Filter properties that are nil or unmanaged
-          is_props = is[name].reject { |k,v| v.nil? or k == 'provisioning_state' }
+          is_props = is[name].reject { |k, v| v.nil? || k == 'provisioning_state' }
           # Propagate any mismatches
           insync && (is_props == should_props)
         else
@@ -147,81 +148,81 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
-  newparam(:storage_account_type, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:storage_account_type, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated storage account type'
     defaultto 'Standard_GRS'
   end
 
-  newproperty(:os_disk_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated os disk name'
   end
 
-  newproperty(:os_disk_caching, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_caching, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The disk cache setting'
     defaultto 'ReadWrite'
   end
 
-  newproperty(:os_disk_create_option, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_create_option, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk create option'
     defaultto 'FromImage'
   end
 
-  newproperty(:os_disk_vhd_container_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_vhd_container_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd container name'
     defaultto 'vhds'
   end
 
-  newproperty(:os_disk_vhd_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:os_disk_vhd_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd name'
   end
 
-  newparam(:public_ip_address_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:public_ip_address_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The public ip address name'
   end
 
-  newparam(:dns_domain_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:dns_domain_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The dns domain name for the vm'
   end
 
-  newparam(:dns_servers, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:dns_servers, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The dns servers for the vm'
     defaultto '10.1.1.1 10.1.2.4'
   end
 
-  newparam(:public_ip_allocation_method, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:public_ip_allocation_method, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The public ip allocation method'
     defaultto 'Dynamic'
   end
 
-  newparam(:virtual_network_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:virtual_network_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The virtual network name'
   end
 
-  newparam(:virtual_network_address_space, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:virtual_network_address_space, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The virtual network address space'
     defaultto '10.0.0.0/16'
   end
 
-  newparam(:subnet_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:subnet_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The subnet name'
     defaultto 'default'
   end
 
-  newparam(:subnet_address_prefix, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:subnet_address_prefix, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The subnet address prefix'
     defaultto '10.0.2.0/24'
   end
 
-  newparam(:ip_configuration_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:ip_configuration_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The ip configuration name'
   end
 
-  newparam(:private_ip_allocation_method, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:private_ip_allocation_method, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The private ip allocation method'
     defaultto 'Dynamic'
   end
 
-  newproperty(:network_interface_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:network_interface_name, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The network interface name'
   end
 end

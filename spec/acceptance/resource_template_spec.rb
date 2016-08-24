@@ -12,21 +12,21 @@ describe 'azure_resource_template when creating a template deployment' do
       ensure: 'present',
       resource_group: SPEC_RESOURCE_GROUP,
       location: CHEAPEST_ARM_LOCATION,
-      optional: {}, #XXX fails without this
+      optional: {}, # XXX fails without this
       nonstring: {
         content: '$content',
         params: {
           'dnsNameforLBIP'      => 'stuffandthings02',
           'publicIPAddressType' => 'Dynamic',
           'addressPrefix'       => '10.0.0.0/16',
-          'subnetPrefix'        => '10.0.0.0/24',
-        },
-      },
+          'subnetPrefix'        => '10.0.0.0/24'
+        }
+      }
     }
     @template = 'azure_resource_template.pp.tmpl'
     @manifest = PuppetManifest.new(@template, @config)
     @result = @manifest.execute
-    @machine = @client.get_resource_template(SPEC_RESOURCE_GROUP,@name)
+    @machine = @client.get_resource_template(SPEC_RESOURCE_GROUP, @name)
   end
 
   it_behaves_like 'an idempotent resource'
@@ -38,16 +38,16 @@ describe 'azure_resource_template when creating a template deployment' do
   context 'when puppet resource is run' do
     include_context 'a puppet ARM resource run', 'azure_resource_template'
     puppet_resource_should_show('ensure', 'present')
-    puppet_resource_should_show('resource_group',SPEC_RESOURCE_GROUP)
+    puppet_resource_should_show('resource_group', SPEC_RESOURCE_GROUP)
     puppet_resource_should_show('params', '')
   end
 
   context 'when we try and destroy the deployment' do
     before(:all) do
-      new_config = @config.update({:ensure => 'absent'})
+      new_config = @config.update(ensure: 'absent')
       manifest = PuppetManifest.new(@template, new_config)
       @result = manifest.execute
-      @machine = @client.get_resource_template(SPEC_RESOURCE_GROUP,@name)
+      @machine = @client.get_resource_template(SPEC_RESOURCE_GROUP, @name)
     end
 
     it 'should run without errors' do

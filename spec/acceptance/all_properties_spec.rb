@@ -24,7 +24,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
         storage_account: @storage_account_name,
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
-        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
+        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}"
       }
     }
 
@@ -103,7 +103,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
       :size,
       :image,
       :virtual_network,
-      :availability_set,
+      :availability_set
     ]
 
     read_only.each do |new_config_value|

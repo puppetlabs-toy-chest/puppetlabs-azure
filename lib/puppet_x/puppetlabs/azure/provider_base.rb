@@ -7,23 +7,23 @@ module PuppetX
     module Azure
       class LoggerAdapter
         def info(msg)
-          Puppet.info("azure-sdk: " + msg)
+          Puppet.info('azure-sdk: ' + msg)
         end
 
         def warn(msg)
-          Puppet.warning("azure-sdk: " + msg)
+          Puppet.warning('azure-sdk: ' + msg)
         end
 
         def error(msg)
-          Puppet.err("azure-sdk: " + msg)
+          Puppet.err('azure-sdk: ' + msg)
         end
       end
 
       class ProviderBase < Puppet::Provider
         def self.read_only(*methods)
           methods.each do |method|
-            define_method("#{method}=") do |v|
-              fail "#{method} property is read-only once #{resource.type} created."
+            define_method("#{method}=") do |_v|
+              raise "#{method} property is read-only once #{resource.type} created."
             end
           end
         end
@@ -42,7 +42,7 @@ module PuppetX
 
         def exists?
           Puppet.info("Checking if #{name} exists")
-          @property_hash[:ensure] and @property_hash[:ensure] != :absent
+          @property_hash[:ensure] && @property_hash[:ensure] != :absent
         end
 
         def running?
@@ -62,21 +62,25 @@ module PuppetX
         end
 
         private
+
         def machine
           object(:vm)
         end
+
         def resource_group
           object(:resource_group)
         end
+
         def storage_account
           object(:storage_account)
         end
+
         def object(type)
           obj = if @property_hash[:object]
                   @property_hash[:object]
                 else
                   Puppet.debug("Looking up #{name}")
-                  self.send("get_#{type}", name)
+                  send("get_#{type}", name)
                 end
           raise Puppet::Error, "No #{type} called #{name}" unless obj
           obj

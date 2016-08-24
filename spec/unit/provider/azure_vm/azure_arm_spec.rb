@@ -29,7 +29,7 @@ describe provider_class do
       subnet_address_prefix: '10.0.2.0/24',
       ip_configuration_name: 'ip_config_test01',
       private_ip_allocation_method: 'Dynamic',
-      network_interface_name: 'nicspec01',
+      network_interface_name: 'nicspec01'
     )
   end
 

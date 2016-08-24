@@ -11,7 +11,7 @@ shared_examples 'a removable resource' do
           location: old_config[:optional][:location],
           deployment: old_config[:optional][:deployment],
           cloud_service: old_config[:optional][:cloud_service],
-          purge_disk_on_delete: true,
+          purge_disk_on_delete: true
         }
       }
 

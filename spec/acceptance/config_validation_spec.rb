@@ -12,7 +12,7 @@ context "when no management certificate is set while running 'puppet resource az
     ENV['AZURE_MANAGEMENT_CERTIFICATE'] = old_cert
   end
 
-  it "should report an error pointing to missing ENV/config var" do
+  it 'should report an error pointing to missing ENV/config var' do
     expect(@result.stderr).to match(/AZURE_MANAGEMENT_CERTIFICATE/)
   end
 end

@@ -14,8 +14,8 @@ describe 'azure_vm when creating a machine with all available properties' do
         user: 'specuser',
         size: 'Standard_A0',
         resource_group: SPEC_RESOURCE_GROUP,
-        password: 'SpecPass123!@#$%',
-      },
+        password: 'SpecPass123!@#$%'
+      }
     }
     @template = 'azure_vm.pp.tmpl'
     @client = AzureARMHelper.new
@@ -53,7 +53,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   context 'when we try and stop the VM' do
     before(:all) do
-      new_config = @config.update({:ensure => 'stopped'})
+      new_config = @config.update(ensure: 'stopped')
       @manifest = PuppetManifest.new(@template, new_config)
       @result = @manifest.execute
       @machine = @client.get_vm(@name)
@@ -72,7 +72,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
     context 'when we try and restart the VM' do
       before(:all) do
-        new_config = @config.update({:ensure => 'running'})
+        new_config = @config.update(ensure: 'running')
         @manifest = PuppetManifest.new(@template, new_config)
         @result = @manifest.execute
         @machine = @client.get_vm(@name)
@@ -93,7 +93,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   context 'when we try and destroy the VM' do
     before(:all) do
-      new_config = @config.update({:ensure => 'absent'})
+      new_config = @config.update(ensure: 'absent')
       manifest = PuppetManifest.new(@template, new_config)
       @result = manifest.execute
       @machine = @client.get_vm(@name)

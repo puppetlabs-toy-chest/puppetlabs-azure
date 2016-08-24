@@ -12,56 +12,56 @@ Puppet::Type.newtype(:azure_storage_account) do
   validate do
     required_properties = [
       :location,
-      :resource_group,
+      :resource_group
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
-      if self[:ensure] == :present and self[property].nil? and self.provider.send(property) == :absent
-        fail "You must provide a #{property}"
+      if self[:ensure] == :present && self[property].nil? && provider.send(property) == :absent
+        raise "You must provide a #{property}"
       end
     end
   end
 
-  newparam(:name, namevar: true, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:name, namevar: true, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the storage account.'
     validate do |value|
       super value
-      fail 'the name must not be empty' if value.empty?
-      fail("The name must be between 3 and 24 characters in length") if value.size > 24 or value.size < 3
+      raise 'the name must not be empty' if value.empty?
+      raise('The name must be between 3 and 24 characters in length') if value.size > 24 || value.size < 3
     end
     def insync?(is)
       is.casecmp(should).zero?
     end
   end
 
-  newproperty(:resource_group, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:resource_group, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated resource group'
     validate do |value|
       super value
-      fail 'the resource group must not be empty' if value.empty?
+      raise 'the resource group must not be empty' if value.empty?
     end
     def insync?(is)
       is.casecmp(should).zero?
     end
   end
 
-  newproperty(:account_type, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:account_type, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the storage account performance & replication SKU (account type)'
     newvalues('Standard_LRS', 'Standard_ZRS', 'Standard_GRS', 'Standard_RAGRS', 'Premium_LRS')
     defaultto 'Standard_GRS'
   end
 
-  newproperty(:account_kind, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:account_kind, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The kind of storage account'
     newvalues('Storage', 'BlobStorage')
     defaultto 'Storage'
   end
 
-  newproperty(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:location, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The location where the storage account will be created.'
     validate do |value|
       super value
-      fail 'the location must not be empty' if value.empty?
+      raise 'the location must not be empty' if value.empty?
     end
   end
 end

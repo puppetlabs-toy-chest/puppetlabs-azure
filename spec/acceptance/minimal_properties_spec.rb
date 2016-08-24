@@ -38,7 +38,7 @@ describe 'azure_vm_classic when creating a new machine with the minimum properti
 
   it 'should be launched in the specified location' do
     cloud_service = @client.get_cloud_service(@machine)
-    location = cloud_service.location || cloud_service.extended_properties["ResourceLocation"]
+    location = cloud_service.location || cloud_service.extended_properties['ResourceLocation']
     expect(location).to eq(@config[:optional][:location])
   end
 
@@ -75,7 +75,7 @@ describe 'azure_vm_classic when creating a new machine with the minimum properti
 
   context 'stopping the machine' do
     before(:all) do
-      new_config = @config.update({:ensure => 'stopped'})
+      new_config = @config.update(ensure: 'stopped')
       @manifest = PuppetManifest.new(@template, new_config)
       @result = @manifest.execute
       @stopped_machine = @client.get_virtual_machine(@name).first
@@ -89,7 +89,7 @@ describe 'azure_vm_classic when creating a new machine with the minimum properti
 
     context 'restarting the machine' do
       before(:all) do
-        new_config = @config.update({:ensure => 'running'})
+        new_config = @config.update(ensure: 'running')
         @manifest = PuppetManifest.new(@template, new_config)
         @result = @manifest.execute
         @started_machine = @client.get_virtual_machine(@name).first

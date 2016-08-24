@@ -29,13 +29,13 @@ module PuppetX
 
         def self.auth(&client)
           unless @authenticated
-            cert_file = self.config.management_certificate
+            cert_file = config.management_certificate
             unless cert_file && File.file?(cert_file)
-              raise Puppet::Error, "Azure management certificate does not exist [#{self.config.management_certificate}]. Please set AZURE_MANAGEMENT_CERTIFICATE environment variable, or management_certificate config entry to the full path."
+              raise Puppet::Error, "Azure management certificate does not exist [#{config.management_certificate}]. Please set AZURE_MANAGEMENT_CERTIFICATE environment variable, or management_certificate config entry to the full path."
             end
-            Puppet.debug("Using management certificate at [#{self.config.management_certificate}]")
-            ::Azure.subscription_id = self.config.subscription_id
-            ::Azure.management_certificate = self.config.management_certificate
+            Puppet.debug("Using management certificate at [#{config.management_certificate}]")
+            ::Azure.subscription_id = config.subscription_id
+            ::Azure.management_certificate = config.management_certificate
             @authenticated = true
           end
           yield client
@@ -67,7 +67,7 @@ module PuppetX
         end
 
         def stopped?
-          ['StoppedDeallocated', 'Stopped'].include? machine.status
+          %w(StoppedDeallocated Stopped).include? machine.status
         end
 
         def self.get_cloud_service(service_name)
@@ -85,11 +85,9 @@ module PuppetX
           Provider.vm_manager.add_data_disk(
             vm_name,
             cloud_service_name,
-            {
-              disk_label: "data-disk-for-#{vm_name}",
-              disk_size: data_disk_size_gb,
-              import: false,
-            }
+            disk_label: "data-disk-for-#{vm_name}",
+            disk_size: data_disk_size_gb,
+            import: false
           )
         end
 
@@ -106,7 +104,7 @@ module PuppetX
             deployments = service_properties.virtual_machines
 
             add_role = deployments.count >= 1
-          rescue Exception
+          rescue Exception # rubocop:disable Lint/RescueException
             # This might lead to false negatives when the API or network is not well-behaved
             # Since it doesn't impact idempotency or data reliability, we punted this issue
             # until a general reliability overhaul of the azure SDK or our usage of it.
@@ -119,9 +117,9 @@ module PuppetX
         def create_vm(args) # rubocop:disable Metrics/AbcSize
           cloud_service_name = args[:cloud_service_name]
           param_names = [:vm_name, :image, :location, :vm_user, :password, :custom_data]
-          params = (args.keys & param_names).each_with_object({}) { |k,h| h.update(k=>args.delete(k)) }
-          sanitised_params = params.delete_if { |k, v| v.nil? }
-          sanitised_args = args.delete_if { |k, v| v.nil? }
+          params = (args.keys & param_names).each_with_object({}) { |k, h| h.update(k => args.delete(k)) }
+          sanitised_params = params.delete_if { |_k, v| v.nil? }
+          sanitised_args = args.delete_if { |_k, v| v.nil? }
           data_disk_size_gb = sanitised_args.delete(:data_disk_size_gb)
 
           if adding_role?(cloud_service_name)
@@ -143,23 +141,23 @@ module PuppetX
           # Since the API does not guarantee the removal of the disk, we need to take
           # extra care to clean up. Additionally, when touching disks of VMs going out,
           # Azure sometimes has a lock on them, causing API calls to fail with API errors.
-          with_retries(:max_tries => 10,
-                       :base_sleep_seconds => 20,
-                       :max_sleep_seconds => 20,
-                       :rescue => [
+          with_retries(max_tries: 10,
+                       base_sleep_seconds: 20,
+                       max_sleep_seconds: 20,
+                       rescue: [
                          NotFinished,
                          ::Azure::Core::Error,
                          # The following errors can occur when there are network issues
                          Errno::ECONNREFUSED,
                          Errno::ECONNRESET,
-                         Errno::ETIMEDOUT,
+                         Errno::ETIMEDOUT
                        ]) do
             Puppet.debug("Trying to deleting disk #{disk_name}")
             begin
               Provider.disk_manager.delete_virtual_machine_disk(disk_name)
               if Provider.disk_manager.get_virtual_machine_disk(disk_name)
                 Puppet.debug("Disk was not deleted. Retrying to deleting disk #{disk_name}")
-                raise NotFinished.new
+                raise NotFinished
               end
             rescue NotFinished
               raise
@@ -172,7 +170,7 @@ module PuppetX
               # escape sequences for coloring it
               case err.message
               when /ConflictError : Windows Azure is currently performing an operation/
-                raise NotFinished.new
+                raise NotFinished
               when /ResourceNotFound : The disk with the specified name does not exist/
                 return # it's gone!
               else

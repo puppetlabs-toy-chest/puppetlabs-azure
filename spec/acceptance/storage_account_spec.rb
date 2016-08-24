@@ -14,8 +14,8 @@ describe 'azure_storage_account when creating a storage account' do
         location: CHEAPEST_ARM_LOCATION,
         resource_group: SPEC_RESOURCE_GROUP,
         account_type: 'Standard_GRS',
-        account_kind: 'Storage',
-      },
+        account_kind: 'Storage'
+      }
     }
     @template = 'azure_storage_account.pp.tmpl'
     @manifest = PuppetManifest.new(@template, @config)
@@ -40,7 +40,7 @@ describe 'azure_storage_account when creating a storage account' do
 
   context 'when we try and destroy the SA' do
     before(:all) do
-      new_config = @config.update({:ensure => 'absent'})
+      new_config = @config.update(ensure: 'absent')
       manifest = PuppetManifest.new(@template, new_config)
       @result = manifest.execute
       @machine = @client.get_storage_account(@name)

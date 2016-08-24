@@ -14,8 +14,8 @@ describe 'azure_vm when creating a machine with all available properties' do
         user: 'specuser',
         size: 'Standard_A0',
         resource_group: SPEC_RESOURCE_GROUP,
-        password: 'SpecPass123!@#$%',
-      },
+        password: 'SpecPass123!@#$%'
+      }
     }
     template = 'azure_vm.pp.tmpl'
     client = AzureARMHelper.new

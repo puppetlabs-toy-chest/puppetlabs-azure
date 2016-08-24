@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-describe 'azure_storage_account', :type => :type do
+describe 'azure_storage_account', type: :type do
   let(:type_class) { Puppet::Type.type(:azure_storage_account) }
 
   let :params do
     [
-      :name,
+      :name
     ]
   end
 
@@ -15,7 +15,7 @@ describe 'azure_storage_account', :type => :type do
       :location,
       :account_type,
       :account_kind,
-      :resource_group,
+      :resource_group
     ]
   end
 
@@ -23,7 +23,7 @@ describe 'azure_storage_account', :type => :type do
     {
       name: 'testsa',
       location: 'eastus',
-      resource_group: 'testresourcegrp',
+      resource_group: 'testresourcegrp'
     }
   end
 
@@ -43,13 +43,12 @@ describe 'azure_storage_account', :type => :type do
     expect(params + [:provider]).to include(*type_class.parameters)
   end
 
-
-  [
-    'location',
-    'account_type',
-    'account_kind',
-    'resource_group',
-  ].each do |property|
+  %w(
+    location
+    account_type
+    account_kind
+    resource_group
+  ).each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
     end
@@ -70,17 +69,17 @@ describe 'azure_storage_account', :type => :type do
 
     [
       :location,
-      :resource_group,
+      :resource_group
     ].each do |key|
       context "when missing the #{key} property" do
-        it "should fail with ensure => present" do
+        it 'should fail with ensure => present' do
           config.delete(key)
           config[:ensure] = :present
           p config
           expect { storage_account }.to raise_error(Puppet::Error, /You must provide a #{key}/)
         end
       end
-      it "should not fail with ensure => absent" do
+      it 'should not fail with ensure => absent' do
         config.delete(key)
         config[:ensure] = :absent
         expect { storage_account }.to_not raise_error
@@ -99,8 +98,7 @@ describe 'azure_storage_account', :type => :type do
       end
     end
 
-
-    it "should default ensure to present" do
+    it 'should default ensure to present' do
       expect(storage_account[:ensure]).to eq(:present)
     end
   end

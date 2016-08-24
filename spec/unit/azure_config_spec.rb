@@ -8,24 +8,23 @@ def nil_environment_variables
 end
 
 def create_config_file(path, config)
-  file_contents = %{
+  file_contents = %(
 azure: {
   subscription_id: #{config[:subscription_id]}
   management_certificate: #{config[:management_certificate]}
 }
-  }
+  )
   File.open(path, 'w') { |f| f.write(file_contents) }
 end
 
 def create_incomplete_config_file(path, config)
-  file_contents = %{
+  file_contents = %(
 azure: {
   tenant_id: #{config[:tenant_id]}
 }
-  }
+  )
   File.open(path, 'w') { |f| f.write(file_contents) }
 end
-
 
 describe PuppetX::Puppetlabs::Azure::Config do
   let(:config_file_path) { File.join(Dir.pwd, '.puppet_azure.conf') }
@@ -36,7 +35,7 @@ describe PuppetX::Puppetlabs::Azure::Config do
     before(:all) do
       @config = {
         subscription_id: 'abc123',
-        management_certificate: '/fake/path',
+        management_certificate: '/fake/path'
       }
       nil_environment_variables
       ENV['AZURE_SUBSCRIPTION_ID'] = @config[:subscription_id]
@@ -67,7 +66,7 @@ describe PuppetX::Puppetlabs::Azure::Config do
     before(:all) do
       @config = {
         subscription_id: 'abc123',
-        management_certificate: '/fake/path',
+        management_certificate: '/fake/path'
       }
       @path = File.join(Dir.pwd, '.puppet_azure.conf')
       create_config_file(@path, @config)
@@ -93,7 +92,7 @@ describe PuppetX::Puppetlabs::Azure::Config do
     before(:all) do
       @config = {
         subscription_id: 'abc123',
-        management_certificate: '/fake/path',
+        management_certificate: '/fake/path'
       }
       @path = File.join(Dir.pwd, '.puppet_azure.conf')
       create_config_file(@path, @config)
@@ -162,7 +161,7 @@ describe PuppetX::Puppetlabs::Azure::Config do
     before(:all) do
       @config = {
         subscription_id: 'abc123',
-        management_certificate: nil,
+        management_certificate: nil
       }
       @path = File.join(Dir.pwd, '.puppet_azure.conf')
       create_config_file(@path, @config)
