@@ -381,6 +381,23 @@ azure_resource_group { 'testresacc01':
 ~~~
 **Note:** Resource Groups are created with Azure Resource Manager API only.
 
+## Create Azure Template Deployment
+
+You can create a [Resource Template Deployment](https://azure.microsoft.com/en-us/documentation/articles/solution-dev-test-environments/) using the following:
+
+```puppet
+azure_resource_template { 'My-Network-Security-Group':
+  ensure         => 'present',
+  resource_group => 'security-testing',
+  source         => 'https://gallery.azure.com/artifact/20151001/Microsoft.NetworkSecurityGroup.1.0.0/DeploymentTemplates/NetworkSecurityGroup.json',
+  params         => {
+    'location'                 => 'eastasia',
+    'networkSecurityGroupName' => 'testing',
+  },
+}
+```
+**Note:** Resource Templates are deployed with Azure Resource Manager API only.
+
 ## Reference
 
 ### Types
@@ -389,6 +406,7 @@ azure_resource_group { 'testresacc01':
 * `azure_vm`: Manages a virtual machine in Microsoft Azure with Azure Resource Manager API.
 * `azure_storage_account`: Manages a Storage Account with Azure Resource Manager API.
 * `azure_resource_group`: Manages a Resource Group with Azure Resource Manager API.
+* `azure_resource_template`: Manages a Resource Template with Azure Resource Manager API.
 
 ### Parameters
 
@@ -776,6 +794,29 @@ Specifies the basic state of the resource group. Valid values are 'present' and 
 *Required* The location where the resource group will be created. Details of
 available values can be found on the [Azure
 regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+#### Type: azure_resource_template
+
+#### `ensure`
+Specifies the basic state of the resource group. Valid values are 'present' and 'absent'. Defaults to 'present'.
+
+##### `name`
+*Required* The name of the template deployment. Must be no longer than 80 characters long. It can contain only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
+
+##### `resource_group`
+*Required* The resource group for the new template deployment. [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)
+
+##### `source`
+The URI of a template. May be http:// or https:// . Must not be specified when `content` is specified.
+
+##### `content`
+The text of an Azure Resource Template. Must not be specified when `source` is specified.
+
+##### `params`
+The params that are required by the azure resource template. Follows the form of `{ 'key_one' => 'value_one', 'key_two' => 'value_two'}`. Note that this format is specific to puppet. Must not be specified when `params_source` is specified.
+
+##### `params_source`
+The URI of a file containing the params in Azure Resource Model standard format. Note that the format of this file differs from the format accepted by the `params` attribute above. Must not be specified when `params` is specified.
 
 ## Known Issues
 

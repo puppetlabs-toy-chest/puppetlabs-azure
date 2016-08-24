@@ -110,6 +110,39 @@ module PuppetX
           end
         end
 
+        def get_all_deployments
+          deployments = []
+          rgs = get_all_rgs.collect(&:name)
+          rgs.each do |rg|
+            any_deps = get_deployments(rg)
+            deployments += any_deps if any_deps
+          end
+          deployments
+        end
+
+        def get_deployments(resource_group) # rubocop:disable Metrics/AbcSize
+          begin
+            deployments = []
+            Puppet.debug "Getting deployments in resource group #{resource_group}"
+            result = ProviderArm.resource_client.deployments.list(resource_group)
+            deployments += result.value
+            while ! result.next_link.nil? and ! result.next_link.empty? do
+              result = ProviderArm.resource_client.deployments.list_next(result.next_link)
+              deployments += result.value
+            end
+            deployments.collect do |deployment|
+              d = ProviderArm.resource_client.deployments.get(resource_group_from(deployment), deployment.name)
+              #export = ProviderArm.resource_client.deployments.export_template(resource_group_from(deployment), deployment.name)
+              #d.properties.template = export.template if export
+              d
+            end
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def get_all_rgs # rubocop:disable Metrics/AbcSize
           begin
             rgs = []
@@ -167,6 +200,33 @@ module PuppetX
 
         def register_azure_provider(name)
           ProviderArm.resource_client.providers.register(name)
+        end
+
+        def create_resource_template(args) # rubocop:disable Metrics/AbcSize
+          params = build_template_deployment(args)
+          Puppet.debug("Validating template deployment and parameters")
+          validation = ProviderArm.resource_client.deployments.validate(args[:resource_group], args[:template_deployment_name], params)
+          if validation.error
+            message = [validation.error.message]
+            if validation.error.details
+              deets = validation.error.details.collect(&:message)
+              message << "Further information:"
+              message += deets
+            end
+            fail message
+          else
+            ProviderArm.resource_client.deployments.create_or_update(args[:resource_group], args[:template_deployment_name], params).value!.body
+          end
+        end
+
+        def delete_resource_template(rg, name)
+          begin
+            ProviderArm.resource_client.deployments.delete(rg, name).value!.body
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def create_resource_group(args)
@@ -261,6 +321,21 @@ module PuppetX
             offer: args[:image].split(':')[1],
             sku: args[:image].split(':')[2],
             version: args[:image].split(':')[3],
+          })
+        end
+
+        def build_template_deployment(args)
+          build(::Azure::ARM::Resources::Models::Deployment, {
+            properties: build_template_deployment_properties(args)
+          })
+        end
+
+        def build_template_deployment_properties(args)
+          build(::Azure::ARM::Resources::Models::DeploymentProperties, {
+            template: args[:content],
+            template_link: args[:source],
+            parameters: args[:params],
+            mode: 'Incremental', #design decision
           })
         end
 

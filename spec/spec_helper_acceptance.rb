@@ -242,6 +242,19 @@ class AzureARMHelper
     AzureARMHelper.resource_client.resource_groups.delete(resource_group_name).value!.body
   end
 
+  def list_resource_templates(resource_group)
+    AzureARMHelper.resource_client.deployments.list(resource_group).value
+  end
+
+  def get_resource_template(resource_group,name)
+    deployments = list_resource_templates(resource_group)
+    deployments.find { |x| x.name == name }
+  end
+
+  def destroy_resource_template(resource_group_name, name)
+    AzureARMHelper.resource_client.deployments.delete(resource_group_name, name).value!.body
+  end
+
   def list_storage_accounts
     AzureARMHelper.storage_client.storage_accounts.list.value
   end
