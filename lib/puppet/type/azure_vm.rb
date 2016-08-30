@@ -224,4 +224,8 @@ Puppet::Type.newtype(:azure_vm) do
   newproperty(:network_interface_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The network interface name'
   end
+
+  autorequire(:azure_resource_group) do
+    self[:resource_group]
+  end
 end
