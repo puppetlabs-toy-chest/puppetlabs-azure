@@ -64,4 +64,8 @@ Puppet::Type.newtype(:azure_storage_account) do
       fail 'the location must not be empty' if value.empty?
     end
   end
+
+  autorequire(:azure_resource_group) do
+    self[:resource_group]
+  end
 end
