@@ -32,7 +32,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         subnet_address_prefix: '10.0.2.0/24',
         ip_configuration_name: 'ip_config_test01',
         private_ip_allocation_method: 'Dynamic',
-        network_interface_name: 'nicspec01',
+        network_interface_name: 'nicspec01'
       },
       nonstring: {
         extensions: {
@@ -44,10 +44,10 @@ describe 'azure_vm when creating a machine with all available properties' do
             'settings'                   => {
               'commandToExecute' => 'sh script.sh',
               'fileUris'         => ['https://iaasv2tempstoreeastus.blob.core.windows.net/vmextensionstemporary-0003bf']
-            },
-          },
-        },
-      },
+            }
+          }
+        }
+      }
     }
     @template = 'azure_vm.pp.tmpl'
     @client = AzureARMHelper.new
@@ -86,7 +86,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   context 'when we try and stop the VM' do
     before(:all) do
-      new_config = @config.update({:ensure => 'stopped'})
+      new_config = @config.update(ensure: 'stopped')
       @manifest = PuppetManifest.new(@template, new_config)
       @result = @manifest.execute
       @machine = @client.get_vm(@name)
@@ -105,7 +105,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
     context 'when we try and restart the VM' do
       before(:all) do
-        new_config = @config.update({:ensure => 'running'})
+        new_config = @config.update(ensure: 'running')
         @manifest = PuppetManifest.new(@template, new_config)
         @result = @manifest.execute
         @machine = @client.get_vm(@name)
@@ -126,7 +126,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   context 'when we try and destroy the VM' do
     before(:all) do
-      new_config = @config.update({:ensure => 'absent'})
+      new_config = @config.update(ensure: 'absent')
       manifest = PuppetManifest.new(@template, new_config)
       @result = manifest.execute
       @machine = @client.get_vm(@name)

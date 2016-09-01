@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'azure_vm_classic', :type => :type do
+describe 'azure_vm_classic', type: :type do
   let(:type_class) { Puppet::Type.type(:azure_vm_classic) }
 
   let :params do
@@ -13,7 +13,7 @@ describe 'azure_vm_classic', :type => :type do
       :custom_data,
       :storage_account,
       :reserved_ip,
-      :affinity_group,
+      :affinity_group
     ]
   end
 
@@ -29,7 +29,7 @@ describe 'azure_vm_classic', :type => :type do
       :subnet,
       :availability_set,
       :data_disk_size_gb,
-      :endpoints,
+      :endpoints
     ]
   end
 
@@ -38,7 +38,7 @@ describe 'azure_vm_classic', :type => :type do
       :os_type,
       :ipaddress,
       :hostname,
-      :media_link,
+      :media_link
     ]
   end
 
@@ -64,31 +64,31 @@ describe 'azure_vm_classic', :type => :type do
     end.to raise_error(Puppet::Error, 'Title or name must be provided')
   end
 
-  [
-    'name',
-    'image',
-    'user',
-    'password',
-    'private_key_file',
-    'location',
-    'storage_account',
-    'cloud_service',
-    'deployment',
-    'size',
-    'affinity_group',
-    'virtual_network',
-    'subnet',
-    'availability_set',
-    'reserved_ip',
-    'custom_data',
-  ].each do |property|
+  %w(
+    name
+    image
+    user
+    password
+    private_key_file
+    location
+    storage_account
+    cloud_service
+    deployment
+    size
+    affinity_group
+    virtual_network
+    subnet
+    availability_set
+    reserved_ip
+    custom_data
+  ).each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
     end
   end
 
   [
-    'data_disk_size_gb',
+    'data_disk_size_gb'
   ].each do |property|
     it "should require #{property} to be a number" do
       expect(type_class).to require_integer_for(property)
@@ -96,26 +96,26 @@ describe 'azure_vm_classic', :type => :type do
 
     it "should require #{property} to be greater than 0" do
       expect do
-        config = {name: 'sample'}
+        config = { name: 'sample' }
         config[property] = 0
         type_class.new(config)
       end.to raise_error(Puppet::Error, /#{property} should be greater than 0/)
     end
   end
 
-  include_examples "array properties", [
-    :endpoints,
+  include_examples 'array properties', [
+    :endpoints
   ]
 
-  include_examples "boolean properties", [
-    :purge_disk_on_delete,
+  include_examples 'boolean properties', [
+    :purge_disk_on_delete
   ]
 
   [
     :os_type,
     :ipaddress,
     :hostname,
-    :media_link,
+    :media_link
   ].each do |property|
     it "should require #{property} to be read only" do
       expect(type_class).to be_read_only(property)
@@ -125,7 +125,7 @@ describe 'azure_vm_classic', :type => :type do
   it 'should default ensure to present' do
     machine = type_class.new(
       name: 'sample',
-      location: 'West US',
+      location: 'West US'
     )
     expect(machine[:ensure]).to eq(:present)
   end
@@ -138,7 +138,7 @@ describe 'azure_vm_classic', :type => :type do
         location: 'West US',
         image: 'image-name',
         user: 'admin',
-        private_key_file: '/not/a/real/private.key',
+        private_key_file: '/not/a/real/private.key'
       }
     end
 
@@ -173,10 +173,10 @@ describe 'azure_vm_classic', :type => :type do
     end
 
     [
-      :location,
+      :location
     ].each do |key|
       context "when missing the #{key} property" do
-        it "should fail" do
+        it 'should fail' do
           config.delete(key)
           expect { machine }.to raise_error(Puppet::Error, /You must provide a #{key}/)
         end
@@ -189,7 +189,7 @@ describe 'azure_vm_classic', :type => :type do
       {
         ensure: :stopped,
         name: 'image-test',
-        location: 'West US',
+        location: 'West US'
       }
     end
 
@@ -205,7 +205,7 @@ describe 'azure_vm_classic', :type => :type do
         name: 'image-test',
         location: 'West US',
         password: 'no-a-real-password',
-        private_key_file: '/not/a/real/private.key',
+        private_key_file: '/not/a/real/private.key'
       }
     end
 
@@ -221,7 +221,7 @@ describe 'azure_vm_classic', :type => :type do
         name: 'image-test',
         location: 'West US',
         affinity_group: 'real-affinity-set',
-        virtual_network: 'real-network',
+        virtual_network: 'real-network'
       }
     end
 
@@ -230,14 +230,13 @@ describe 'azure_vm_classic', :type => :type do
     end
   end
 
-
   context 'with a image specified' do
     let :config do
       {
         ensure: :present,
         name: 'image-test',
         location: 'West US',
-        image: 'image-name',
+        image: 'image-name'
       }
     end
 
@@ -245,7 +244,7 @@ describe 'azure_vm_classic', :type => :type do
       expect { type_class.new(config) }.to_not raise_error
     end
 
-    it "should require image to have a value" do
+    it 'should require image to have a value' do
       expect do
         config[:image] = ''
         type_class.new(config)
@@ -258,7 +257,7 @@ describe 'azure_vm_classic', :type => :type do
       {
         ensure: :present,
         name: 'disk-test',
-        location: 'West US',
+        location: 'West US'
       }
     end
 
@@ -273,7 +272,7 @@ describe 'azure_vm_classic', :type => :type do
         ensure: :present,
         name: 'disk-test',
         location: 'West US',
-        subnet: 'subnet-name',
+        subnet: 'subnet-name'
       }
     end
 
@@ -289,7 +288,7 @@ describe 'azure_vm_classic', :type => :type do
         name: 'disk-test',
         location: 'West US',
         subnet: 'subnet-name',
-        virtual_network: 'network-name',
+        virtual_network: 'network-name'
       }
     end
 
@@ -303,7 +302,7 @@ describe 'azure_vm_classic', :type => :type do
       {
         ensure: :present,
         name: 'disk-test',
-        location: '',
+        location: ''
       }
     end
 
@@ -316,7 +315,7 @@ describe 'azure_vm_classic', :type => :type do
     let :config do
       {
         ensure: :present,
-        name: 'disk-test',
+        name: 'disk-test'
       }
     end
 
@@ -336,8 +335,8 @@ describe 'azure_vm_classic', :type => :type do
           public_port: 996,
           local_port: 998,
           protocol: 'TCP',
-          direct_server_return: true,
-        },
+          direct_server_return: true
+        }
       }
     end
 
@@ -345,7 +344,7 @@ describe 'azure_vm_classic', :type => :type do
       expect { type_class.new(config) }.to_not raise_error
     end
 
-    [ true, false, "true", "false" ].each do |value|
+    [true, false, 'true', 'false'].each do |value|
       context "with direct_server_return set to #{value.inspect}" do
         let :config do
           {
@@ -357,8 +356,8 @@ describe 'azure_vm_classic', :type => :type do
               public_port: 996,
               local_port: 998,
               protocol: 'TCP',
-              direct_server_return: value,
-            },
+              direct_server_return: value
+            }
           }
         end
 
@@ -379,8 +378,8 @@ describe 'azure_vm_classic', :type => :type do
             name: 'ep-1',
             public_port: 996,
             local_port: 998,
-            protocol: 'TCP',
-          },
+            protocol: 'TCP'
+          }
         }
       end
 
@@ -421,9 +420,9 @@ describe 'azure_vm_classic', :type => :type do
             protocol: 'TCP',
             load_balancer: {
               port: 60,
-              protocol: 'tcp',
+              protocol: 'tcp'
             }
-          },
+          }
         }
       end
 
@@ -446,9 +445,9 @@ describe 'azure_vm_classic', :type => :type do
             load_balancer_name: 'lb-1',
             load_balancer: {
               port: 60,
-              protocol: 'tcp',
+              protocol: 'tcp'
             }
-          },
+          }
         }
       end
 

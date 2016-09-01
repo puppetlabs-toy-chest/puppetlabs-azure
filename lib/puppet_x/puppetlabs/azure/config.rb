@@ -7,7 +7,7 @@ module PuppetX
       class Config
         REQUIRED = {
           names: [:subscription_id],
-          envs: ['AZURE_SUBSCRIPTION_ID'],
+          envs: ['AZURE_SUBSCRIPTION_ID']
         }.freeze
 
         attr_reader :subscription_id, :management_certificate, :tenant_id, :client_id, :client_secret
@@ -17,12 +17,12 @@ module PuppetX
           File.join(Puppet[:confdir], 'azure.conf')
         end
 
-        def initialize(config_file=nil) # rubocop:disable Metrics/AbcSize
+        def initialize(config_file = nil) # rubocop:disable Metrics/AbcSize
           settings = process_environment_variables || process_config_file(config_file || default_config_file)
           if settings.nil?
             raise Puppet::Error, 'You must provide credentials in either environment variables or a config file.'
           else
-            settings = settings.delete_if { |k, v| v.nil? }
+            settings = settings.delete_if { |_k, v| v.nil? }
             check_settings(settings)
             @subscription_id = settings[:subscription_id]
             @management_certificate = settings[:management_certificate]
@@ -52,7 +52,7 @@ module PuppetX
               management_certificate: azure_config['management_certificate'],
               tenant_id: azure_config['tenant_id'],
               client_id: azure_config['client_id'],
-              client_secret: azure_config['client_secret'],
+              client_secret: azure_config['client_secret']
             }
           end
         end
@@ -63,8 +63,8 @@ module PuppetX
               conf = ::Hocon::ConfigFactory.parse_file(file_path)
               conf.root.unwrapped['azure']
             rescue ::Hocon::ConfigError::ConfigParseError => e
-              raise Puppet::Error, """Your configuration file at #{file_path} is invalid. The error from the parser is
-#{e.message}"""
+              raise Puppet::Error, ''"Your configuration file at #{file_path} is invalid. The error from the parser is
+#{e.message}"''
             end
           end
         end
@@ -79,7 +79,7 @@ module PuppetX
               management_certificate: ENV['AZURE_MANAGEMENT_CERTIFICATE'],
               tenant_id: ENV['AZURE_TENANT_ID'],
               client_id: ENV['AZURE_CLIENT_ID'],
-              client_secret: ENV['AZURE_CLIENT_SECRET'],
+              client_secret: ENV['AZURE_CLIENT_SECRET']
             }
           end
         end

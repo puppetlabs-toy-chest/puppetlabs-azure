@@ -23,33 +23,33 @@ require 'azure_mgmt_network'
 require 'ms_rest_azure'
 
 # automatically load any shared examples or contexts
-Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
+Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
 # Workaround https://github.com/Azure/azure-sdk-for-ruby/issues/269
 require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 # cheapest as of 2015-08
-CHEAPEST_ARM_LOCATION="eastus".freeze
-CHEAPEST_CLASSIC_LOCATION="East US".freeze
+CHEAPEST_ARM_LOCATION = 'eastus'.freeze
+CHEAPEST_CLASSIC_LOCATION = 'East US'.freeze
 
 # For personal resource groups
-SPEC_RESOURCE_GROUP="CLOUD-ARM-#{ENV['USER'] || 'tests'}".freeze
-SPEC_CLOUD_SERVICE="CLOUD-CS-#{ENV['USER'] || 'tests'}".freeze
+SPEC_RESOURCE_GROUP = "CLOUD-ARM-#{ENV['USER'] || 'tests'}".freeze
+SPEC_CLOUD_SERVICE = "CLOUD-CS-#{ENV['USER'] || 'tests'}".freeze
 
-UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
-WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'.freeze
+UBUNTU_IMAGE = 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
+WINDOWS_IMAGE = 'a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'.freeze
 
-CERT_FILE='azure_cert.pem'.freeze
-WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}".freeze
-LINUX_AZURE_CERT="/tmp/#{CERT_FILE}".freeze
-WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}".freeze
+CERT_FILE = 'azure_cert.pem'.freeze
+WINDOWS_AZURE_CERT = "/cygdrive/c/#{CERT_FILE}".freeze
+LINUX_AZURE_CERT = "/tmp/#{CERT_FILE}".freeze
+WINDOWS_DOS_FORMAT_AZURE_CERT = "c:\\#{CERT_FILE}".freeze
 
 # windows module install path
 # /cygdrive/c/ProgramData/PuppetLabs/code/modules
 #
 RSpec.configure do |c|
-  c.filter_run :focus => true
+  c.filter_run focus: true
   c.run_all_when_everything_filtered = true
   c.before :suite do
     unless ENV['BEAKER_TESTMODE'] == 'local'
@@ -64,33 +64,37 @@ RSpec.configure do |c|
           end
 
           gems = [
-              # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
-              # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
-              # right thing on Windows
-            [ 'unf' ],
-            [ 'hocon', 'retries' ],
+            # Unf has a separate gem for it's native extensions, unf_ext. Unf_ext has windows packages with the precompiled
+            # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
+            # right thing on Windows
+            ['unf'],
+            %w(hocon retries),
             # Azure gems require pinning because they are still under heavy development and change their API frequently
-            [ 'azure_mgmt_compute', '--version=~> 0.3.0' ],
-            [ 'azure_mgmt_network', '--version=~> 0.3.0' ],
-            [ 'azure_mgmt_resources', '--version=~> 0.3.0' ],
-            [ 'azure_mgmt_storage', '--version=~> 0.3.0' ],
-            [ 'azure', '--version=~> 0.7.0' ],
+            ['azure_mgmt_compute', '--version=~> 0.3.0'],
+            ['azure_mgmt_network', '--version=~> 0.3.0'],
+            ['azure_mgmt_resources', '--version=~> 0.3.0'],
+            ['azure_mgmt_storage', '--version=~> 0.3.0'],
+            ['azure', '--version=~> 0.7.0']
           ]
 
-          additional_gem_opts = ["--no-ri", "--no-rdoc"]
+          additional_gem_opts = ['--no-ri', '--no-rdoc']
 
           if is_windows?(host)
             # shield the quoting from beaker's autoquoting to correctly quote the space
             # also avoid the gem.bat, as that cannot pass arguments with spaces and other special characters through
-            windows_cmd = [ '/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin/ruby.exe', 'C:\Program Files\Puppet Labs\Puppet\sys\ruby\bin\gem' , 'install' ]
+            windows_cmd = ['/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin/ruby.exe', 'C:\Program Files\Puppet Labs\Puppet\sys\ruby\bin\gem', 'install']
             gems.each do |args|
-              command = (windows_cmd + args + additional_gem_opts).collect { |a| "\\\"#{a}\\\"" }.join(" ")
+              command = (windows_cmd + args + additional_gem_opts).collect { |a| "\\\"#{a}\\\"" }.join(' ')
               on(host, "bash -c \"#{command}\"")
             end
           else
-            linux_cmd = [ host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem" , 'install' ]
+            linux_cmd = if host.file_exist?("#{host['privatebindir']}/gem") # rubocop:disable Metrics/BlockNesting
+                          ["#{host['privatebindir']}/gem"]
+                        else
+                          ["#{host['puppetbindir']}/gem", 'install']
+                        end
             gems.each do |args|
-              command = (linux_cmd + (args + additional_gem_opts).collect { |a| "'#{a}'" }).join(" ")
+              command = (linux_cmd + (args + additional_gem_opts).collect { |a| "'#{a}'" }).join(' ')
               on(host, command)
             end
           end
@@ -103,7 +107,7 @@ RSpec.configure do |c|
         # persist distmoduledir across runs with reused nodes
         # TODO: ticket up this bug for beaker-rspec
         module_path = is_windows?(host) ? '/cygdrive/c/ProgramData/PuppetLabs/code/modules' : '/etc/puppetlabs/code/modules'
-        install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => module_path)
+        install_dev_puppet_module_on(host, source: proj_root, module_name: 'azure', target_module_path: module_path)
       end
     end
 
@@ -121,17 +125,17 @@ class PuppetManifest < Mustache
     @template_file = File.join(Dir.getwd, 'spec', 'acceptance', 'fixtures', file)
 
     # decouple the config we're munging from the value used in the tests
-    config = Marshal.load( Marshal.dump(config) )
+    config = Marshal.load(Marshal.dump(config))
 
     endpoints = config.delete(:endpoints)
-    @optional_endpoints = endpoints.is_a?(Array) and !endpoints.empty?
+    (@optional_endpoints = endpoints.is_a?(Array)) && !endpoints.empty?
     if @optional_endpoints
       @endpoints = endpoints.collect do |ep|
         lb = ep.delete(:load_balancer)
         {
           values: self.class.to_generalized_data(ep),
           has_load_balancer: !!lb,
-          load_balancer: self.class.to_generalized_data(lb),
+          load_balancer: self.class.to_generalized_data(lb)
         }
       end
     end
@@ -144,7 +148,7 @@ class PuppetManifest < Mustache
   end
 
   def execute
-    Beaker::TestmodeSwitcher::DSL.execute_manifest(self.render, beaker_opts)
+    Beaker::TestmodeSwitcher::DSL.execute_manifest(render, beaker_opts)
   end
 
   def self.to_generalized_data(val)
@@ -161,7 +165,7 @@ class PuppetManifest < Mustache
   # returns an array of :k =>, :v => hashes given a Hash
   # { :a => 'b', :c => 'd' } -> [{:k => 'a', :v => 'b'}, {:k => 'c', :v => 'd'}]
   def self.to_generalized_hash_list(hash)
-    hash.map { |k, v| { :k => k, :v => v }}
+    hash.map { |k, v| { k: k, v: v } }
   end
 
   # necessary to build like [{ :values => Array }] rather than [[]] when there
@@ -171,7 +175,7 @@ class PuppetManifest < Mustache
     arr.map do |item|
       if item.class == Hash
         {
-          :values => to_generalized_hash_list(item)
+          values: to_generalized_hash_list(item)
         }
       else
         item
@@ -246,7 +250,7 @@ class AzureARMHelper
     AzureARMHelper.resource_client.deployments.list(resource_group).value
   end
 
-  def get_resource_template(resource_group,name)
+  def get_resource_template(resource_group, name)
     deployments = list_resource_templates(resource_group)
     deployments.find { |x| x.name == name }
   end
@@ -292,11 +296,11 @@ class AzureARMHelper
   end
 
   def vm_running?(vm)
-    ! vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/running/ }.nil?
+    !vm.properties.instance_view.statuses.find { |s| s.code =~ %r{PowerState/running} }.nil?
   end
 
   def vm_stopped?(vm)
-    ! vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
+    !vm.properties.instance_view.statuses.find { |s| s.code =~ %r{PowerState/stopped} }.nil?
   end
 end
 
@@ -358,11 +362,11 @@ class AzureHelper
     unless get_virtual_network(name)
       address_space = ['172.16.0.0/12', '10.0.0.0/8', '192.168.0.0/24']
       subnets = [
-        {name: "#{name}-1", ip_address: '172.16.0.0', cidr: 12},
-        {name: "#{name}-2", ip_address: '10.0.0.0', cidr: 8}
+        { name: "#{name}-1", ip_address: '172.16.0.0', cidr: 12 },
+        { name: "#{name}-2", ip_address: '10.0.0.0', cidr: 8 }
       ]
-      dns_servers = [{name: 'dns', ip_address: '1.2.3.4'}]
-      options = {:subnet => subnets, :dns => dns_servers}
+      dns_servers = [{ name: 'dns', ip_address: '1.2.3.4' }]
+      options = { subnet: subnets, dns: dns_servers }
       @azure_network.set_network_configuration(name, CHEAPEST_CLASSIC_LOCATION, address_space, options)
     end
   end
@@ -385,7 +389,7 @@ def expect_failed_apply(config)
   expect(result.exit_code).not_to eq 0
 end
 
-def run_command_over_ssh(host, command, auth_method, port=22)
+def run_command_over_ssh(host, command, auth_method, port = 22)
   # We retry failed attempts as although the VM has booted it takes some
   # time to start and expose SSH. This mirrors the behaviour of a typical SSH client
   allowed_errors = [
@@ -397,44 +401,44 @@ def run_command_over_ssh(host, command, auth_method, port=22)
     # and we retry until it exists
     Errno::ECONNREFUSED,
     Errno::ECONNRESET,
-    Errno::ETIMEDOUT,
+    Errno::ETIMEDOUT
   ]
-  handler = Proc.new do |exception, attempt_number, total_delay|
+  handler = proc do |exception, attempt_number, total_delay|
     puts "Handler saw a #{exception.class}; retry attempt #{attempt_number}; #{total_delay} seconds have passed."
     puts exception
   end
-  with_retries(:max_tries => 10,
-               :base_sleep_seconds => 20,
-               :max_sleep_seconds => 20,
-               :rescue => allowed_errors,
-               :handler => handler) do
+  with_retries(max_tries: 10,
+               base_sleep_seconds: 20,
+               max_sleep_seconds: 20,
+               rescue: allowed_errors,
+               handler: handler) do
     Net::SSH.start(host,
                    @config[:optional][:user],
-                   :port => port,
-                   :password => @config[:optional][:password],
-                   :keys => [@local_private_key_path],
-                   :auth_methods => [auth_method],
-                   :verbose => :info) do |ssh|
+                   port: port,
+                   password: @config[:optional][:password],
+                   keys: [@local_private_key_path],
+                   auth_methods: [auth_method],
+                   verbose: :info) do |ssh|
       SshExec.ssh_exec!(ssh, command)
     end
   end
 end
 
-def run_command_over_winrm(command, port=5986)
+def run_command_over_winrm(command, port = 5986)
   endpoint = "https://#{@machine.ipaddress}:#{port}/wsman"
   winrm = WinRM::WinRMWebService.new(
     endpoint,
     :ssl,
     user: @config[:optional][:user],
     pass: @config[:optional][:password],
-    disable_sspi: true,
+    disable_sspi: true
   )
-  with_retries(:max_tries => 5) do
+  with_retries(max_tries: 5) do
     winrm.cmd(command)
   end
 end
 
-def puppet_resource_should_show(property_name, value=nil)
+def puppet_resource_should_show(property_name, value = nil)
   it "should report the correct #{property_name} value" do
     # this overloading allows for passing either a key or a key and value
     # and naively picks the key from @config if it exists. This is because
@@ -453,16 +457,16 @@ end
 def beaker_opts
   azure_cert = is_windows? ? WINDOWS_DOS_FORMAT_AZURE_CERT : LINUX_AZURE_CERT
   @env ||= {
-      debug: true,
-      trace: true,
-      environment: {
-        'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
-        'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
-        'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
-        'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
-        'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
-      }
+    debug: true,
+    trace: true,
+    environment: {
+      'AZURE_CLIENT_ID' => ENV['AZURE_CLIENT_ID'],
+      'AZURE_CLIENT_SECRET' => ENV['AZURE_CLIENT_SECRET'],
+      'AZURE_MANAGEMENT_CERTIFICATE' => azure_cert,
+      'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
+      'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID']
     }
+  }
 end
 
 def is_windows?(host = nil)

@@ -7,9 +7,9 @@ shared_context 'with certificate copied to system under test' do
 
     @local_private_key_path = File.join(Dir.getwd, 'spec', 'acceptance', 'fixtures', 'insecure_private_key.pem')
 
-    if ! @remote_private_key_path
+    unless @remote_private_key_path
       @remote_private_key_path = if is_windows?
-                                  'c:\\cygwin64\\tmp\\id_rsa'
+                                   'c:\\cygwin64\\tmp\\id_rsa'
                                  else
                                    '/tmp/id_rsa'
                                  end

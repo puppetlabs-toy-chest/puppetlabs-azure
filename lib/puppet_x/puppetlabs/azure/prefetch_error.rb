@@ -6,17 +6,17 @@ module PuppetX
       # the exception will prevent the prefetch, but the provider will
       # continue to run with incorrect data.
       class PrefetchError < RuntimeError
-        def initialize(type, exception=nil)
+        def initialize(type, exception = nil)
           @type = type
           @exception = exception
         end
 
         def to_s
-          """Puppet detected a problem with the information returned from Azure when accessing #{@type}. The specific error was:
+          "Puppet detected a problem with the information returned from Azure when accessing #{@type}. The specific error was:
   #{@exception.message}
 
   #{@exception.backtrace.join("\n")}
-  """
+  "
         end
       end
     end

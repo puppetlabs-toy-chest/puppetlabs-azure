@@ -3,8 +3,7 @@ require 'base64'
 require 'puppet_x/puppetlabs/azure/prefetch_error'
 require 'puppet_x/puppetlabs/azure/provider'
 
-
-Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Puppetlabs::Azure::Provider) do
+Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, parent: PuppetX::Puppetlabs::Azure::Provider) do
   confine feature: :azure_classic
   confine feature: :azure_hocon
   confine feature: :azure_retries
@@ -15,15 +14,13 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
             :virtual_network, :subnet, :reserved_ip, :availability_set)
 
   def self.instances
-    begin
-      list_vms.collect do |machine|
-        hash = machine_to_hash(machine)
-        Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
-        new(hash) if hash
-      end.compact
-    rescue Timeout::Error, StandardError => e
-      raise PuppetX::Puppetlabs::Azure::PrefetchError.new(self.resource_type.name.to_s, e)
-    end
+    list_vms.collect do |machine|
+      hash = machine_to_hash(machine)
+      Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
+      new(hash) if hash
+    end.compact
+  rescue Timeout::Error, StandardError => e
+    raise PuppetX::Puppetlabs::Azure::PrefetchError.new(resource_type.name.to_s, e)
   end
 
   def self.data_disk_size_gb_from(machine)
@@ -52,7 +49,7 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
 
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
     cloud_service = get_cloud_service(machine.cloud_service_name)
-    location = cloud_service.location || cloud_service.extended_properties["ResourceLocation"]
+    location = cloud_service.location || cloud_service.extended_properties['ResourceLocation']
     {
       name: machine.vm_name,
       image: machine.image,
@@ -71,20 +68,20 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       cloud_service_object: cloud_service,
       data_disk_size_gb: data_disk_size_gb_from(machine),
       endpoints: endpoints_from_machine(machine),
-      object: machine,
+      object: machine
     }
   end
 
   def create # rubocop:disable Metrics/AbcSize
     Puppet.info("Creating #{name}")
     custom_data = unless resource[:custom_data].nil?
-      # Azure won't execute scripts without providing a shebang line. Puppet will allow multi-line strings
-      # to be passed to properties, but it's purely formatting so the linebreaks don't come through in
-      # the resource hash. This data munging allows for simple one liners to be encoded in Puppet
-      # without the use of a template.
-      data = resource[:custom_data].include?("\n") ? resource[:custom_data] : "#!/bin/bash\n#{resource[:custom_data]}"
-      Base64.encode64(data)
-    end
+                    # Azure won't execute scripts without providing a shebang line. Puppet will allow multi-line strings
+                    # to be passed to properties, but it's purely formatting so the linebreaks don't come through in
+                    # the resource hash. This data munging allows for simple one liners to be encoded in Puppet
+                    # without the use of a template.
+                    data = resource[:custom_data].include?("\n") ? resource[:custom_data] : "#!/bin/bash\n#{resource[:custom_data]}"
+                    Base64.encode64(data)
+                  end
     params = {
       vm_name: name,
       image: resource[:image],
@@ -102,10 +99,10 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       subnet_name: resource[:subnet],
       reserved_ip_name: resource[:reserved_ip],
       availability_set_name: resource[:availability_set],
-      affinity_group_name: resource[:affinity_group],
+      affinity_group_name: resource[:affinity_group]
     }
     create_vm(params)
-    update_endpoints(resource[:endpoints]) if resource[:endpoints] and !resource[:endpoints].empty?
+    update_endpoints(resource[:endpoints]) if resource[:endpoints] && !resource[:endpoints].empty?
   end
 
   def destroy # rubocop:disable Metrics/AbcSize
@@ -118,4 +115,4 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
     end
     @property_hash[:ensure] = :absent
   end
- end
+end

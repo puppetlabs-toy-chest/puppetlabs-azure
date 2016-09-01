@@ -15,8 +15,8 @@ describe 'azure_vm when creating a machine with no public IP' do
         size: 'Standard_A0',
         resource_group: SPEC_RESOURCE_GROUP,
         password: 'SpecPass123!@#$%',
-        public_ip_allocation_method: 'None',
-      },
+        public_ip_allocation_method: 'None'
+      }
     }
     @template = 'azure_vm.pp.tmpl'
     @client = AzureARMHelper.new
@@ -50,7 +50,7 @@ describe 'azure_vm when creating a machine with no public IP' do
 
   context 'when we try and destroy the VM' do
     before(:all) do
-      new_config = @config.update({:ensure => 'absent'})
+      new_config = @config.update(ensure: 'absent')
       manifest = PuppetManifest.new(@template, new_config)
       @result = manifest.execute
       @machine = @client.get_vm(@name)

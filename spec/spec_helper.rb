@@ -6,9 +6,9 @@ require 'simplecov-console'
 SimpleCov.start do
   add_filter '/spec'
   formatter SimpleCov::Formatter::MultiFormatter.new([
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Console
-  ])
+                                                       SimpleCov::Formatter::HTMLFormatter,
+                                                       SimpleCov::Formatter::Console
+                                                     ])
 end
 
 RSpec.configure do |config|
@@ -17,7 +17,7 @@ end
 
 RSpec::Matchers.define :require_string_for do |property|
   match do |type_class|
-    config = {name: 'name'}
+    config = { name: 'name' }
     config[property] = 2
     expect do
       type_class.new(config)
@@ -30,7 +30,7 @@ end
 
 RSpec::Matchers.define :require_hash_for do |property|
   match do |type_class|
-    config = {name: 'name'}
+    config = { name: 'name' }
     config[property] = 2
     expect do
       type_class.new(config)
@@ -41,10 +41,10 @@ RSpec::Matchers.define :require_hash_for do |property|
   end
 end
 
-RSpec.shared_examples "array properties" do |properties|
+RSpec.shared_examples 'array properties' do |properties|
   properties.each do |property|
     it "should require #{property} to be an Array" do
-      config = {name: 'name'}
+      config = { name: 'name' }
       config[property] = 2
       expect do
         type_class.new(config)
@@ -55,7 +55,7 @@ end
 
 RSpec::Matchers.define :require_integer_for do |property|
   match do |type_class|
-    config = {name: 'name'}
+    config = { name: 'name' }
     config[property] = 'string'
     expect do
       type_class.new(config)
@@ -66,10 +66,10 @@ RSpec::Matchers.define :require_integer_for do |property|
   end
 end
 
-RSpec.shared_examples "boolean properties" do |properties|
+RSpec.shared_examples 'boolean properties' do |properties|
   properties.each do |property|
     it "should require #{property} to be boolean" do
-      config = {name: 'name'}
+      config = { name: 'name' }
       config[property] = 'string'
       expect do
         type_class.new(config)
@@ -80,7 +80,7 @@ end
 
 RSpec::Matchers.define :be_read_only do |property|
   match do |type_class|
-    config = {name: 'name'}
+    config = { name: 'name' }
     config[property] = 'invalid'
     expect do
       type_class.new(config)

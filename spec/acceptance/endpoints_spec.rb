@@ -24,8 +24,8 @@ describe 'azure_vm_classic when creating a machine with all available properties
         local_port: 22,
         public_port: 22,
         protocol: 'TCP',
-        direct_server_return: false,
-      }],
+        direct_server_return: false
+      }]
     }
 
     @manifest = PuppetManifest.new(@template, @config)
@@ -54,18 +54,18 @@ describe 'azure_vm_classic when creating a machine with all available properties
       before(:all) do
         # replace the existing endpoint
         @config[:endpoints] = [{
-            name: 'SSH',
-            local_port: 22,
-            public_port: 2200,
-            protocol: 'TCP',
-            direct_server_return: false,
-            load_balancer_name: 'ssh-lb',
-            load_balancer: {
-              port: 22,
-              protocol: 'tcp',
-              interval: 2,
-            }
-          }]
+          name: 'SSH',
+          local_port: 22,
+          public_port: 2200,
+          protocol: 'TCP',
+          direct_server_return: false,
+          load_balancer_name: 'ssh-lb',
+          load_balancer: {
+            port: 22,
+            protocol: 'tcp',
+            interval: 2
+          }
+        }]
 
         @manifest = PuppetManifest.new(@template, @config)
         @result = @manifest.execute
@@ -87,28 +87,28 @@ describe 'azure_vm_classic when creating a machine with all available properties
           @result = @manifest.execute
         end
 
-        #This shared context will be needed when the test is reintroduced.
-        #it_behaves_like 'an idempotent resource'
+        # This shared context will be needed when the test is reintroduced.
+        # it_behaves_like 'an idempotent resource'
 
         # Since the last tests verified that we can talk to the VM,
         # this will check that the port is now closed. Obviously
         # this is a race against network failures.
         it 'is not accessible anymore' do
           expect do
-            with_retries(:max_tries => 2,
-                         :base_sleep_seconds => 2,
-                         :max_sleep_seconds => 20,
-                         :rescue => [PuppetX::Puppetlabs::Azure::NotFinished]) do
+            with_retries(max_tries: 2,
+                         base_sleep_seconds: 2,
+                         max_sleep_seconds: 20,
+                         rescue: [PuppetX::Puppetlabs::Azure::NotFinished]) do
               Net::SSH.start(@ip,
                              @config[:optional][:user],
-                             :port => 22,
-                             :password => @config[:optional][:password],
-                             :auth_methods => ['password'],
-                             :verbose => :info) do |ssh|
+                             port: 22,
+                             password: @config[:optional][:password],
+                             auth_methods: ['password'],
+                             verbose: :info) do |ssh|
                 SshExec.ssh_exec!(ssh, 'true')
               end
               # Wait for Azure to reconfigure the endpoint
-              raise PuppetX::Puppetlabs::Azure::NotFinished.new
+              raise PuppetX::Puppetlabs::Azure::NotFinished
             end
           end.to raise_error(Errno::ETIMEDOUT)
         end

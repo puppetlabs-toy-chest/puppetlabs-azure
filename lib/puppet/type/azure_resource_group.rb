@@ -11,37 +11,37 @@ Puppet::Type.newtype(:azure_resource_group) do
 
   validate do
     required_properties = [
-      :location,
+      :location
     ]
     required_properties.each do |property|
       # We check for both places so as to cover the puppet resource path as well
-      if self[:ensure] == :present and self[property].nil? and self.provider.send(property) == :absent
-        fail "You must provide a #{property}"
+      if self[:ensure] == :present && self[property].nil? && provider.send(property) == :absent
+        raise "You must provide a #{property}"
       end
     end
   end
 
-  newparam(:name, namevar: true, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:name, namevar: true, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'Name of the resource group.'
     validate do |value|
       super value
       # "It must be no longer than 80 characters long. It can contain only
       # alphanumeric characters, dash, underscore, opening parenthesis, closing
       # parenthesis, and period. The name cannot end with a period."
-      fail("The name must be less than 80 characters in length") if value.size > 80
-      fail("The name must not end in a period") if value[-1] == "."
-      fail("The name can contain only alphanumeric characters, dash, underscore, open/close parentheses, and period.") unless value =~ %r{^[\w\-\(\)\.]+$}
+      raise('The name must be less than 80 characters in length') if value.size > 80
+      raise('The name must not end in a period') if value[-1] == '.'
+      raise('The name can contain only alphanumeric characters, dash, underscore, open/close parentheses, and period.') unless value =~ /^[\w\-\(\)\.]+$/
     end
     def insync?(is)
       is.casecmp(should).zero?
     end
   end
 
-  newproperty(:location, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newproperty(:location, parent: PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The location where the resource group will be created.'
     validate do |value|
       super value
-      fail 'the location must not be empty' if value.empty?
+      raise 'the location must not be empty' if value.empty?
     end
   end
 end

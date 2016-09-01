@@ -32,7 +32,7 @@ describe 'azure_resource_group when creating a resource group' do
 
   context 'when we try and destroy the RG' do
     before(:all) do
-      new_config = @config.update({:ensure => 'absent'})
+      new_config = @config.update(ensure: 'absent')
       manifest = PuppetManifest.new(@template, new_config)
       @result = manifest.execute
       @machine = @client.get_resource_group(@name.downcase)

@@ -1,25 +1,25 @@
 require 'spec_helper'
 
-describe 'azure_resource_group', :type => :type do
+describe 'azure_resource_group', type: :type do
   let(:type_class) { Puppet::Type.type(:azure_resource_group) }
 
   let :params do
     [
-      :name,
+      :name
     ]
   end
 
   let :properties do
     [
       :ensure,
-      :location,
+      :location
     ]
   end
 
   let :default_config do
     {
       name: 'testrg',
-      location: 'eastus',
+      location: 'eastus'
     }
   end
 
@@ -39,9 +39,8 @@ describe 'azure_resource_group', :type => :type do
     expect(params + [:provider]).to include(*type_class.parameters)
   end
 
-
   [
-    'location',
+    'location'
   ].each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
@@ -61,14 +60,14 @@ describe 'azure_resource_group', :type => :type do
       expect { resource_group }.to_not raise_error
     end
 
-    context "when missing the location property" do
-      it "should fail with ensure => present" do
+    context 'when missing the location property' do
+      it 'should fail with ensure => present' do
         config.delete(:location)
         config[:ensure] = :present
         expect { resource_group }.to raise_error(Puppet::ResourceError, /You must provide a location/)
       end
 
-      it "should not fail with ensure => absent" do
+      it 'should not fail with ensure => absent' do
         config.delete(:location)
         config[:ensure] = :absent
         expect { resource_group }.to_not raise_error
@@ -87,8 +86,7 @@ describe 'azure_resource_group', :type => :type do
       end
     end
 
-
-    it "should default ensure to present" do
+    it 'should default ensure to present' do
       expect(resource_group[:ensure]).to eq(:present)
     end
   end
