@@ -55,6 +55,17 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
         memo
       end
     end
+    if machine.properties.storage_profile.data_disks
+      data_disks = machine.properties.storage_profile.data_disks.each_with_object(Hash.new) do |disk,memo|
+        memo[disk.name] = {
+          'lun'           => disk.lun,
+          'caching'       => disk.caching,
+          'disk_size_gb'  => disk.disk_size_gb,
+          'create_option' => disk.create_option,
+        }
+        memo[disk.name]['vhd'] = disk.vhd.uri if disk.vhd
+      end
+    end
 
     {
       name: machine.name,
@@ -71,6 +82,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       os_disk_vhd_name: vhd_name,
       network_interface_name: network_interface_name,
       extensions: extensions,
+      data_disks: data_disks,
       object: machine,
     }
   end
@@ -117,7 +129,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       subnet_name: resource[:subnet_name],
       subnet_address_prefix: resource[:subnet_address_prefix],
       private_ip_allocation_method: resource[:private_ip_allocation_method],
-      extensions: extensions,
+      data_disks: resource[:data_disks],
       # provider defaults recreate the defaults from the Azure Portal
       storage_account: default_based_on_resource_group(resource[:storage_account]),
       os_disk_name: default_to_name(resource[:os_disk_name]),
@@ -155,6 +167,16 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
         fail %{Expected extension properties to be a hash or "absent" but it was #{properties.inspect}}
       end
     end
+  end
+
+  def data_disks=(value)
+    Puppet.debug("Updating data disks #{value.keys.join(', ')} on vm #{resource[:name]}")
+    update_vm_storage_profile({
+      :resource_group => resource[:resource_group],
+      :location       => resource[:location],
+      :vm_name        => resource[:name],
+      :data_disks     => value,
+    })
   end
 
   def destroy
