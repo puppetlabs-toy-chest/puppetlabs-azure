@@ -38,6 +38,7 @@ describe 'azure_vm', :type => :type do
       :os_disk_vhd_name,
       :network_interface_name,
       :extensions,
+      :data_disks,
     ]
   end
 
