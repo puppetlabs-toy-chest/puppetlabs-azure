@@ -57,7 +57,12 @@ module PuppetX
           begin
             register_providers
             create_resource_group(args)
-            create_storage_account(args)
+            create_storage_account({
+              storage_account: args[:storage_account],
+              resource_group: args[:resource_group],
+              storage_account_type: args[:storage_account_type],
+              location: args[:location],
+            })
             params = build_params(args)
             ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!.body
           rescue MsRest::DeserializationError => err
@@ -65,6 +70,23 @@ module PuppetX
           rescue MsRest::RestError => err
             raise Puppet::Error, err.to_s
           end
+        end
+
+        def update_vm_storage_profile(args) # rubocop:disable Metrics/AbcSize
+          params = build(::Azure::ARM::Compute::Models::VirtualMachine, {
+            type: 'Microsoft.Compute/virtualMachines',
+            location: args[:location],
+            properties: build(::Azure::ARM::Compute::Models::VirtualMachineProperties, {
+              storage_profile: build(::Azure::ARM::Compute::Models::StorageProfile, {
+                data_disks: build_data_disks(args),
+              })
+            })
+          })
+          ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:vm_name], params).value!.body
+        rescue MsRest::DeserializationError => err
+          raise Puppet::Error, err.response_body
+        rescue MsRest::RestError => err
+          raise Puppet::Error, err.to_s
         end
 
         def delete_vm(machine)
@@ -378,8 +400,27 @@ module PuppetX
               vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
                 uri: build_os_vhd_uri(args),
               })
-            })
+            }),
+            data_disks: build_data_disks(args),
           })
+        end
+
+        def build_data_disks(args)
+          args[:data_disks].collect do |name,props|
+            buildprops = {
+              lun: props['lun'],
+              name: name,
+              disk_size_gb: props['disk_size_gb'],
+              create_option: Object.const_get("::Azure::ARM::Compute::Models::DiskCreateOptionTypes::#{props['create_option']}"),
+              vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
+                uri: props['vhd'],
+              }),
+            }
+            if props['caching']
+              buildprops[:caching] = Object.const_get("::Azure::ARM::Compute::Models::CachingTypes::#{props['caching']}")
+            end
+            build(::Azure::ARM::Compute::Models::DataDisk, buildprops)
+          end unless args[:data_disks].nil?
         end
 
         def build_public_ip_params(args)

@@ -695,6 +695,35 @@ Defaults to `Dynamic`.
 ##### `network_interface_name`
 The Network Interface Controller (nic) name for the virtual machine.
 
+##### `data_disks`
+Manage one or more data disks attached to an Azure VM. This parameter expects a hash where the key is the name of the data disk and the value is a hash of data disk properties.
+
+Azure VM data_disks support the following parameters:
+
+###### `caching`
+Optional. Specifies the caching behavior of data disk.
+
+Possible values are:
+- None
+- ReadOnly
+- ReadWrite
+The default vault is None.
+
+###### `create_option`
+Specifies the create option for the disk image. Possible values for this property include: 'FromImage', 'Empty', 'Attach'.
+
+###### `data_size_gb`
+Specifies the size, in GB, of an empty disk to be attached to the Virtual Machine.
+
+###### `lun`
+Specifies the Logical Unit Number (LUN) for the disk. The LUN specifies the slot in which the data drive appears when mounted for usage by the Virtual Machine. Valid LUN values are 0 through 31.
+
+###### `vhd`
+Specifies the location of the blob in storage where the vhd file for the disk is located. The storage account where the vhd is located must be associated with the specified subscription.
+
+Example:
+`http://example.blob.core.windows.net/disks/mydisk.vhd`
+
 ##### `extensions`
 The extension to configure on the VM. Azure VM Extensions implement behaviors or features that either help other programs work on Azure VMs. You can optionally configure this parameter to include an extension.
 This parameter can be either a single hash (single extension) or multiple hashes (multiple extensions).

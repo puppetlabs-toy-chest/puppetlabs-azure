@@ -147,6 +147,63 @@ Puppet::Type.newtype(:azure_vm) do
     end
   end
 
+  newproperty(:data_disks) do
+    desc 'Enables the configuration one or more data disks on a VM.
+
+These disks have a number of required properties:
+- name
+- lun
+- caching
+- disk_size_gb (for new)
+- vhd (uri)
+- create_option
+'
+    validate do |value|
+      value.each do |name,props|
+        # these three are required and are freeform
+        fail "#{name}: disk_size_gb is required" if props['disk_size_gb'].nil?
+        fail "#{name}: disk_size_gb must not be empty" if props['disk_size_gb'].empty?
+        fail "#{name}: vhd is required" if props['vhd'].nil?
+        fail "#{name}: vhd must not be empty" if props['vhd'].empty?
+        fail "#{name}: lun is required" if props['lun'].nil?
+        fail "#{name}: lun must not be empty" if props['lun'].empty?
+        # caching is not required
+        if ! props['caching'].nil?
+          fail "#{name}: caching must not be empty" if props['caching'].empty?
+          unless ['None','ReadOnly','ReadWrite'].include?(props['caching'])
+            fail "#{name}: }caching must be one of None, ReadOnly, ReadWrite; got #{props['caching']}"
+          end
+        end
+        # create_option defaults to Empty
+        if props['create_option'].nil?
+          props['create_option'] = 'Empty'
+        end
+        fail "#{name}: create_option must not be empty" if props['create_option'].empty?
+        unless ['FromImage','Empty','Attach'].include?(props['create_option'])
+          fail "#{name}: }create_option must be one of FromImage, Empty, Attach; got #{props['create_option']}"
+        end
+      end
+    end
+    munge do |value|
+      value.each do |name, props|
+        props['disk_size_gb'] = props['disk_size_gb'].to_i if props['disk_size_gb']
+        props['lun'] = props['lun'].to_i if props['lun']
+      end
+    end
+    def insync?(is)
+      should.reduce(true) do |insync, (name,should_props)|
+        if is[name]
+          # Filter properties that are nil or unmanaged
+          is_props = is[name].reject { |k,v| v.nil? or should[name][k].nil? }
+          # Propagate any mismatches
+          insync && (is_props == should_props)
+        else
+          # Skip any extensions not defined to be managed
+          true
+        end
+      end
+    end
+  end
   newparam(:storage_account_type, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated storage account type'
     defaultto 'Standard_GRS'
