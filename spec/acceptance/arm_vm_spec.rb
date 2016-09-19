@@ -5,6 +5,7 @@ describe 'azure_vm when creating a machine with all available properties' do
   include_context 'destroy left-over created ARM resources after use'
 
   before(:all) do
+    @custom_data_file = '/tmp/needle'
     @config = {
       name: @name,
       ensure: 'present',
@@ -28,6 +29,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         public_ip_address_name: 'ip_name_test01pubip',
         virtual_network_name: 'vnettest01',
         virtual_network_address_space: '10.0.0.0/16',
+        custom_data: "touch #{@custom_data_file}",
         subnet_name: 'subnet111',
         subnet_address_prefix: '10.0.2.0/24',
         ip_configuration_name: 'ip_config_test01',
@@ -54,6 +56,7 @@ describe 'azure_vm when creating a machine with all available properties' do
     @manifest = PuppetManifest.new(@template, @config)
     @result = @manifest.execute
     @machine = @client.get_vm(@name)
+    @ip = @machine.ipaddress
   end
 
   it_behaves_like 'an idempotent resource'
@@ -68,6 +71,17 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   it 'should be running' do
     expect(@client.vm_running?(@machine)).to be true
+  end
+
+  it 'should have run the custom data script' do
+    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
+    # so we retry this a few times
+    5.times do
+      @result = run_command_over_ssh(@ip, "test -f #{@custom_data_file}", 'password', 22)
+      break if @result.exit_status.zero?
+      sleep 10
+    end
+    expect(@result.exit_status).to eq 0
   end
 
   context 'when puppet resource is run' do

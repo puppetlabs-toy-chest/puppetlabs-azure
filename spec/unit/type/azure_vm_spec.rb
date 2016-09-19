@@ -7,6 +7,7 @@ describe 'azure_vm', :type => :type do
     [
       :password,
       :name,
+      :custom_data,
       :dns_domain_name,
       :dns_servers,
       :public_ip_address_name,
@@ -114,6 +115,7 @@ describe 'azure_vm', :type => :type do
     'location',
     'image',
     'size',
+    'custom_data',
     'resource_group',
     'storage_account',
     'storage_account_type',

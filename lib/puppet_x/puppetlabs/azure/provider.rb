@@ -81,6 +81,24 @@ module PuppetX
           Provider.vm_manager.list_virtual_machines.find { |x| x.vm_name == name }
         end
 
+        def encode_custom_data(data)
+          if data.nil?
+            nil
+          else
+            # Azure won't execute scripts without providing a shebang line.
+            # Puppet will allow multi-line strings to be passed to properties,
+            # but it's purely formatting so the linebreaks don't come through in
+            # the resource hash. This data munging allows for simple one liners
+            # to be encoded in Puppet without the use of a template.
+            data = if data.include?("\n")
+                     data
+                   else
+                     "#!/bin/bash\n#{data}"
+                   end
+            Base64.encode64(data)
+          end
+        end
+
         def create_disk(vm_name, cloud_service_name, data_disk_size_gb)
           Provider.vm_manager.add_data_disk(
             vm_name,

@@ -500,6 +500,7 @@ module PuppetX
               computer_name: args[:name],
               admin_username: args[:user],
               admin_password: args[:password],
+              custom_data: args[:custom_data],
               secrets: [],
             }),
             hardware_profile: build(::Azure::ARM::Compute::Models::HardwareProfile, {

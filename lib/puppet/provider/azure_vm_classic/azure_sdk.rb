@@ -77,14 +77,6 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
 
   def create # rubocop:disable Metrics/AbcSize
     Puppet.info("Creating #{name}")
-    custom_data = unless resource[:custom_data].nil?
-      # Azure won't execute scripts without providing a shebang line. Puppet will allow multi-line strings
-      # to be passed to properties, but it's purely formatting so the linebreaks don't come through in
-      # the resource hash. This data munging allows for simple one liners to be encoded in Puppet
-      # without the use of a template.
-      data = resource[:custom_data].include?("\n") ? resource[:custom_data] : "#!/bin/bash\n#{resource[:custom_data]}"
-      Base64.encode64(data)
-    end
     params = {
       vm_name: name,
       image: resource[:image],
@@ -97,7 +89,7 @@ Puppet::Type.type(:azure_vm_classic).provide(:azure_sdk, :parent => PuppetX::Pup
       virtual_network_name: resource[:virtual_network],
       cloud_service_name: resource[:cloud_service],
       data_disk_size_gb: resource[:data_disk_size_gb],
-      custom_data: custom_data,
+      custom_data: encode_custom_data(resource[:custom_data]),
       storage_account_name: resource[:storage_account],
       subnet_name: resource[:subnet],
       reserved_ip_name: resource[:reserved_ip],
