@@ -134,6 +134,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       storage_account: default_based_on_resource_group(resource[:storage_account]),
       os_disk_name: default_to_name(resource[:os_disk_name]),
       os_disk_vhd_name: default_to_name(resource[:os_disk_vhd_name]),
+      custom_data: encode_custom_data(resource[:custom_data]),
       dns_domain_name: default_to_simple_name(resource[:dns_domain_name]),
       public_ip_address_name: default_to_name(resource[:public_ip_address_name]),
       virtual_network_name: default_to_resource_group(resource[:virtual_network_name]),

@@ -695,6 +695,11 @@ Defaults to `Dynamic`.
 ##### `network_interface_name`
 The Network Interface Controller (nic) name for the virtual machine.
 
+##### `custom_data`
+A block of data to be affiliated with a host upon launch.  On Linux hosts, this can be a script to be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command (for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a template) which can be any format supported by cloud-init.
+
+Windows images (and Linux images without cloud-init) need to provide their own mechanism to execute or act on the provided data.
+
 ##### `data_disks`
 Manage one or more data disks attached to an Azure VM. This parameter expects a hash where the key is the name of the data disk and the value is a hash of data disk properties.
 

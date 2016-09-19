@@ -204,6 +204,11 @@ These disks have a number of required properties:
       end
     end
   end
+
+  newparam(:custom_data, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'A script to be executed on launch by Cloud-Init. Linux guests only.'
+  end
+
   newparam(:storage_account_type, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The name of the associated storage account type'
     defaultto 'Standard_GRS'
