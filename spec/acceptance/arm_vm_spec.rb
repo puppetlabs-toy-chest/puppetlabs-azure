@@ -1,6 +1,7 @@
 require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with all available properties' do
+  include_context 'with certificate copied to system under test'
   include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
@@ -44,8 +45,7 @@ describe 'azure_vm when creating a machine with all available properties' do
             'type'                       => 'CustomScriptForLinux',
             'type_handler_version'       => '1.4',
             'settings'                   => {
-              'commandToExecute' => 'sh script.sh',
-              'fileUris'         => ['https://iaasv2tempstoreeastus.blob.core.windows.net/vmextensionstemporary-0003bf']
+              'commandToExecute' => 'echo chamber',
             },
           },
         },
@@ -56,7 +56,13 @@ describe 'azure_vm when creating a machine with all available properties' do
     @manifest = PuppetManifest.new(@template, @config)
     @result = @manifest.execute
     @machine = @client.get_vm(@name)
-    @ip = @machine.ipaddress
+    @ip = @client.get_public_ip_address(
+      SPEC_RESOURCE_GROUP,
+      @client.get_network_interface(
+        SPEC_RESOURCE_GROUP,
+        @machine.properties.network_profile.network_interfaces.first.id.split('/').last
+      ).properties.ip_configurations.first.properties.public_ipaddress.id.split('/').last
+    ).properties.ip_address
   end
 
   it_behaves_like 'an idempotent resource'

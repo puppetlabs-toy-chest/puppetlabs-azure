@@ -309,6 +309,14 @@ module PuppetX
           ProviderArm.network_client.public_ipaddresses.create_or_update(args[:resource_group], args[:public_ip_address_name], params).value!.body
         end
 
+        def get_network_interface(resource_group, network_interface_name)
+          ProviderArm.network_client.network_interfaces.get(resource_group, network_interface_name)
+        end
+
+        def get_public_ip_address(resource_group, public_ip_address_name)
+          ProviderArm.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
+        end
+
         def create_subnet(virtual_network, args)
           params = build_subnet_params(args)
           ProviderArm.network_client.subnets.create_or_update(
