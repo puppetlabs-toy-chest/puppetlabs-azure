@@ -208,7 +208,7 @@ class AzureARMHelper
   end
 
   def self.network_client
-    @network_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Network::NetworkResourceProviderClient.new(credentials)
+    @network_client ||= AzureARMHelper.with_subscription_id ::Azure::ARM::Network::NetworkManagementClient.new(credentials)
   end
 
   def self.storage_client
@@ -262,6 +262,14 @@ class AzureARMHelper
   def get_storage_account(name)
     accounts = list_storage_accounts
     accounts.find { |x| x.name == name }
+  end
+
+  def get_network_interface(resource_group, network_interface_name)
+    AzureARMHelper.network_client.network_interfaces.get(resource_group, network_interface_name)
+  end
+
+  def get_public_ip_address(resource_group, public_ip_address_name)
+    AzureARMHelper.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
   end
 
   def destroy_storage_account(resource_group_name, name)
