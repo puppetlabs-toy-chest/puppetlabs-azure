@@ -10,7 +10,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
 
   read_only(:image, :resource_group, :location, :size, :user, :os_disk_name,
             :os_disk_caching, :os_disk_create_option, :os_disk_vhd_container_name,
-            :os_disk_vhd_name, :network_interface_name)
+            :os_disk_vhd_name, :network_interface_name, :plan)
 
   def self.instances
     begin
@@ -28,7 +28,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
     "#{image_reference.publisher}:#{image_reference.offer}:#{image_reference.sku}:#{image_reference.version}"
   end
 
-  def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize
+  def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize, Metrics/PerceivedComplexity
     stopped = machine.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
     ensure_value = stopped ? :running : :stopped
 
@@ -66,6 +66,14 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
         memo[disk.name]['vhd'] = disk.vhd.uri if disk.vhd
       end
     end
+    if machine.plan
+      plan = {
+        'name'           => machine.plan.name,
+        'product'        => machine.plan.product,
+        'publisher'      => machine.plan.publisher,
+      }
+      plan['promotion_code'] = machine.plan.promotion_code if machine.plan.promotion_code
+    end
 
     {
       name: machine.name,
@@ -81,6 +89,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       os_disk_vhd_container_name: vhd_container_name,
       os_disk_vhd_name: vhd_name,
       network_interface_name: network_interface_name,
+      plan: plan,
       extensions: extensions,
       data_disks: data_disks,
       object: machine,
@@ -130,6 +139,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       subnet_address_prefix: resource[:subnet_address_prefix],
       private_ip_allocation_method: resource[:private_ip_allocation_method],
       data_disks: resource[:data_disks],
+      plan: resource[:plan],
       # provider defaults recreate the defaults from the Azure Portal
       storage_account: default_based_on_resource_group(resource[:storage_account]),
       os_disk_name: default_to_name(resource[:os_disk_name]),

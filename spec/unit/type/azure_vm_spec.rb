@@ -40,6 +40,7 @@ describe 'azure_vm', :type => :type do
       :network_interface_name,
       :extensions,
       :data_disks,
+      :plan,
     ]
   end
 

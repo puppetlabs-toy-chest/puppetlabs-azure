@@ -23,7 +23,8 @@ group :test do
   gem 'rubocop', '~> 0.41.0'
   gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
-  gem 'parallel_tests'
+  gem 'parallel_tests', '< 2.10.0' if RUBY_VERSION < '2.0.0'
+  gem 'parallel_tests' if RUBY_VERSION >= '2.0.0'
   gem 'listen', '~> 3.0.0'
 end
 

@@ -3,6 +3,7 @@ require 'puppet/parameter/boolean'
 require_relative '../../puppet_x/puppetlabs/azure/property/read_only'
 require_relative '../../puppet_x/puppetlabs/azure/property/positive_integer'
 require_relative '../../puppet_x/puppetlabs/azure/property/string'
+require_relative '../../puppet_x/puppetlabs/azure/property/hash'
 
 # azure_vm { 'sample':
 #   location         => 'West US'
@@ -235,6 +236,16 @@ These disks have a number of required properties:
 
   newproperty(:os_disk_vhd_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd name'
+  end
+
+  newproperty(:plan, :parent => PuppetX::PuppetLabs::Azure::Property::Hash) do
+    desc 'Hash of properties for plan.
+
+The keys that should be in the hash are:
+- name
+- product
+- publisher
+- promotion_code (optional)'
   end
 
   newparam(:public_ip_address_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
