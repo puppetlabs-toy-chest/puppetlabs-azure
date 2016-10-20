@@ -240,17 +240,21 @@ azure_vm { 'sample':
 }
 ~~~
 
-You can also add a [virtual machine extension](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-extensions-features/) to the VM:
+You can also add a [virtual machine extension](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-extensions-features/) to the VM and deploy from a [Marketplace product](https://azure.microsoft.com/en-us/blog/working-with-marketplace-images-on-azure-resource-manager/) instead of an image:
 
 ~~~puppet
 azure_vm { 'sample':
   ensure         => present,
   location       => 'eastus',
-  image          => 'canonical:ubuntuserver:14.04.2-LTS:latest',
   user           => 'azureuser',
   password       => 'Password_!',
   size           => 'Standard_A0',
   resource_group => 'testresacc01',
+  plan           => {
+    'name'      => '2016-1',
+    'product'   => 'puppet-enterprise',
+    'publisher' => 'puppet',
+  },
   extensions     => {
     'CustomScriptForLinux' => {
        'auto_upgrade_minor_version' => false,
@@ -295,11 +299,6 @@ azure_vm { 'sample':
   ip_configuration_name         => 'ip_config_test01',
   private_ip_allocation_method  => 'Dynamic',
   network_interface_name        => 'nicspec01',
-  plan                          => {
-    'name'      => '2016-1',
-    'product'   => 'puppet-enterprise',
-    'publisher' => 'puppet',
-  },
   extensions                    => {
     'CustomScriptForLinux' => {
        'auto_upgrade_minor_version' => false,
@@ -605,7 +604,7 @@ Values have the following effects:
 *Required* The name of the virtual machine. The name may have at most 64 characters. Some images may have more restrictive requirements.
 
 ##### `image`
-*Required* Name of the image to use to create the virtual machine. This must be in the ARM image_refence format
+Name of the image to use to create the virtual machine. Required if no Marketplace `plan` is provided. This must be in the ARM image_refence format
 [Azure image reference](https://azure.microsoft.com/en-gb/documentation/articles/virtual-machines-deploy-rmtemplates-azure-cli/)
 
 ~~~
@@ -735,7 +734,7 @@ Example:
 `http://example.blob.core.windows.net/disks/mydisk.vhd`
 
 ##### `plan`
-Deploys the VM from an Azure Software Marketplace product (called a "plan"). The value must be a hash with three required keys: `name`, `product`, and `publisher`. `promotion_code` is an optional forth key that may be passed.
+Deploys the VM from an Azure Software Marketplace product (called a "plan"). Required if no `image` is specified. The value must be a hash with three required keys: `name`, `product`, and `publisher`. `promotion_code` is an optional forth key that may be passed.
 
 As an example:
 

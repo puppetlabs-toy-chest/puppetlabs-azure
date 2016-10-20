@@ -345,12 +345,20 @@ module PuppetX
           "#{container}/#{args[:os_disk_vhd_name]}.vhd"
         end
 
-        def build_image_reference(args)
+        def build_image_reference(args) # rubocop:disable Metrics/AbcSize
+          if ! args[:plan]
+            publisher, offer, sku, version = args[:image].split(':')
+          else
+            publisher = args[:plan]['publisher']
+            offer = args[:plan]['product']
+            sku = args[:plan]['name']
+            version = args[:plan]['version'] || 'latest'
+          end
           build(::Azure::ARM::Compute::Models::ImageReference, {
-            publisher: args[:image].split(':')[0],
-            offer: args[:image].split(':')[1],
-            sku: args[:image].split(':')[2],
-            version: args[:image].split(':')[3],
+            publisher: publisher,
+            offer: offer,
+            sku: sku,
+            version: version,
           })
         end
 
@@ -503,12 +511,14 @@ module PuppetX
         end
 
         def build_plan(args)
-          build(::Azure::ARM::Compute::Models::Plan, {
-            name: args[:plan]['name'],
-            publisher: args[:plan]['publisher'],
-            product: args[:plan]['product'],
-            promotion_code: args[:plan]['promotion_code'],
-          })
+          if args[:plan]
+            build(::Azure::ARM::Compute::Models::Plan, {
+              name: args[:plan]['name'],
+              publisher: args[:plan]['publisher'],
+              product: args[:plan]['product'],
+              promotion_code: args[:plan]['promotion_code'],
+            })
+          end
         end
 
         def build_props(args)

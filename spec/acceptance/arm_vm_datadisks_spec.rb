@@ -1,6 +1,6 @@
 require 'spec_helper_acceptance'
 
-describe 'azure_vm when creating a machine with all available properties' do
+describe 'azure_vm when creating a machine with datadisks' do
   include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
@@ -12,7 +12,7 @@ describe 'azure_vm when creating a machine with all available properties' do
       resource_group: SPEC_RESOURCE_GROUP,
       optional: {
         image: 'CoreOS:CoreOS:Stable:latest',
-        network_interface_name: 'nicspec01',
+        network_interface_name: 'diskspec01',
         os_disk_caching: 'ReadWrite',
         os_disk_create_option: 'FromImage',
         os_disk_name: 'osdisk01',
