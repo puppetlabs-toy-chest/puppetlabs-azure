@@ -38,6 +38,11 @@ describe 'azure_vm when creating a machine with all available properties' do
         network_interface_name: 'nicspec01',
       },
       nonstring: {
+        plan: {
+          'name'      => '2016-1',
+          'product'   => 'puppet-enterprise',
+          'publisher' => 'puppet',
+        },
         extensions: {
           'CustomScriptForLinux' => {
             'auto_upgrade_minor_version' => false,

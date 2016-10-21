@@ -502,6 +502,15 @@ module PuppetX
           })
         end
 
+        def build_plan(args)
+          build(::Azure::ARM::Compute::Models::Plan, {
+            name: args[:plan]['name'],
+            publisher: args[:plan]['publisher'],
+            product: args[:plan]['product'],
+            promotion_code: args[:plan]['promotion_code'],
+          })
+        end
+
         def build_props(args)
           build(::Azure::ARM::Compute::Models::VirtualMachineProperties, {
             os_profile: build(::Azure::ARM::Compute::Models::OSProfile, {
@@ -523,6 +532,7 @@ module PuppetX
           build(::Azure::ARM::Compute::Models::VirtualMachine, {
             type: 'Microsoft.Compute/virtualMachines',
             properties: build_props(args),
+            plan: build_plan(args),
             location: args[:location],
           })
         end

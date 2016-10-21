@@ -295,7 +295,12 @@ azure_vm { 'sample':
   ip_configuration_name         => 'ip_config_test01',
   private_ip_allocation_method  => 'Dynamic',
   network_interface_name        => 'nicspec01',
-  extensions     => {
+  plan                          => {
+    'name'      => '2016-1',
+    'product'   => 'puppet-enterprise',
+    'publisher' => 'puppet',
+  },
+  extensions                    => {
     'CustomScriptForLinux' => {
        'auto_upgrade_minor_version' => false,
        'publisher'                  => 'Microsoft.OSTCExtensions',
@@ -728,6 +733,19 @@ Specifies the location of the blob in storage where the vhd file for the disk is
 
 Example:
 `http://example.blob.core.windows.net/disks/mydisk.vhd`
+
+##### `plan`
+Deploys the VM from an Azure Software Marketplace product (called a "plan"). The value must be a hash with three required keys: `name`, `product`, and `publisher`. `promotion_code` is an optional forth key that may be passed.
+
+As an example:
+
+```puppet
+plan => {
+  'name'      => '2016-1',
+  'product'   => 'puppet-enterprise',
+  'publisher' => 'puppet',
+},
+```
 
 ##### `extensions`
 The extension to configure on the VM. Azure VM Extensions implement behaviors or features that either help other programs work on Azure VMs. You can optionally configure this parameter to include an extension.
