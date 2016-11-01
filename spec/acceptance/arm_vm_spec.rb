@@ -7,6 +7,7 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   before(:all) do
     @custom_data_file = '/tmp/needle'
+    @extension_file = '/tmp/extensionz'
     @config = {
       name: @name,
       ensure: 'present',
@@ -25,7 +26,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         os_disk_vhd_container_name: 'conttest1',
         os_disk_vhd_name: 'osvhdtest1',
         dns_domain_name: 'puppetspecdomain01',
-        dns_servers: '10.1.1.1 10.1.2.4',
+        dns_servers: '8.8.8.8 8.8.4.4',
         public_ip_allocation_method: 'Dynamic',
         public_ip_address_name: 'ip_name_test01pubip',
         virtual_network_name: 'vnettest01',
@@ -38,11 +39,6 @@ describe 'azure_vm when creating a machine with all available properties' do
         network_interface_name: 'nicspec01',
       },
       nonstring: {
-        plan: {
-          'name'      => '2016-1',
-          'product'   => 'puppet-enterprise',
-          'publisher' => 'puppet',
-        },
         extensions: {
           'CustomScriptForLinux' => {
             'auto_upgrade_minor_version' => false,
@@ -50,7 +46,7 @@ describe 'azure_vm when creating a machine with all available properties' do
             'type'                       => 'CustomScriptForLinux',
             'type_handler_version'       => '1.4',
             'settings'                   => {
-              'commandToExecute' => 'echo chamber',
+              'commandToExecute' => "touch #{@extension_file}",
             },
           },
         },
@@ -82,6 +78,17 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   it 'should be running' do
     expect(@client.vm_running?(@machine)).to be true
+  end
+
+  it 'should have run the extension' do
+    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
+    # so we retry this a few times
+    5.times do
+      @result = run_command_over_ssh(@ip, "test -f #{@extension_file}", 'password', 22)
+      break if @result.exit_status.zero?
+      sleep 10
+    end
+    expect(@result.exit_status).to eq 0
   end
 
   it 'should have run the custom data script' do
