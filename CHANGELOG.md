@@ -1,3 +1,23 @@
+## Supported Version 1.1.0
+### Summary
+This release adds several more useful resource types for managing Azure resource groups, storage accounts, and resource templates. It also expands the capabilities of the `azure_vm` type by adding support for managing extensions, data disks, custom data, and deploying from marketplace images.
+
+### Added
+- `azure_resource_group` type for resource group management
+- `azure_storage_account` type for storage account management
+- `azure_resource_template` type for template management
+- `extensions` parameter to `azure_vm` for extension configuration
+- `plan` parameter to `azure_vm` for Azure Marketplace images
+- `data_disks` parameter to `azure_vm` for data disk configuration
+- `custom_data` parameter to `azure_vm` for custom data configuration
+
+### Fixed
+- Updated to 1.1.2 version of hocon gem (includes windows fixes)
+- No longer requires azure.conf classic credentials for only ARM or vice versa
+- Better printing of error messages from azure's API
+- Allow `azure_vm::public_ip_allocation_method => 'None'` to work
+
+
 ## Supported Version 1.0.3
 ### Summary
 This release updates the module for the 0.3.0 version of the azure gems and
