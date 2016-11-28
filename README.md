@@ -137,6 +137,8 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    SET AZURE_SUBSCRIPTION_ID=your-subscription-id
    ~~~
 
+   **Note:** Do not use quotes around any of the values specified above.
+
    If using the Resource Management API, you need to provide:
 
    ~~~
@@ -155,6 +157,8 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    SET AZURE_CLIENT_ID=your-client-id
    SET AZURE_CLIENT_SECRET=your-client-secret
    ~~~
+
+   **Note:** Do not use quotes around any of the values specified above.
 
    Note that you can provide all of the above credentials if you are
    working with **both** Resource Manager and Classic virtual machines.
