@@ -456,7 +456,7 @@ module PuppetX
             location: args[:location],
             properties: build(::Azure::ARM::Network::Models::VirtualNetworkPropertiesFormat, {
               address_space: build(::Azure::ARM::Network::Models::AddressSpace, {
-                address_prefixes: [args[:virtual_network_address_space]],
+                address_prefixes: args[:virtual_network_address_space],
               }),
               dhcp_options: build(::Azure::ARM::Network::Models::DhcpOptions, {
                 dns_servers: args[:dns_servers].split,

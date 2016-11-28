@@ -270,7 +270,7 @@ The keys that should be in the hash are:
     desc 'The virtual network name'
   end
 
-  newparam(:virtual_network_address_space, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+  newparam(:virtual_network_address_space, :array_accepting => :all) do
     desc 'The virtual network address space'
     defaultto '10.0.0.0/16'
   end
