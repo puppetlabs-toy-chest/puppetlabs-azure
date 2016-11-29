@@ -134,7 +134,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       os_disk_vhd_container_name: resource[:os_disk_vhd_container_name],
       dns_servers: resource[:dns_servers],
       public_ip_allocation_method: resource[:public_ip_allocation_method],
-      virtual_network_address_space: resource[:virtual_network_address_space],
+      virtual_network_address_space: [resource[:virtual_network_address_space]].flatten,
       subnet_name: resource[:subnet_name],
       subnet_address_prefix: resource[:subnet_address_prefix],
       private_ip_allocation_method: resource[:private_ip_allocation_method],

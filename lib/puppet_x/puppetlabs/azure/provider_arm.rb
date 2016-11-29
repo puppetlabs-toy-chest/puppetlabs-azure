@@ -299,7 +299,12 @@ module PuppetX
           end
         end
 
+        def retreive_virtual_network(args)
+          ProviderArm.network_client.virtual_networks.get(args[:resource_group], args[:virtual_network_name]) || create_virtual_network(args)
+        end
+
         def create_virtual_network(args)
+          Puppet.debug("Creating vnet '#{virtual_network.name}'")
           params = build_virtual_network_params(args)
           ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params).value!.body
         end
@@ -317,7 +322,12 @@ module PuppetX
           ProviderArm.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
         end
 
+        def retreive_subnet(virtual_network, args)
+          ProviderArm.network_client.subnets.get(args[:resource_group], args[:virtual_network_name], args[:subnet_name]) || create_subnet(virtual_network, args)
+        end
+
         def create_subnet(virtual_network, args)
+          Puppet.debug("Creating subnet '#{args[:subnet_name]}' on vnet '#{virtual_network.name}'")
           params = build_subnet_params(args)
           ProviderArm.network_client.subnets.create_or_update(
             args[:resource_group],
@@ -456,11 +466,12 @@ module PuppetX
             location: args[:location],
             properties: build(::Azure::ARM::Network::Models::VirtualNetworkPropertiesFormat, {
               address_space: build(::Azure::ARM::Network::Models::AddressSpace, {
-                address_prefixes: [args[:virtual_network_address_space]],
+                address_prefixes: args[:virtual_network_address_space],
               }),
               dhcp_options: build(::Azure::ARM::Network::Models::DhcpOptions, {
                 dns_servers: args[:dns_servers].split,
               }),
+              #XXX This should handle arrays
               subnets: [build(::Azure::ARM::Network::Models::Subnet, {
                 name: args[:subnet_name],
                 properties: build(::Azure::ARM::Network::Models::SubnetPropertiesFormat, {
@@ -501,10 +512,11 @@ module PuppetX
 
         def build_network_profile(args)
           build(::Azure::ARM::Compute::Models::NetworkProfile, {
+            #XXX This should handle multiple network interfaces
             network_interfaces: [
               create_network_interface(
                 args,
-                create_subnet(create_virtual_network(args), args)
+                retreive_subnet(retreive_virtual_network(args), args)
               )
             ]
           })

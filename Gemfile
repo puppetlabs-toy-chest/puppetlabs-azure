@@ -26,6 +26,7 @@ group :test do
   gem 'parallel_tests', '< 2.10.0' if RUBY_VERSION < '2.0.0'
   gem 'parallel_tests' if RUBY_VERSION >= '2.0.0'
   gem 'listen', '~> 3.0.0'
+  gem 'public_suffix', '~> 1.4.0' #used for azure, 1.5.0 dropped ruby 1.9
 end
 
 group :development do

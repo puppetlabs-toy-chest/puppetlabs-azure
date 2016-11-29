@@ -30,7 +30,6 @@ describe 'azure_vm when creating a machine with all available properties' do
         public_ip_allocation_method: 'Dynamic',
         public_ip_address_name: 'ip_name_test01pubip',
         virtual_network_name: 'vnettest01',
-        virtual_network_address_space: '10.0.0.0/16',
         custom_data: "touch #{@custom_data_file}",
         subnet_name: 'subnet111',
         subnet_address_prefix: '10.0.2.0/24',
@@ -39,6 +38,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         network_interface_name: 'nicspec01',
       },
       nonstring: {
+        virtual_network_address_space: ['10.0.0.0/24','10.0.2.0/24'],
         extensions: {
           'CustomScriptForLinux' => {
             'auto_upgrade_minor_version' => false,

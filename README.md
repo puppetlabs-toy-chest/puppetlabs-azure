@@ -650,7 +650,7 @@ The key name of the virtual network for the virtual machine. See [Virtual Networ
 
 ##### `virtual_network_address_space`
 
-The ip range for the private virtual network. See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx). Defaults to `10.0.0.0/16`.
+The ip range for the private virtual network. See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx). Defaults to `10.0.0.0/16`. May be a string or array of strings.
 
 ##### `subnet_name`
 
