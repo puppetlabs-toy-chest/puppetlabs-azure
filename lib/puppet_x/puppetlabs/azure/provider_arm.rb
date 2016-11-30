@@ -299,7 +299,7 @@ module PuppetX
           end
         end
 
-        def retreive_virtual_network(args)
+        def retrieve_virtual_network(args)
           ProviderArm.network_client.virtual_networks.get(args[:resource_group], args[:virtual_network_name]) || create_virtual_network(args)
         end
 
@@ -322,7 +322,7 @@ module PuppetX
           ProviderArm.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
         end
 
-        def retreive_subnet(virtual_network, args)
+        def retrieve_subnet(virtual_network, args)
           ProviderArm.network_client.subnets.get(args[:resource_group], args[:virtual_network_name], args[:subnet_name]) || create_subnet(virtual_network, args)
         end
 
@@ -516,7 +516,7 @@ module PuppetX
             network_interfaces: [
               create_network_interface(
                 args,
-                retreive_subnet(retreive_virtual_network(args), args)
+                retrieve_subnet(retrieve_virtual_network(args), args)
               )
             ]
           })
