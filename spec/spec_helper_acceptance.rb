@@ -1,3 +1,4 @@
+require 'puppet'
 
 require 'azure'
 require 'mustache'
