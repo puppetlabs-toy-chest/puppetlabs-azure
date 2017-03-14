@@ -1,4 +1,4 @@
-
+require 'puppet'
 require 'azure'
 require 'mustache'
 require 'open3'
