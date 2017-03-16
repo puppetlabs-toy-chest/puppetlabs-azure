@@ -2,10 +2,14 @@
 language: ruby
 bundler_args: --without development acceptance integration
 cache: bundler
-before_install: rm Gemfile.lock || true
+before_install: 
+ - gem update bundler
+ - rm Gemfile.lock || true
 sudo: false
 script: bundle exec rake test
 matrix:
+  fast_finish: true
+  include:
   - rvm: 2.3.1
     env: PUPPET_GEM_VERSION="~> 4.2.0"
   - rvm: 2.1.9

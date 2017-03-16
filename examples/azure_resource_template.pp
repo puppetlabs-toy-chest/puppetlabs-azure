@@ -6,14 +6,9 @@ azure_resource_group { 'test-rg':
 azure_resource_template { 'test-storage-account':
   ensure         => 'present',
   resource_group => 'test-rg',
-  source         => 'https://gallery.azure.com/artifact/20151001/Microsoft.StorageAccount-ARM.1.0.1/DeploymentTemplates/StorageAccount.json',
+  source         => 'https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-account-create/azuredeploy.json',
   params         => {
-    'accountType'       => 'Standard_GRS',
-    'enableDiagnostics' => true,
-    'location'          => 'eastus',
-    'metricsLevel'      => 'ServiceAndApi',
-    'metricsRetention'  => 'P7D',
-    'name'              => 'teststorageaccount',
+    'storageAccountType' => 'Standard_GRS',
   },
 }
 # Example from https://github.com/Azure/azure-quickstart-templates/tree/master/101-loadbalancer-with-nat-rule

@@ -37,13 +37,13 @@ azure_vm { 'candy':
       'disk_size_gb'  => '128',
       'lun'           => '0',
       'vhd'           => 'https://hunnerdisks861.blob.core.windows.net/vhds/some_name_here.vhd',
-      },
-      'another'      => {
-        'caching'       => 'None',
-        'create_option' => 'Empty',
-        'disk_size_gb'  => '15',
-        'lun'           => '1',
-        'vhd'           => 'https://slowspace.blob.core.windows.net/wat/another.vhd',
-      },
+    },
+    'another'        => {
+      'caching'       => 'None',
+      'create_option' => 'Empty',
+      'disk_size_gb'  => '15',
+      'lun'           => '1',
+      'vhd'           => 'https://slowspace.blob.core.windows.net/wat/another.vhd',
+    },
   },
 }
