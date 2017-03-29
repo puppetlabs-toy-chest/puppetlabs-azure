@@ -379,9 +379,12 @@ module PuppetX
         end
 
         def build_template_deployment_properties(args)
-          templateLink = build(::Azure::ARM::Resources::Models::TemplateLink, {
-              uri: args[:source],
-          })
+          if args[:source]
+            templateLink = build(::Azure::ARM::Resources::Models::TemplateLink, {
+                uri: args[:source],
+            })
+          end
+
           build(::Azure::ARM::Resources::Models::DeploymentProperties, {
             template: args[:content],
             template_link: templateLink,
