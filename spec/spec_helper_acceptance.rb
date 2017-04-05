@@ -39,7 +39,7 @@ SPEC_RESOURCE_GROUP="CLOUD-ARM-#{ENV['USER'] || 'tests'}".freeze
 SPEC_CLOUD_SERVICE="CLOUD-CS-#{ENV['USER'] || 'tests'}".freeze
 
 UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
-WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20160126-en.us-127GB.vhd'.freeze
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20161214-en.us-127GB.vhd'.freeze
 
 CERT_FILE='azure_cert.pem'.freeze
 WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}".freeze
