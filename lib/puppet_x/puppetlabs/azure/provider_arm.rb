@@ -57,13 +57,13 @@ module PuppetX
           begin
             register_providers
             create_resource_group(args)
+            params = build_params(args)
             create_storage_account({
               storage_account: args[:storage_account],
               resource_group: args[:resource_group],
               storage_account_type: args[:storage_account_type],
               location: args[:location],
             })
-            params = build_params(args)
             ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params).value!.body
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
@@ -300,11 +300,15 @@ module PuppetX
         end
 
         def retrieve_virtual_network(args)
-          ProviderArm.network_client.virtual_networks.get(args[:resource_group], args[:virtual_network_name]) || create_virtual_network(args)
+          begin
+            ProviderArm.network_client.virtual_networks.get(args[:resource_group], args[:virtual_network_name])
+          rescue MsRestAzure::AzureOperationError
+            create_virtual_network(args)
+          end
         end
 
         def create_virtual_network(args)
-          Puppet.debug("Creating vnet '#{virtual_network.name}'")
+          Puppet.debug("Creating vnet '#{args[:virtual_network_name]}'")
           params = build_virtual_network_params(args)
           ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params).value!.body
         end
@@ -323,7 +327,11 @@ module PuppetX
         end
 
         def retrieve_subnet(virtual_network, args)
-          ProviderArm.network_client.subnets.get(args[:resource_group], args[:virtual_network_name], args[:subnet_name]) || create_subnet(virtual_network, args)
+          begin
+            ProviderArm.network_client.subnets.get(args[:resource_group], args[:virtual_network_name], args[:subnet_name])
+          rescue MsRestAzure::AzureOperationError
+            create_subnet(virtual_network, args)
+          end
         end
 
         def create_subnet(virtual_network, args)
