@@ -53,7 +53,7 @@ module PuppetX
         end
 
         # Public instance methods
-        def create_vm(args) # rubocop:disable Metrics/AbcSize
+        def create_vm(args)
           begin
             register_providers
             create_resource_group(args)
