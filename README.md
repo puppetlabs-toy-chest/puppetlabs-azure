@@ -189,7 +189,6 @@ principal on the Active Directory. A quick way to create one for puppet is [pend
    puppet module install puppetlabs-azure
    ```
 
-
 ## Usage
 
 ### Create Azure VMs
