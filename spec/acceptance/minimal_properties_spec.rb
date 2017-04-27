@@ -20,8 +20,13 @@ describe 'azure_vm_classic when creating a new machine with the minimum properti
     }
     @manifest = PuppetManifest.new(@template, @config)
     @result = @manifest.execute
+
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress
+  end
+
+  it 'should have started the vm on the first attempt' do
+    expect(@attempts).to eq 1
   end
 
   it_behaves_like 'an idempotent resource'
