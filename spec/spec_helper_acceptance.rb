@@ -79,17 +79,29 @@ RSpec.configure do |c|
           ]
 
           additional_gem_opts = ["--no-ri", "--no-rdoc"]
+          windows_cmd = [ '/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin/ruby.exe', 'C:\Program Files\Puppet Labs\Puppet\sys\ruby\bin\gem' ]
 
           if is_windows?(host)
             # shield the quoting from beaker's autoquoting to correctly quote the space
             # also avoid the gem.bat, as that cannot pass arguments with spaces and other special characters through
-            windows_cmd = [ '/cygdrive/c/Program Files/Puppet Labs/Puppet/sys/ruby/bin/ruby.exe', 'C:\Program Files\Puppet Labs\Puppet\sys\ruby\bin\gem' , 'install' ]
+            if on(host, "grep SSL_CERT_ ~/.bashrc 2>/dev/null", :acceptable_exit_codes => [0,1]).output == ''
+              on host, 'echo "export SSL_CERT_FILE=\"c:\Program Files\Puppet Labs\Puppet\puppet\ssl\cert.pem\"" > ~/.tmpcert'
+              on host, 'echo "export SSL_CERT_DIR=\"c:\Program Files\Puppet Labs\Puppet\puppet\ssl\certs\"" >> ~/.tmpcert'
+              on host, 'cat ~/.bashrc >> ~/.tmpcert'
+              on host, 'mv ~/.tmpcert ~/.bashrc'
+            end
+            on(host, "head -4 ~/.bashrc")
+
+            install_cmd = [ 'install' ]
+
+            # gems.unshift([ 'nokogiri', '--version=~> 1.7.1-x64-mingw32' ])
             gems.each do |args|
-              command = (windows_cmd + args + additional_gem_opts).collect { |a| "\\\"#{a}\\\"" }.join(" ")
+              command = (windows_cmd + install_cmd + args + additional_gem_opts).collect { |a| "\\\"#{a}\\\"" }.join(" ")
               on(host, "bash -c \"#{command}\"")
             end
           else
             linux_cmd = [ host.file_exist?("#{host['privatebindir']}/gem") ? "#{host['privatebindir']}/gem" : "#{host['puppetbindir']}/gem" , 'install' ]
+            linux_cmd = [ '/opt/puppetlabs/puppet/bin/gem', 'install' ] unless linux_cmd
             gems.each do |args|
               command = (linux_cmd + (args + additional_gem_opts).collect { |a| "'#{a}'" }).join(" ")
               on(host, command)
@@ -110,7 +122,9 @@ RSpec.configure do |c|
 
     # Deploy Azure credentials
     if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-      scp_to_ex(ENV['AZURE_MANAGEMENT_CERTIFICATE'], is_windows? ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT)
+      hosts.each do |host|
+        scp_to host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], is_windows?(host=host) ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT
+      end
     end
   end
 end
@@ -145,7 +159,14 @@ class PuppetManifest < Mustache
   end
 
   def execute
-    Beaker::TestmodeSwitcher::DSL.execute_manifest(self.render, beaker_opts)
+    @attempts = 1
+    sleep 30
+    result = Beaker::TestmodeSwitcher::DSL.execute_manifest(self.render, beaker_opts)
+    while result.output =~/remote server\: Error 500 on SERVER\:/
+      result = Beaker::TestmodeSwitcher::DSL.execute_manifest(self.render, beaker_opts)
+      @attempts += 1
+    end
+    result
   end
 
   def self.to_generalized_data(val)
@@ -475,14 +496,14 @@ def beaker_opts
 end
 
 def is_windows?(host = nil)
-  if host
-    host['platform'] =~ /^windows/
-  elsif defined?(default)
+  if host && (host['platform'] =~ /^windows/) != nil
+    true
+  elsif host == nil && defined?(default) && (default['platform'] =~ /^windows/) != nil
     # since `default` is from the beaker DSL, it is not accessible in `local` TESTMODE
-    default['platform'] =~ /^windows/
+    true
   else
-    # to support running the tests on windows in local TESTMODE,
-    # add proper platform detection here.
+  # to support running the tests on windows in local TESTMODE,
+  # add proper platform detection here.
     false
   end
 end
