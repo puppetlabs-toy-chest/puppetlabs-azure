@@ -16,7 +16,7 @@ describe 'azure_resource_template when creating a template deployment' do
       nonstring: {
         content: '$content',
         params: {
-          'dnsNameforLBIP'      => 'stuffandthings02',
+          'dnsNameforLBIP'      => 'azurelbdnsname02',
           'publicIPAddressType' => 'Dynamic',
           'addressPrefix'       => '10.0.0.0/16',
           'subnetPrefix'        => '10.0.0.0/24',
