@@ -1,3 +1,16 @@
+## Supported Version 1.1.1
+This release adds support for Puppet 4.9.4.
+
+### Added
+- Puppet 4.9.4 Support
+
+### Fixed
+- `azure_resource_template` The templateURL parameter when unused was being
+set to Nil and failing.
+- `ProviderArm` parameter `virtual_network_address_space` now supports an array of
+addresses
+
+
 ## Supported Version 1.1.0
 ### Summary
 This release adds several more useful resource types for managing Azure resource groups, storage accounts, and resource templates. It also expands the capabilities of the `azure_vm` type by adding support for managing extensions, data disks, custom data, and deploying from marketplace images.
@@ -57,4 +70,3 @@ This release includes:
 The first public release of the Azure module provides support for
 managing VMs in both the Service Management (Classic) and new Resource
 Management APIs in Azure.
-
