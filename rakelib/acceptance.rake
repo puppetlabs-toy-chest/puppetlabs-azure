@@ -38,17 +38,99 @@ namespace :parallel do
 end
 
 PE_RELEASES = {
-  '3.8.1' => 'http://pe-releases.puppetlabs.lan/3.8.1/',
-  '2015.2' => 'http://pe-releases.puppetlabs.lan/2015.2.3/',
-  '2015.3' => 'http://enterprise.delivery.puppetlabs.net/2015.3/preview/',
   '2016.2' => 'http://pe-releases.puppetlabs.lan/2016.2.1/',
+  '2017.1' => 'http://enterprise.delivery.puppetlabs.net/2017.1/ci-ready'
 }.freeze
 
 desc "Run acceptance tests"
-RSpec::Core::RakeTask.new(:acceptance => [:spec_prep]) do |t|
-  ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES['2015.2']
-  ENV['BEAKER_set'] = ENV['BEAKER_set'] || 'vagrant/ubuntu1404'
+RSpec::Core::RakeTask.new(:acceptance => [:spec_prep, :envs]) do |t|
   t.pattern = 'spec/acceptance'
+end
+
+fast_tests = [
+  'spec/*/all_properties_spec.rb',
+  'spec/*/arm_vm_spec.rb',
+  'spec/*/config_validation_spec.rb'
+]
+
+arm_tests = [
+  'spec/*/arm_vm_datadisks_spec.rb',
+  'spec/*/arm_vm_plan_spec.rb',
+  'spec/*/arm_vm_no_publicip_spec.rb',
+  'spec/*/arm_vm_invalid_spec.rb',
+  'spec/*/arm_vm_minimal_spec.rb'
+]
+
+classic_resources = [
+  'spec/*/storage_account_spec.rb',
+  'spec/*/resource_group_spec.rb',
+  'spec/*/resource_template_spec.rb',
+]
+
+classic_operations = [
+  'spec/*/minimal_properties_spec.rb',
+  'spec/*/stopped_machine_spec.rb',
+  'spec/*/invalid_image_spec.rb'
+]
+
+classic_extensions = [
+  'spec/*/multi_role_service_spec.rb',
+  'spec/*/endpoints_spec.rb'
+]
+
+classic_windows = [
+  'spec/*/windows_machine_spec.rb'
+]
+
+mandatory_envs = [
+  'AZURE_MANAGEMENT_CERTIFICATE',
+  'AZURE_CLIENT_ID',
+  'AZURE_CLIENT_SECRET',
+  'AZURE_SUBSCRIPTION_ID',
+  'AZURE_TENANT_ID'
+]
+
+task :envs do
+  ENV['BEAKER_debug'] = true if ENV['BEAKER_DEBUG']
+  ENV['BEAKER_TESTMODE'] = 'agent'
+  ENV['BEAKER_set'] = ENV['BEAKER_set'] || 'pooler/centos7m_windows2012r2a'
+  ENV['PUPPET_INSTALL_VERSION'] = ENV['PUPPET_INSTALL_VERSION'] || '2017.1'
+  ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES[ENV['PUPPET_INSTALL_VERSION']]
+  ENV['PUPPET_INSTALL_TYPE'] = "pe"
+  ENV['BEAKER_PE_VER'] = `curl http://getpe.delivery.puppetlabs.net/latest/#{ENV['PUPPET_INSTALL_VERSION']}`
+  for env in mandatory_envs
+    fail "#{env} must be set" unless ENV[env]
+  end 
+end
+
+desc "Run fast acceptance tests"
+RSpec::Core::RakeTask.new(:fast => [:spec_prep, :envs]) do |t|
+  t.pattern = fast_tests
+end
+
+desc "Run arm_only acceptance tests"
+RSpec::Core::RakeTask.new(:arm_only => [:spec_prep, :envs]) do |t|
+  t.pattern = arm_tests
+end
+
+desc "Run asm_resources acceptance tests"
+RSpec::Core::RakeTask.new(:asm_resources => [:spec_prep, :envs]) do |t|
+  t.pattern = classic_resources
+end
+
+desc "Run asm_operations acceptance tests"
+RSpec::Core::RakeTask.new(:asm_operations => [:spec_prep, :envs]) do |t|
+  t.pattern = classic_operations
+end
+
+desc "Run asm_extensions acceptance tests"
+RSpec::Core::RakeTask.new(:asm_extensions => [:spec_prep, :envs]) do |t|
+  t.pattern = classic_extensions
+end
+
+desc "Run asm_windows acceptance tests"
+RSpec::Core::RakeTask.new(:asm_windows => [:spec_prep, :envs]) do |t|
+  t.pattern = classic_windows
 end
 
 namespace :acceptance do
@@ -80,7 +162,7 @@ namespace :acceptance do
       configs.each do |config|
         PE_RELEASES.each do |version, pe_dir|
           desc "Run acceptance tests for #{config} on #{ns} with PE #{version}"
-          RSpec::Core::RakeTask.new("#{config}_#{version}".to_sym => [:spec_prep]) do |t|
+          RSpec::Core::RakeTask.new("#{config}_#{version}".to_sym => [:spec_prep, :envs]) do |t|
             ENV['BEAKER_PE_DIR'] = pe_dir
             ENV['BEAKER_keyfile'] = '~/.ssh/id_rsa-acceptance' if ns == :pooler
             ENV['BEAKER_debug'] = true if ENV['BEAKER_DEBUG']

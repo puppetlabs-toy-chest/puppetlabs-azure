@@ -15,7 +15,7 @@ group :test do
   gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 4'
   gem 'facter', '>= 2.0'
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
-  gem 'puppetlabs_spec_helper', '< 1.0'
+  gem 'puppetlabs_spec_helper'
   gem 'metadata-json-lint'
   # json_pure 2.0.2 added a requirement on ruby >= 2. We pin to json_pure 2.0.1
   # if using ruby 1.x
