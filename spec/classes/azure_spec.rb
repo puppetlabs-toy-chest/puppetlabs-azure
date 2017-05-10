@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'azure dependencies setup' do
+describe 'azure' do
   context 'RedHat setup' do
     let(:facts) {{ :osfamily => 'RedHat' }}
 
@@ -55,6 +55,7 @@ describe 'azure dependencies setup' do
     context 'parameters' do
       let(:params) do
         {
+          :manage_azure_conf => true,
           :subscription_id => 'fake',
           :tenant_id => 'fake',
           :client_id => 'fake',
@@ -119,6 +120,7 @@ describe 'azure dependencies setup' do
     context 'parameters' do
       let(:params) do
         {
+          :manage_azure_conf => true,
           :subscription_id => 'fake',
           :tenant_id => 'fake',
           :client_id => 'fake',
@@ -187,6 +189,7 @@ describe 'azure dependencies setup' do
     context 'parameters' do
       let(:params) do
         {
+          :manage_azure_conf => true,
           :subscription_id => 'fake',
           :tenant_id => 'fake',
           :client_id => 'fake',
