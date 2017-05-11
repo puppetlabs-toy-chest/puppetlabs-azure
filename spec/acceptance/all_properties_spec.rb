@@ -7,6 +7,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
 
   before(:all) do
     @custom_data_file = '/tmp/needle'
+    @tag_seed = SecureRandom.hex(8)
     @config = {
       name: @name,
       ensure: 'present',
@@ -16,7 +17,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
         user: 'specuser',
         password: 'SpecPass123!@#$%',
         size: 'Small',
-        deployment: "CLOUD-DN-#{SecureRandom.hex(8)}",
+        deployment: "CLOUD-DN-#{@tag_seed}",
         cloud_service: SPEC_CLOUD_SERVICE,
         data_disk_size_gb: 53,
         purge_disk_on_delete: true,
@@ -24,7 +25,7 @@ describe 'azure_vm_classic when creating a machine with all available properties
         storage_account: @storage_account_name,
         virtual_network: @virtual_network_name,
         subnet: @network.subnets.first[:name],
-        availability_set: "CLOUD-AS-#{SecureRandom.hex(8)}",
+        availability_set: "CLOUD-AS-#{@tag_seed}",
       }
     }
 
