@@ -57,7 +57,6 @@ arm_tests = [
   'spec/*/arm_vm_datadisks_spec.rb',
   'spec/*/arm_vm_plan_spec.rb',
   'spec/*/arm_vm_no_publicip_spec.rb',
-  'spec/*/arm_vm_invalid_spec.rb',
   'spec/*/arm_vm_minimal_spec.rb'
 ]
 
