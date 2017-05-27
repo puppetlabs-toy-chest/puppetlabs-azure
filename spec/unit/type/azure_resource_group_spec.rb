@@ -13,6 +13,7 @@ describe 'azure_resource_group', :type => :type do
     [
       :ensure,
       :location,
+      :tags,
     ]
   end
 

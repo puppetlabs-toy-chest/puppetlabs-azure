@@ -10,7 +10,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
 
   read_only(:image, :resource_group, :location, :size, :user, :os_disk_name,
             :os_disk_caching, :os_disk_create_option, :os_disk_vhd_container_name,
-            :os_disk_vhd_name, :network_interface_name, :plan, :managed_disks)
+            :os_disk_vhd_name, :network_interface_name, :plan, :managed_disks, :tags)
 
   def self.instances
     begin
@@ -90,6 +90,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       image: build_image_from_reference(machine.storage_profile.image_reference),
       resource_group: machine.id.split('/')[4].downcase,
       location: machine.location,
+      tags: machine.tags,
       size: machine.hardware_profile.vm_size,
       user: machine.os_profile.admin_username,
       os_disk_name: machine.storage_profile.os_disk.name,
@@ -151,6 +152,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       data_disks: resource[:data_disks],
       plan: resource[:plan],
       managed_disks: resource[:managed_disks],
+      tags: resource[:tags],
       # provider defaults recreate the defaults from the Azure Portal
       storage_account: default_based_on_resource_group(resource[:storage_account]),
       os_disk_name: default_to_name(resource[:os_disk_name]),

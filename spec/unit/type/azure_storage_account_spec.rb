@@ -15,6 +15,7 @@ describe 'azure_storage_account', :type => :type do
       :location,
       :account_type,
       :account_kind,
+      :tags,
       :resource_group,
     ]
   end

@@ -58,12 +58,14 @@ module PuppetX
             register_providers
             create_resource_group(args)
             params = build_params(args)
+
             if ! args[:managed_disks]
               create_storage_account({
                 storage_account: args[:storage_account],
                 resource_group: args[:resource_group],
                 storage_account_type: args[:storage_account_type],
                 location: args[:location],
+                tags: args[:tags],
               })
             end
             ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params)
@@ -394,7 +396,7 @@ module PuppetX
 
         def build_template_deployment(args)
           build(::Azure::ARM::Resources::Models::Deployment, {
-            properties: build_template_deployment_properties(args)
+            properties: build_template_deployment_properties(args),
           })
         end
 
@@ -418,6 +420,7 @@ module PuppetX
         def build_storage_account_create_parameters(args)
           build(::Azure::ARM::Storage::Models::StorageAccountCreateParameters, {
             location: args[:location],
+            tags: args[:tags],
             kind: Object.const_get("::Azure::ARM::Storage::Models::Kind::#{args[:storage_account_kind] || :Storage}"),
             sku: build(::Azure::ARM::Storage::Models::Sku, {
               name: args[:storage_account_type],
@@ -494,7 +497,8 @@ module PuppetX
             public_ipallocation_method: args[:public_ip_allocation_method],
             dns_settings: build(::Azure::ARM::Network::Models::PublicIPAddressDnsSettings, {
               domain_name_label: args[:dns_domain_name],
-            })
+            }),
+            tags: args[:tags],
           })
         end
 
@@ -526,6 +530,7 @@ module PuppetX
         def build_network_security_group_params(args)
           build(::Azure::ARM::Network::Models::NetworkSecurityGroup, {
             location: args[:location],
+            tags: args[:tags],
           })
         end
 
@@ -548,6 +553,7 @@ module PuppetX
               public_ipaddress: public_ipaddress,
             })],
             network_security_group: network_security_group,
+            tags: args[:tags],
           })
         end
 
@@ -602,6 +608,7 @@ module PuppetX
             network_profile: properties.network_profile,
             plan: build_plan(args),
             location: args[:location],
+            tags: args[:tags],
           })
         end
       end
