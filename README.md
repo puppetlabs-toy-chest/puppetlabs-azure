@@ -300,6 +300,26 @@ azure_vm { 'sample':
 }
 ```
 
+#### Premium Storage
+
+Azure supports _premium_ SSD backed VMs for enhanced performance of production class environments.  SSD storage can be selected at the time of VM creation like this (`Premium_LRS` is the Azure API's internal representation):
+
+```puppet
+azure_vm { 'ssd-example':
+  ensure               => present,
+  location             => 'centralus',
+  image                => 'Canonical:UbuntuServer:16.10:latest',
+  user                 => 'azureuser',
+  password             => 'Password_!',
+  size                 => 'Standard_DS1_v2',
+  resource_group       => 'puppetvms',
+  storage_account_type => 'Premium_LRS',
+}
+
+```
+
+To successfully enable `Premium_LRS`, you **must** select a premium-capable VM size such as `Standard_DS1_v2`.  Regular HDD backed VMs can be created by using `Standard_LRS`.
+
 ### List and manage VMs
 
 In addition to describing new machines using the DSL, the module also supports listing and managing machines via `puppet resource`:
