@@ -10,7 +10,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
 
   read_only(:image, :resource_group, :location, :size, :user, :os_disk_name,
             :os_disk_caching, :os_disk_create_option, :os_disk_vhd_container_name,
-            :os_disk_vhd_name, :network_interface_name, :plan)
+            :os_disk_vhd_name, :network_interface_name, :plan, :managed_disks)
 
   def self.instances
     begin
@@ -74,6 +74,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       }
       plan['promotion_code'] = machine.plan.promotion_code if machine.plan.promotion_code
     end
+    managed_disks = machine.storage_profile.os_disk.managed_disk != nil
 
     {
       name: machine.name,
@@ -92,6 +93,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       plan: plan,
       extensions: extensions,
       data_disks: data_disks,
+      managed_disks: managed_disks,
       object: machine,
     }
   end
@@ -140,6 +142,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       private_ip_allocation_method: resource[:private_ip_allocation_method],
       data_disks: resource[:data_disks],
       plan: resource[:plan],
+      managed_disks: resource[:managed_disks],
       # provider defaults recreate the defaults from the Azure Portal
       storage_account: default_based_on_resource_group(resource[:storage_account]),
       os_disk_name: default_to_name(resource[:os_disk_name]),

@@ -327,6 +327,22 @@ The switch which behaves differenly depending what was activated:
 * Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics .  Enabled manually via the portal if required.  Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting.  If required, boot diagnostics can be enabled through the Azure portal.
 * Guest diagnostics - Configures an extension to capture live diagnostic output.  This needs to be _different_ depending on the selected guest OS and is enabled by supplying the appropriate data to the `extensions` parameter.
 
+#### Managed Disks
+Azure's _managed disks_ feature removes the requirement to associate a storage account with each Azure VM, removing one of the fundamental limitations of the platform.  To use managed disks with `azure_vm`, set the `manged_disks` parameter to true:
+
+```puppet
+azure_vm { 'managed-disks-example':
+  ensure        => present,
+  location      => 'centralus',
+  image         => 'Canonical:UbuntuServer:16.10:latest',
+  user          => 'azureuser',
+  password      => 'Password_!',
+  managed_disks => true,
+}
+```
+
+Note that when using _managed disks_ its not possible to set _vhd_ options any more as the feature takes care of these for you.
+
 ### List and manage VMs
 
 In addition to describing new machines using the DSL, the module also supports listing and managing machines via `puppet resource`:

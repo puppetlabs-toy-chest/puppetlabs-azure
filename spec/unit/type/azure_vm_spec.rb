@@ -41,6 +41,7 @@ describe 'azure_vm', :type => :type do
       :extensions,
       :data_disks,
       :plan,
+      :managed_disks,
     ]
   end
 
