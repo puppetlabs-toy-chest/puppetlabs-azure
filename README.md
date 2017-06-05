@@ -320,6 +320,13 @@ azure_vm { 'ssd-example':
 
 To successfully enable `Premium_LRS`, you **must** select a premium-capable VM size such as `Standard_DS1_v2`.  Regular HDD backed VMs can be created by using `Standard_LRS`.
 
+#### Boot/guest diagnostics
+The Azure portal provides switches to enable _boot_diagnostics_ and _guest diagnostics_.  Both of which require access to a storage account to dump the diagnostic data.
+
+The switch which behaves differenly depending what was activated:
+* Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics .  Enabled manually via the portal if required.  Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting.  If required, boot diagnostics can be enabled through the Azure portal.
+* Guest diagnostics - Configures an extension to capture live diagnostic output.  This needs to be _different_ depending on the selected guest OS and is enabled by supplying the appropriate data to the `extensions` parameter.
+
 ### List and manage VMs
 
 In addition to describing new machines using the DSL, the module also supports listing and managing machines via `puppet resource`:
