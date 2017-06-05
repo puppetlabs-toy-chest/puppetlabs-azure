@@ -338,6 +338,25 @@ module PuppetX
           )
         end
 
+        def retrieve_network_security_group(args)
+          begin
+            ProviderArm.network_client.network_security_groups.get(args[:resource_group], args[:network_security_group_name])
+          rescue MsRestAzure::AzureOperationError
+            create_network_security_group(args)
+          end
+        end
+
+        def create_network_security_group(args)
+          Puppet.debug("Creating network security group '#{args[:network_security_group_name]}'")
+          params = build_network_security_group_params(args)
+          ProviderArm.network_client.network_security_groups.create_or_update(
+            args[:resource_group],
+            args[:network_security_group_name],
+            params
+          )
+        end
+
+
         def create_network_interface(args, subnet)
           params = build_network_interface_param(args, subnet)
           ProviderArm.network_client.network_interfaces.create_or_update(args[:resource_group], params.name, params)
@@ -502,23 +521,33 @@ module PuppetX
           })
         end
 
+        # Just create a 'blank' group for the moment.  There is scope
+        # to setup the whole security group here though
+        def build_network_security_group_params(args)
+          build(::Azure::ARM::Network::Models::NetworkSecurityGroup, {
+            location: args[:location],
+          })
+        end
+
         def build_network_interface_param(args, subnet)
-          network_interface_properties = {
-            private_ipallocation_method: args[:private_ip_allocation_method],
-            subnet: subnet,
-            public_ipaddress: unless args[:public_ip_allocation_method] == 'None'
-              create_public_ip_address(args)
-            end
-          }
+          public_ipaddress = unless args[:public_ip_allocation_method] == 'None'
+            create_public_ip_address(args)
+          end
+
+          network_security_group = unless args[:network_security_group_name] == 'None'
+            retrieve_network_security_group(args)
+          end
+
           build(::Azure::ARM::Network::Models::NetworkInterface, {
             location: args[:location],
             name: args[:network_interface_name],
             ip_configurations: [build(::Azure::ARM::Network::Models::NetworkInterfaceIPConfiguration, {
               name: args[:ip_configuration_name],
-              private_ipallocation_method: network_interface_properties[:private_ipallocation_method],
-              subnet: network_interface_properties[:subnet],
-              public_ipaddress: network_interface_properties[:public_ipaddress],
+              private_ipallocation_method: args[:private_ip_allocation_method],
+              subnet: subnet,
+              public_ipaddress: public_ipaddress,
             })],
+            network_security_group: network_security_group,
           })
         end
 
@@ -528,7 +557,7 @@ module PuppetX
             network_interfaces: [
               create_network_interface(
                 args,
-                retrieve_subnet(retrieve_virtual_network(args), args)
+                retrieve_subnet(retrieve_virtual_network(args), args),
               )
             ]
           })

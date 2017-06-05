@@ -323,6 +323,13 @@ The keys that should be in the hash are:
     defaultto false
   end
 
+  newproperty(:network_security_group_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
+    desc 'The network security group name'
+    def insync?(is)
+      true
+    end
+  end
+
   autorequire(:azure_resource_group) do
     self[:resource_group]
   end
