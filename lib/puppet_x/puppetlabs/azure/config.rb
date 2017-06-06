@@ -1,4 +1,4 @@
-require 'hocon'
+require 'hocon' if Puppet.features.azure_hocon?
 require 'puppet'
 
 module PuppetX
