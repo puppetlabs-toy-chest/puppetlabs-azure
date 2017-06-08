@@ -25,7 +25,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   end
 
   def self.build_image_from_reference(image_reference)
-    "#{image_reference.publisher}:#{image_reference.offer}:#{image_reference.sku}:#{image_reference.version}"
+    "#{image_reference.publisher}:#{image_reference.offer}:#{image_reference.sku}:#{image_reference.version}" unless image_reference == nil
   end
 
   # Pick selected fields from Azure API representation of a
@@ -92,10 +92,10 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       location: machine.location,
       tags: machine.tags,
       size: machine.hardware_profile.vm_size,
-      user: machine.os_profile.admin_username,
-      os_disk_name: machine.storage_profile.os_disk.name,
-      os_disk_caching: machine.storage_profile.os_disk.caching,
-      os_disk_create_option: machine.storage_profile.os_disk.create_option,
+      user: (machine.os_profile.admin_username if machine.os_profile),
+      os_disk_name: (machine.storage_profile.os_disk.name if machine.storage_profile.os_disk),
+      os_disk_caching: (machine.storage_profile.os_disk.caching if machine.storage_profile.os_disk),
+      os_disk_create_option: (machine.storage_profile.os_disk.create_option if machine.storage_profile.os_disk),
       os_disk_vhd_container_name: vhd_container_name,
       os_disk_vhd_name: vhd_name,
       network_interface_name: network_interface_name,
