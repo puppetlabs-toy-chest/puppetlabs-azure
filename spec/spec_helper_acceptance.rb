@@ -1,5 +1,4 @@
 require 'puppet'
-
 require 'azure'
 require 'mustache'
 require 'open3'
@@ -30,16 +29,23 @@ Dir["./spec/support/**/*.rb"].sort.each { |f| require f }
 require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
-# cheapest as of 2015-08
-CHEAPEST_ARM_LOCATION="eastus".freeze
-CHEAPEST_CLASSIC_LOCATION="East US".freeze
+CHEAPEST_ARM_LOCATION="centralus".freeze
+CHEAPEST_CLASSIC_LOCATION="Central US".freeze
+UBUNTU_IMAGE_ID="Canonical:UbuntuServer:16.04-LTS:latest".freeze
 
 # For personal resource groups
 SPEC_RESOURCE_GROUP="CLOUD-ARM-#{ENV['USER'] || 'tests'}".freeze
 SPEC_CLOUD_SERVICE="CLOUD-CS-#{ENV['USER'] || 'tests'}".freeze
 
-UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20150908-en-us-30GB'.freeze
-WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20161214-en.us-127GB.vhd'.freeze
+# these are image names for the classic portal and change periodically which
+# can break the tests.  To obtain a new listing, load the create VM screen in
+# the classic portal, then use firebug to inspect the list members in the
+# "image name" field under "Quick create"
+#
+# "Ubuntu Server 14.04 LTS"
+UBUNTU_IMAGE='b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_5-LTS-amd64-server-20170818-en-us-30GB'.freeze
+# "Windows Server 2012 R2 Datacenter"
+WINDOWS_IMAGE='a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-20170712-en.us-127GB.vhd'.freeze
 
 CERT_FILE='azure_cert.pem'.freeze
 WINDOWS_AZURE_CERT="/cygdrive/c/#{CERT_FILE}".freeze
@@ -49,6 +55,21 @@ WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}".freeze
 # windows module install path
 # /cygdrive/c/ProgramData/PuppetLabs/code/modules
 #
+
+# https://tickets.puppetlabs.com/browse/BKR-993
+# class ::Object
+#
+#   def validate
+#
+#     #Redefine validate because beaker shim causes stack overflow
+#
+#     true
+#
+#   end
+#
+# end
+
+
 RSpec.configure do |c|
   c.filter_run :focus => true
   c.run_all_when_everything_filtered = true
@@ -69,12 +90,13 @@ RSpec.configure do |c|
               # libraries. Because of this setup just installing the top level azure gems doesn't always seem to do the
               # right thing on Windows
             [ 'unf' ],
+            [ 'git' ],
             [ 'hocon', 'retries' ],
             # Azure gems require pinning because they are still under heavy development and change their API frequently
-            [ 'azure_mgmt_compute', '--version=~> 0.3.0' ],
-            [ 'azure_mgmt_network', '--version=~> 0.3.0' ],
-            [ 'azure_mgmt_resources', '--version=~> 0.3.0' ],
-            [ 'azure_mgmt_storage', '--version=~> 0.3.0' ],
+            [ 'azure_mgmt_compute', '--version=~> 0.10.0' ],
+            [ 'azure_mgmt_network', '--version=~> 0.10.0' ],
+            [ 'azure_mgmt_resources', '--version=~> 0.10.0' ],
+            [ 'azure_mgmt_storage', '--version=~> 0.10.0' ],
             [ 'azure', '--version=~> 0.7.0' ],
           ]
 
@@ -123,7 +145,7 @@ RSpec.configure do |c|
     # Deploy Azure credentials
     if ENV['AZURE_MANAGEMENT_CERTIFICATE']
       hosts.each do |host|
-        scp_to host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], is_windows?(host) ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT
+       scp_to host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], is_windows?(host) ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT
       end
     end
   end
@@ -222,7 +244,7 @@ end
 
 class AzureARMHelper
   def self.config
-    PuppetX::Puppetlabs::Azure::Config.new
+    @config ||= ::PuppetX::Puppetlabs::Azure::Config.new
   end
 
   def self.compute_client
@@ -257,15 +279,15 @@ class AzureARMHelper
 
   def get_resource_group(name)
     resource_groups = AzureARMHelper.resource_client.resource_groups.list
-    resource_groups.value.find { |x| x.name == name }
+    resource_groups.find { |x| x.name == name }
   end
 
   def destroy_resource_group(resource_group_name)
-    AzureARMHelper.resource_client.resource_groups.delete(resource_group_name).value!.body
+    AzureARMHelper.resource_client.resource_groups.delete(resource_group_name)
   end
 
   def list_resource_templates(resource_group)
-    AzureARMHelper.resource_client.deployments.list(resource_group).value
+    AzureARMHelper.resource_client.deployments.list(resource_group)
   end
 
   def get_resource_template(resource_group,name)
@@ -274,15 +296,15 @@ class AzureARMHelper
   end
 
   def destroy_resource_template(resource_group_name, name)
-    AzureARMHelper.resource_client.deployments.delete(resource_group_name, name).value!.body
+    AzureARMHelper.resource_client.deployments.delete(resource_group_name, name)
   end
 
   def list_storage_accounts
-    AzureARMHelper.storage_client.storage_accounts.list.value
+    AzureARMHelper.storage_client.storage_accounts.list
   end
 
   def get_storage_account(name)
-    accounts = list_storage_accounts
+    accounts = list_storage_accounts.value
     accounts.find { |x| x.name == name }
   end
 
@@ -299,7 +321,7 @@ class AzureARMHelper
   end
 
   def get_all_vms
-    vms = AzureARMHelper.compute_client.virtual_machines.list_all.value
+    vms = AzureARMHelper.compute_client.virtual_machines.list_all
     vms.collect do |vm|
       AzureARMHelper.compute_client.virtual_machines.get(get_resource_group_from(vm), vm.name, 'instanceView')
     end
@@ -318,15 +340,15 @@ class AzureARMHelper
   end
 
   def destroy_vm(machine)
-    AzureARMHelper.compute_client.virtual_machines.delete(get_resource_group_from_vm(machine), machine.name).value!.body
+    AzureARMHelper.compute_client.virtual_machines.delete(get_resource_group_from_vm(machine), machine.name)
   end
 
   def vm_running?(vm)
-    ! vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/running/ }.nil?
+    ! vm.instance_view.statuses.find { |s| s.code =~ /PowerState\/running/ }.nil?
   end
 
   def vm_stopped?(vm)
-    ! vm.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
+    ! vm.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
   end
 end
 

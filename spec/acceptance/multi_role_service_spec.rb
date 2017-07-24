@@ -62,7 +62,7 @@ describe 'azure_vm_classic when creating a multirole services' do
 CONFIG
 
     @result = execute_manifest(@manifest, beaker_opts)
-
+    @client = AzureHelper.new
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress if @machine
 

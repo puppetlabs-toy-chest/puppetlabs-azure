@@ -32,7 +32,7 @@ describe 'azure_storage_account when creating a storage account' do
   context 'when puppet resource is run' do
     include_context 'a puppet ARM resource run', 'azure_storage_account'
     puppet_resource_should_show('ensure', 'present')
-    puppet_resource_should_show('location', 'eastus')
+    puppet_resource_should_show('location', CHEAPEST_ARM_LOCATION)
     puppet_resource_should_show('account_type', 'Standard_GRS')
     puppet_resource_should_show('account_kind', 'Storage')
     puppet_resource_should_show('resource_group', SPEC_RESOURCE_GROUP.downcase)

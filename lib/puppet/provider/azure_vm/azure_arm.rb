@@ -211,6 +211,6 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   end
 
   def stopped?
-    ! machine.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
+    ! machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
   end
 end

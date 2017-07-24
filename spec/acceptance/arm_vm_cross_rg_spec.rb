@@ -1,14 +1,81 @@
 require 'spec_helper_acceptance'
 
-describe 'azure_vm when creating a machine with all available properties' do
-  include_context 'with certificate copied to system under test'
+describe 'azure_vm when creating a machine with cross-network resource groups' do
+  class ::Object
+    def validate
+      true
+    end
+  end
+
   include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
+  # taken from provider_arm
+  def build(klass, data={})
+    model = klass.new
+    data.each do |k,v|
+      model.send "#{k}=", v
+    end
+    model
+  end
+
   before(:all) do
+    # we must directly make resources we want to refer to using the azure API
+    # before running puppet or we will get an error.  We can't use puppet to
+    # create them because it does not have the required primatives yet
+    @other_rg_name = "puppetlabs-azure-test"
+    @virtual_network_name = "network-vn"
+    @subnet_name = "subnet-sn"
+    @network_security_group_name = "network_security_group-nsg"
+
+    @virtual_network_name_q = "#{@other_rg_name}/#{@virtual_network_name}"
+    @subnet_name_q = "#{@other_rg_name}/#{@virtual_network_name}/#{@subnet_name}"
+    @network_security_group_name_q = "#{@other_rg_name}/#{@network_security_group_name}"
+
+
+    # The 'other' resource group we will reference
+    params = ::Azure::ARM::Resources::Models::ResourceGroup.new
+    params.location = CHEAPEST_ARM_LOCATION
+
+    ::AzureARMHelper.resource_client.resource_groups.create_or_update(
+      @other_rg_name,
+      params
+    )
+
+    # virtual network and subnet
+    params = build(::Azure::ARM::Network::Models::VirtualNetwork, {
+      location: CHEAPEST_ARM_LOCATION,
+      address_space: build(::Azure::ARM::Network::Models::AddressSpace, {
+        address_prefixes: ['10.1.0.0/16'],
+      }),
+      dhcp_options: build(::Azure::ARM::Network::Models::DhcpOptions, {
+        dns_servers: '10.1.1.1 10.1.2.4'.split,
+      }),
+      subnets: [build(::Azure::ARM::Network::Models::Subnet, {
+        name: @subnet_name,
+        address_prefix: '10.1.0.0/16'
+      })]
+    })
+    ::AzureARMHelper.network_client.virtual_networks.create_or_update(
+      @other_rg_name,
+      @virtual_network_name,
+      params
+    )
+
+    # network security group
+    params = build(::Azure::ARM::Network::Models::NetworkSecurityGroup, {
+        location: CHEAPEST_ARM_LOCATION,
+    })
+    ::AzureARMHelper.network_client.network_security_groups.create_or_update(
+      @other_rg_name,
+      @network_security_group_name,
+      params
+    )
+
     @custom_data_file = '/tmp/needle'
     @extension_file = '/tmp/extensionz'
     @tag_seed = SecureRandom.hex(8)
+
     @config = {
       name: @name,
       ensure: 'present',
@@ -21,25 +88,20 @@ describe 'azure_vm when creating a machine with all available properties' do
         password: 'SpecPass123!@#$%',
         storage_account: @storage_account_name,
         storage_account_type: 'Standard_GRS',
-        os_disk_name: 'osdisk01',
-        os_disk_caching: 'ReadWrite',
-        os_disk_create_option: 'FromImage',
-        os_disk_vhd_container_name: 'conttest1',
-        os_disk_vhd_name: 'osvhdtest1',
         dns_domain_name: "cloudspecdomain#{@tag_seed}",
         dns_servers: '8.8.8.8 8.8.4.4',
         public_ip_allocation_method: 'Dynamic',
         public_ip_address_name: "pubip_#{@tag_seed}",
-        virtual_network_name: "vnettest#{@tag_seed}",
         custom_data: "touch #{@custom_data_file}",
-        subnet_name: 'subnet111',
         subnet_address_prefix: '10.0.2.0/24',
         ip_configuration_name: "ip_config_#{@tag_seed}",
         private_ip_allocation_method: 'Dynamic',
         network_interface_name: "nicspec_#{@tag_seed}",
+        virtual_network_name: @virtual_network_name_q,
+        subnet_name: @subnet_name_q,
+        network_security_group_name: @network_security_group_name_q,
       },
       nonstring: {
-        tags: {'mytag1' => 'tag1', 'mytag2' => 'tag2', 'tag_seed' => @tag_seed},
         virtual_network_address_space: ['10.0.0.0/24','10.0.2.0/24'],
         extensions: {
           'CustomScriptForLinux' => {
@@ -55,6 +117,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         },
       },
     }
+
     @template = 'azure_vm.pp.tmpl'
     @client = AzureARMHelper.new
     @manifest = PuppetManifest.new(@template, @config)

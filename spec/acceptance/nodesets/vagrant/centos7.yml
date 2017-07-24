@@ -12,5 +12,5 @@ HOSTS:
     hypervisor: vagrant
 CONFIG:
   consoleport: 443
-  vagrant_memsize: 2048
+  vagrant_memsize: 6000
   color: false

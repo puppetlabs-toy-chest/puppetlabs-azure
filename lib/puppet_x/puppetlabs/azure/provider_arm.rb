@@ -76,7 +76,7 @@ module PuppetX
           end
         end
 
-        def update_vm_storage_profile(args) # rubocop:disable Metrics/AbcSize
+        def update_vm_storage_profile(args)
           # never appears to be called, changing data_disks parameter after VM
           # creation has no effect
           params = build(::Azure::ARM::Compute::Models::VirtualMachine, {
@@ -150,8 +150,13 @@ module PuppetX
           begin
             deployments = []
             Puppet.debug "Getting deployments in resource group #{resource_group}"
-            result = ProviderArm.resource_client.deployments.list(resource_group)
-            deployments += result
+            result = ProviderArm.resource_client.deployments.list_as_lazy(resource_group)
+            deployments += result.value
+
+            while ! result.next_link.nil? and ! result.next_link.empty? do
+              result = ProviderArm.resource_client.deployments.list_next(result.next_link)
+              deployments += result.value
+            end
 
             deployments.collect do |deployment|
               d = ProviderArm.resource_client.deployments.get(resource_group_from(deployment), deployment.name)
@@ -169,8 +174,13 @@ module PuppetX
         def get_all_rgs # rubocop:disable Metrics/AbcSize
           begin
             rgs = []
-            result = ProviderArm.resource_client.resource_groups.list
-            rgs += result
+            result = ProviderArm.resource_client.resource_groups.list_as_lazy
+            rgs += result.value
+
+            while ! result.next_link.nil? and ! result.next_link.empty? do
+              result = ProviderArm.resource_client.resource_groups.list_next(result.next_link)
+              rgs += result.value
+            end
 
             rgs.collect do |rg|
               ProviderArm.resource_client.resource_groups.get(rg.name)
@@ -185,9 +195,13 @@ module PuppetX
         def get_all_vms # rubocop:disable Metrics/AbcSize
           begin
             vms = []
-            result = ProviderArm.compute_client.virtual_machines.list_all
-            vms += result
+            result = ProviderArm.compute_client.virtual_machines.list_all_as_lazy
+            vms += result.value
 
+            while ! result.next_link.nil? and ! result.next_link.empty? do
+              result = ProviderArm.compute_client.virtual_machines.list_all_next(result.next_link)
+              vms += result.value
+            end
             vms.collect do |vm|
               ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView')
             end
@@ -454,17 +468,20 @@ module PuppetX
         end
 
         def build_virtual_machine_extensions(args) # rubocop:disable Metrics/AbcSize
-          props = if args[:properties].is_a?(Hash)
-            {
-              force_update_tag: args[:properties]['force_update_tag'],
-              publisher: args[:properties]['publisher'],
-              virtual_machine_extension_type: args[:properties]['type'],
-              type_handler_version: args[:properties]['type_handler_version'],
-              auto_upgrade_minor_version: args[:properties]['auto_upgrade_minor_version'],
-              settings: args[:properties]['settings'],
-              protected_settings: args[:properties]['protected_settings'],
-            }
-          end
+          props = 
+            if args[:properties].is_a?(Hash)
+              {
+                force_update_tag: args[:properties]['force_update_tag'],
+                publisher: args[:properties]['publisher'],
+                virtual_machine_extension_type: args[:properties]['type'],
+                type_handler_version: args[:properties]['type_handler_version'],
+                auto_upgrade_minor_version: args[:properties]['auto_upgrade_minor_version'],
+                settings: args[:properties]['settings'],
+                protected_settings: args[:properties]['protected_settings'],
+              }
+            else
+              {}
+            end
           build(::Azure::ARM::Compute::Models::VirtualMachineExtension, {
             location: args[:location],
             name: args[:name],

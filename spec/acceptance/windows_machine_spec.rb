@@ -18,6 +18,7 @@ describe 'azure_vm_classic when creating a new Windows machine' do
     }
     @manifest = PuppetManifest.new(@template, @config)
     @result = @manifest.execute
+    @client = AzureHelper.new
     @machine = @client.get_virtual_machine(@name).first
     @ip = @machine.ipaddress
   end
