@@ -6,7 +6,7 @@ Status](https://travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPV
 1. [Description - What the module does and why it is useful](#module-description)
 2. [Setup](#setup)
   * [Requirements](#requirements)
-  * [Getting Azure credentials](#getting-azure-credentials)
+  * [Get Azure credentials](#get-azure-credentials)
   * [Installing the Azure module](#installing-the-azure-module)
 3. [Usage - Configuration options and additional functionality](#usage)
 4. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
@@ -37,7 +37,7 @@ To use this module, you need an Azure account. If you already have one, you can 
 
 1.  Sign up for an [Azure account](https://azure.microsoft.com/en-us/free/).
 
-2.  Install [the Azure CLI](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-install/), which is a cross-platform node.js-based tool that works on Windows and Linux. This is required to generate a certificate for the Puppet module, but it's also a useful way of interacting with Azure.
+2.  Install [the Azure CLI 1.0](https://docs.microsoft.com/en-us/azure/cli-install-nodejs), which is a cross-platform node.js-based tool that works on Windows and Linux. This is required to generate a certificate for the Puppet module, but it's also a useful way of interacting with Azure. Currently these instructions have not been updated for the CLI 2.0 tool ('az' commands) but this module uses the API.
 
 3.  [Register the CLI](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-connect/) with your Azure account.
 
