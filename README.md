@@ -28,7 +28,13 @@ as code.
 
 ### Requirements
 
-*   [Azure gem](https://rubygems.org/gems/azure) 0.7.0 or greater.
+*   Ruby Gems as follows (see [Installing the Azure module](#installing-the-azure-module), below).
+    *   [azure](https://rubygems.org/gems/azure) 0.7.x
+    *   [azure_mgmt_storage](https://rubygems.org/gems/azure_mgmt_storage) 0.3.x
+    *   [azure_mgmt_compute](https://rubygems.org/gems/azure_mgmt_compute) 0.3.x
+    *   [azure_mgmt_resources](https://rubygems.org/gems/azure_mgmt_resources) 0.3.x
+    *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.3.x
+    *   [hocon](https://rubygems.org/gems/hocon) 1.1.x
 *   Azure credentials (as detailed below).
 
 #### Get Azure credentials
