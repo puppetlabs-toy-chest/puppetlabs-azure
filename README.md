@@ -17,12 +17,7 @@ Status](https://travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPV
 
 ## Description
 
-Microsoft Azure exposes a powerful API for creating and managing
-its Infrastructure as a Service platform. The azure module allows you to
-drive that API using Puppet code. This allows you to use Puppet to
-create, stop, restart, and destroy Virtual Machines, and eventually to manage
-other resources, meaning you can manage even more of your infrastructure
-as code.
+Microsoft Azure exposes a powerful API for creating and managing its Infrastructure as a Service platform. The azure module allows you to drive that API using Puppet code. This allows you to use Puppet to create, stop, restart, and destroy Virtual Machines, and eventually to manage other resources, meaning you can manage even more of your infrastructure as code.
 
 ## Setup
 
@@ -47,22 +42,22 @@ To use this module, you need an Azure account. If you already have one, you can 
 
 3.  [Register the CLI](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-connect/) with your Azure account.
 
-    To do this, on the command line, enter:
+    a. On the command line, enter:
 
-    ```
+    ``` shell
     azure account download
     azure account import <path to your .publishsettings file>
     ```
 
-    After you've created the account, you can export the PEM certificate file using the following command:
+    b. After you've created the account, export the PEM certificate file using the following command:
 
-    ```
+    ``` shell
     azure account cert export
     ```
 
 4.  Get a subscription ID using the `azure account list` command:
 
-    ```
+    ``` shell
     $ azure account list
     info:    Executing command account list
     data:    Name                    Id                                     Tenant Id  Current
@@ -71,13 +66,13 @@ To use this module, you need an Azure account. If you already have one, you can 
     info:    account list command OK
     ```
 
-To use the Resource Manager API instead, you need a service principal on the Active Directory. A quick way to create one for puppet is [pendrica/azure-credentials](https://github.com/pendrica/azure-credentials). Its [puppet mode](https://github.com/pendrica/azure-credentials#puppet-style-output-note--v-displays-the-file-on-screen-after-creation) can even create the `azure.conf` (see below) for you. Alternatively, the official documentation covers [creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
+To use the Resource Manager API instead, you need a service principal on the Active Directory. A quick way to create one for Puppet is [pendrica/azure-credentials](https://github.com/pendrica/azure-credentials). Its [puppet mode](https://github.com/pendrica/azure-credentials#puppet-style-output-note--v-displays-the-file-on-screen-after-creation) can create the `azure.conf` (see below) for you. Alternatively, the official documentation covers [creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
 
 ### Installing the Azure module
 
 1.  Install the required gems with this command on `puppet-agent` 1.2 (included in Puppet Enterprise 2015.2.0) or later:
 
-    ```
+    ``` shell
     /opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
     /opt/puppetlabs/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
     /opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.3.0' --no-ri --no-rdoc
@@ -87,9 +82,9 @@ To use the Resource Manager API instead, you need a service principal on the Act
     /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
     ```
 
-    When installing on Windows, launch the `Start Command Prompt with Puppet` and enter:
+    When installing on Windows, launch `Start Command Prompt with Puppet` and enter:
 
-    ```
+    ``` shell
     gem install retries --no-ri --no-rdoc
     gem install azure --version="~>0.7.0" --no-ri --no-rdoc
     gem install azure_mgmt_compute --version="~>0.3.0" --no-ri --no-rdoc
@@ -101,7 +96,7 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     On versions of `puppet agent` older than 1.2 (Puppet Enterprise 2015.2.0), use the older path to the `gem` binary:
 
-    ```
+    ``` shell
     /opt/puppet/bin/gem install retries --no-ri --no-rdoc
     /opt/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
     /opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.3.0' --no-ri --no-rdoc
@@ -117,7 +112,7 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     If using the classic API, provide this information:
 
-    ```
+    ``` shell
     export AZURE_MANAGEMENT_CERTIFICATE='/path/to/pem/file'
     export AZURE_SUBSCRIPTION_ID='your-subscription-id'
     ```
@@ -125,14 +120,14 @@ To use the Resource Manager API instead, you need a service principal on the Act
     At a Windows command prompt, specify the information **without quotes around any of the values**:
 
 
-    ```
+    ``` shell
     SET AZURE_MANAGEMENT_CERTIFICATE=C:\Path\To\file.pem
     SET AZURE_SUBSCRIPTION_ID=your-subscription-id
     ```
 
     If using the Resource Management API, provide this information:
 
-    ```
+    ``` shell
     export AZURE_SUBSCRIPTION_ID='your-subscription-id'
     export AZURE_TENANT_ID='your-tenant-id'
     export AZURE_CLIENT_ID='your-client-id'
@@ -141,7 +136,7 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     At a Windows command prompt, specify the information **without quotes around any of the values**:
 
-    ```
+    ``` shell
     SET AZURE_SUBSCRIPTION_ID=your-subscription-id
     SET AZURE_TENANT_ID=your-tenant-id
     SET AZURE_CLIENT_ID=your-client-id
@@ -150,7 +145,7 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     If you are working with **both** Resource Manager and classic virtual machines, provide all of the above credentials.
 
-    Alternately, you can provide the information in a configuration file of [HOCON format](https://github.com/typesafehub/config). Store this as `azure.conf` in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html):
+    Alternatively, you can provide the information in a configuration file of [HOCON format](https://github.com/typesafehub/config). Store this as `azure.conf` in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html):
 
     * \*nix Systems: `/etc/puppetlabs/puppet`
     * Windows: `C:\ProgramData\PuppetLabs\puppet\etc`
@@ -158,7 +153,7 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     The file format is:
 
-    ```
+    ``` shell
     azure: {
       subscription_id: "your-subscription-id"
       management_certificate: "/path/to/pem/file"
@@ -167,7 +162,7 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     When creating this file on Windows, note that as a JSON-based config file format, paths must be properly escaped:
 
-    ```
+    ``` shell
     azure: {
       subscription_id: "your-subscription-id"
       management_certificate: "C:\\path\\to\\file.pem"
@@ -178,7 +173,7 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     Or, with the Resource Management API:
 
-    ```
+    ``` shell
     azure: {
       subscription_id: "your-subscription-id"
       tenant_id: "your-tenant-id"
@@ -189,9 +184,9 @@ To use the Resource Manager API instead, you need a service principal on the Act
 
     You can use either the environment variables **or** the config file. If both are present, the environment variables are used. You cannot have some settings in environment variables and others in the config file.
 
-3.  Finally, install the module with:
+3.  Install the module with:
 
-    ```
+    ``` shell
     puppet module install puppetlabs-azure
     ```
 
@@ -263,7 +258,7 @@ azure_vm { 'sample':
 ```
 
 
-This type also has lots of other properties you can manage:
+This type also has many other properties you can manage:
 
 ```puppet
 azure_vm { 'sample':
@@ -308,9 +303,11 @@ azure_vm { 'sample':
 
 ### List and manage VMs
 
-In addition to describing new machines using the DSL, the module also supports listing and managing machines via `puppet resource`:
+This module supports listing and managing machines via `puppet resource`.
 
-```
+For example:
+
+``` shell
 puppet resource azure_vm_classic
 ```
 
@@ -333,7 +330,7 @@ azure_vm_classic { 'virtual-machine-name':
 
 Use the same command for Azure Resource Manager:
 
-```
+``` shell
 puppet resource azure_vm
 ```
 
@@ -400,7 +397,7 @@ azure_resource_template { 'My-Network-Security-Group':
 
 ### Types
 
-* `azure_vm_classic`: Manages a virtual machine in Microsoft Azure with Classic Service Management API.
+* [`azure_vm_classic`](#type-azure_vm_classic): Manages a virtual machine in Microsoft Azure with Classic Service Management API.
 * `azure_vm`: Manages a virtual machine in Microsoft Azure with Azure Resource Manager API.
 * `azure_storage_account`: Manages a Storage Account with Azure Resource Manager API.
 * `azure_resource_group`: Manages a Resource Group with Azure Resource Manager API.
@@ -408,11 +405,15 @@ azure_resource_template { 'My-Network-Security-Group':
 
 ### Parameters
 
+Parameters are optional unless specified **Required**.
+
 #### Type: azure_vm_classic
 
 ##### `ensure`
 
-Specifies the basic state of the virtual machine. Valid values are 'present', 'running', stopped', and 'absent'. Defaults to 'present'.
+Specifies the basic state of the virtual machine.
+
+Values: 'present', 'running', stopped', 'absent'.
 
 Values have the following effects:
 
@@ -421,9 +422,13 @@ Values have the following effects:
 * 'stopped': Ensures that the VM is created, but is not running. This can be used to shut down running VMs, as well as for creating VMs without having them running immediately.
 * 'absent': Ensures that the VM doesn't exist on Azure.
 
+Default: 'present'.
+
 ##### `name`
 
-*Required* The name of the virtual machine.
+**Required**.
+
+The name of the virtual machine.
 
 ##### `image`
 
@@ -431,11 +436,15 @@ Name of the image to use to create the virtual machine. This can be either a VM 
 
 ##### `location`
 
-*Required* The location where the virtual machine will be created. Details of available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). Location is read-only after the VM has been created.
+**Required**.
+
+The location where the virtual machine will be created. Details of available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). Location is read-only after the VM has been created.
 
 ##### `user`
 
-The name of the user to be created on the virtual machine. Required for Linux guests.
+**Required** for Linux guests.
+
+The name of the user to be created on the virtual machine.
 
 ##### `password`
 
@@ -447,7 +456,9 @@ Path to the private key file for accessing a Linux guest as the above user.
 
 ##### `storage_account`
 
-The name of the storage account to create for the virtual machine. Note that if the source image is a 'user' image, the storage account for the user image is used instead of the one provided here. The storage account must be between 3-24 characters, containing only numeric and/or lower case letters.
+The name of the storage account to create for the virtual machine. If the source image is a 'user' image, the storage account for the user image is used instead of the one provided here.
+
+Values: A string between 3-24 characters, containing only numeric and/or lower case letters.
 
 ##### `cloud_service`
 
@@ -459,7 +470,9 @@ The name for the deployment.
 
 ##### `size`
 
-The size of the virtual machine instance. See the Azure documentation for a [full list of sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
+The size of the virtual machine instance.
+
+Values: See the Azure documentation for a [full list of sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
 ##### `affinity_group`
 
@@ -487,11 +500,15 @@ The size of the data disk for this virtual machine, specified in gigabytes. Over
 
 ##### `purge_disk_on_delete`
 
-Whether or not the attached data disk should be deleted when the VM is deleted. Defaults to false.
+Whether or not the attached data disk should be deleted when the VM is deleted.
+
+Values: Boolean.
+
+Default: `false`.
 
 ##### `custom_data`
 
-A block of data to be affiliated with a host upon launch.  On Linux hosts, this can be a script to be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command (for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a template) which can be any format supported by cloud-init.
+A block of data to be affiliated with a host upon launch. On Linux hosts, this can be a script to be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command (for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a template) which can be any format supported by cloud-init.
 
 Windows images (and Linux images without cloud-init) need to provide their own mechanism to execute or act on the provided data.
 
@@ -513,7 +530,7 @@ A list of endpoints to associate with the virtual machine. Supply an array of ha
 
 The most often used endpoints are SSH for Linux and WinRM for Windows. Usually they are configured for direct pass-through like this:
 
-```
+``` shell
 endpoints => [{
     name        => 'ssh',
     local_port  => 22,
@@ -524,7 +541,7 @@ endpoints => [{
 
 or
 
-```
+``` shell
 endpoints => [{
     name        => 'WinRm-HTTP',
     local_port  => 5985,
@@ -538,30 +555,39 @@ endpoints => [{
   },]
 ```
 
-> **Note:** If you want to manually configure one of the ssh, WinRm-HTTP, or PowerShell endpoints, take care to use those endpoint names verbatim. This is required to override Azure's defaults without creating a resource conflict.
+> **Note:** To manually configure one of the ssh, WinRm-HTTP, or PowerShell endpoints, use those endpoint names verbatim. This is required to override Azure's defaults without creating a resource conflict.
 
 ##### `os_type`
 
-_Read Only_. The operating system type for the virtual machine.
+_Read Only_.
+
+The operating system type for the virtual machine.
 
 ##### `ipaddress`
 
-_Read Only_. The IP address assigned to the virtual machine.
+_Read Only_.
+
+The IP address assigned to the virtual machine.
 
 ##### `hostname`
 
-_Read Only_. The hostname of the running virtual machine.
+_Read Only_.
+
+The hostname of the running virtual machine.
 
 ##### `media_link`
 
-_Read Only_. The link to the underlying disk image for the virtual
-machine.
+_Read Only_.
+
+The link to the underlying disk image for the virtual machine.
 
 #### Type: azure_vm
 
 ##### `ensure`
 
-Specifies the basic state of the virtual machine. Valid values are 'present', 'running', stopped', and 'absent'. Defaults to 'present'.
+Specifies the basic state of the virtual machine.
+
+Values: 'present', 'running', stopped', 'absent'.
 
 Values have the following effects:
 
@@ -570,44 +596,72 @@ Values have the following effects:
 * 'stopped': Ensures that the VM is created, but is not running. This can be used to shut down running VMs, as well as for creating VMs without having them running immediately.
 * 'absent': Ensures that the VM doesn't exist on Azure.
 
+Default: 'present'.
+
 ##### `name`
 
-*Required* The name of the virtual machine. The name may have at most 64 characters. Some images may have more restrictive requirements.
+**Required**.
+
+The name of the virtual machine. The name can have 64 characters at most. Some images may have more restrictive requirements.
 
 ##### `image`
-Name of the image to use to create the virtual machine. Required if no Marketplace `plan` is provided. This must be in the ARM image_refence format: [Azure image reference](https://azure.microsoft.com/en-gb/documentation/articles/virtual-machines-deploy-rmtemplates-azure-cli/)
 
-```
+Name of the image to use to create the virtual machine. **Required** if no Marketplace `plan` is provided.
+
+Values: Must be in the ARM image_refence format. See the [Azure image reference](https://azure.microsoft.com/en-gb/documentation/articles/virtual-machines-deploy-rmtemplates-azure-cli/).
+
+``` shell
 canonical:ubuntuserver:14.04.2-LTS:latest
 ```
 
 ##### `location`
 
-*Required* The location where the virtual machine will be created. Details of available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). Location is read-only once the VM has been created.
+**Required**.
+
+Location to create the virtual machine. Location is read-only after the VM has been created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
 
 ##### `user`
 
-*Required* The name of the user to be created on the virtual machine. Required for Linux guests.
+**Required** for Linux guests.
+
+The name of the user to be created on the virtual machine.
 
 ##### `password`
 
-*Required* The password for the above mentioned user on the virtual machine.
+**Required**.
+
+The password for the user on the virtual machine.
 
 ##### `size`
 
-*Required* The size of the virtual machine instance. See the Azure documentation for a [full list of sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/). ARM requires that the "classic" size be prefixed with Standard; for example, A0 with ARM is Standard_A0. D-Series sizes are already prefixed.
+**Required**.
+
+The size of the virtual machine instance. ARM requires that the "classic" size be prefixed with Standard; for example, A0 with ARM is Standard_A0. D-Series sizes are already prefixed.
+
+Values: See the Azure documentation for a [full list of sizes](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
 ##### `resource_group`
 
-*Required* The resource group for the new virtual machine. See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
+**Required**.
+
+The resource group for the new virtual machine.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)..
 
 ##### `storage_account`
 
-The storage account name for the subscription id. Storage account name rules are defined in [Storage accounts](https://msdn.microsoft.com/en-us/library/azure/hh264518.aspx).
+The storage account name for the subscription id.
+
+Storage account name rules are defined in [Storage accounts](https://msdn.microsoft.com/en-us/library/azure/hh264518.aspx).
 
 ##### `storage_account_type`
 
-The type of storage account to be associated with the virtual machine. See [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx). Defaults to `Standard_GRS`.
+The type of storage account to be associated with the virtual machine.
+
+See [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx). 
+Default: `Standard_GRS`.
 
 ##### `os_disk_name`
 
@@ -615,11 +669,17 @@ The name of the disk that is to be attached to the virtual machine.
 
 ##### `os_disk_caching`
 
-The caching type for the attached disk. [Caching](https://azure.microsoft.com/en-gb/documentation/articles/storage-premium-storage-preview-portal/). Defaults to `ReadWrite`.
+The caching type for the attached disk.
+
+See [Caching](https://azure.microsoft.com/en-gb/documentation/articles/storage-premium-storage-preview-portal/).
+
+Default: `ReadWrite`.
 
 ##### `os_disk_create_option`
 
-Create options are listed at [Options](https://msdn.microsoft.com/en-us/library/azure/mt163591.aspx). Defaults to `FromImage`.
+Create options are listed at [Options](https://msdn.microsoft.com/en-us/library/azure/mt163591.aspx).
+
+Default: `FromImage`.
 
 ##### `os_disk_vhd_container_name`
 
@@ -627,7 +687,7 @@ The vhd container name is used to create the vhd uri of the virtual machine.
 
 This transposes with storage_account and the os_disk_vhd_name to become the URI of your virtual hard disk image.
 
-```
+``` shell
 https://#{storage_account}.blob.core.windows.net/#{os_disk_vhd_container_name}/#{os_disk_vhd_name}.vhd
 ```
 
@@ -641,23 +701,35 @@ The DNS domain name that to be associated with the virtual machine.
 
 ##### `dns_servers`
 
-The DNS servers to be setup on the virtual machine. Defaults to `10.1.1.1 10.1.2.4`
+The DNS servers to be setup on the virtual machine.
+
+Default: '10.1.1.1 10.1.2.4'
 
 ##### `public_ip_allocation_method`
 
-The public ip allocation method. Valid values are Static, Dynamic, None. Defaults to `Dynamic`.
+The public IP allocation method.
+
+Values: 'Static', 'Dynamic', 'None'.
+
+Default: 'Dynamic'.
 
 ##### `public_ip_address_name`
 
-The key name of the public ip address.
+The key name of the public IP address.
 
 ##### `virtual_network_name`
 
-The key name of the virtual network for the virtual machine. See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
+The key name of the virtual network for the virtual machine.
+
+See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)
 
 ##### `virtual_network_address_space`
 
-The ip range for the private virtual network. See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx). Defaults to `10.0.0.0/16`. May be a string or array of strings.
+The ip range for the private virtual network.
+
+ May be a string or array of strings. See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx).
+ 
+ Default: '10.0.0.0/16'.
 
 ##### `subnet_name`
 
@@ -665,15 +737,21 @@ The private subnet name for the virtual network. See [Virtual Network setup](htt
 
 ##### `subnet_address_prefix`
 
-Details of the prefix are availabe at [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx). Defaults to `10.0.2.0/24`.
+Details of the prefix are available at [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx).
+
+Default: '10.0.2.0/24'
 
 ##### `ip_configuration_name`
 
-The key name of the ip configuration for the VM.
+The key name of the IP configuration for the VM.
 
 ##### `private_ip_allocation_method`
 
-The private ip allocation method. Valid values are Static, Dynamic. Defaults to `Dynamic`.
+The private ip allocation method.
+
+Values: 'Static', 'Dynamic'.
+
+Default: 'Dynamic'
 
 ##### `network_interface_name`
 
@@ -681,7 +759,7 @@ The Network Interface Controller (nic) name for the virtual machine.
 
 ##### `custom_data`
 
-A block of data to be affiliated with a host upon launch. On Linux hosts, this can be a script to be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command (for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a template) which can be any format supported by cloud-init.
+A block of data to be affiliated with a host upon launch. On Linux hosts, this can be a script to be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command (for example `touch /tmp/some-file`), which is run under bash, or a multi-line file (for instance from a template), which can be any format supported by cloud-init.
 
 Windows images (and Linux images without cloud-init) need to provide their own mechanism to execute or act on the provided data.
 
@@ -693,19 +771,21 @@ Azure VM data_disks support the following parameters:
 
 ###### `caching`
 
-Optional. Specifies the caching behavior of data disk.
+Specifies the caching behavior of data disk.
 
-Possible values are:
+Values:
 
-* None
-* ReadOnly
-* ReadWrite
+* 'None'
+* 'ReadOnly'
+* 'ReadWrite'
 
-The default value is None.
+The default value is 'None'.
 
 ###### `create_option`
 
-Specifies the create option for the disk image. Valid values: 'FromImage', 'Empty', 'Attach'.
+Specifies the create option for the disk image.
+
+Values: 'FromImage', 'Empty', 'Attach'.
 
 ###### `data_size_gb`
 
@@ -713,7 +793,9 @@ Specifies the size, in GB, of an empty disk to be attached to the Virtual Machin
 
 ###### `lun`
 
-Specifies the Logical Unit Number (LUN) for the disk. The LUN specifies the slot in which the data drive appears when mounted for usage by the Virtual Machine. Valid LUN values are 0 through 31.
+Specifies the Logical Unit Number (LUN) for the disk. The LUN specifies the slot in which the data drive appears when mounted for usage by the Virtual Machine.
+
+Values: Valid LUN values, 0 through 31.
 
 ###### `vhd`
 
@@ -721,13 +803,15 @@ Specifies the location of the blob in storage where the vhd file for the disk is
 
 Example:
 
-```
+``` shell
 http://example.blob.core.windows.net/disks/mydisk.vhd
 ```
 
 ##### `plan`
 
-Deploys the VM from an Azure Software Marketplace product (called a "plan"). Required if no `image` is specified. The value must be a hash with three required keys: `name`, `product`, and `publisher`. `promotion_code` is an optional forth key that may be passed.
+Deploys the VM from an Azure Software Marketplace product (called a "plan"). Required if no `image` is specified.
+
+Value must be a hash with three required keys: `name`, `product`, and `publisher`. `promotion_code` is an optional fourth key.
 
 Example:
 
@@ -743,7 +827,7 @@ plan => {
 
 The extension to configure on the VM. Azure VM Extensions implement behaviors or features that either help other programs work on Azure VMs. You can optionally configure this parameter to include an extension.
 
-This parameter can be either a single hash (single extension) or multiple hashes (multiple extensions). Setting the extension parameter to `absent` deletes the extension from the VM.
+This parameter can be either a single hash (single extension) or multiple hashes (multiple extensions). Setting the extension parameter to 'absent' deletes the extension from the VM.
 
 Example:
 
@@ -788,7 +872,7 @@ The name of the publisher of the extension.
 
 ###### `type`
 
-The type of the extension (e.g. CustomScriptExtension).
+The type of the extension (for example, CustomScriptExtension).
 
 ###### `type_handler_version`
 
@@ -796,7 +880,7 @@ The version of the extension to use.
 
 ###### `settings`
 
-The settings specific to an extension (e.g. CommandsToExecute).
+The settings specific to an extension (for example, CommandsToExecute).
 
 ###### `protected_settings`
 
@@ -810,71 +894,123 @@ Indicates whether extension should automatically upgrade to latest minor version
 
 ##### `ensure`
 
-Specifies the basic state of the storage account. Valid values are 'present' and 'absent'. Defaults to 'present'.
+Specifies the basic state of the storage account.
+
+Values: 'present', 'absent'.
+
+Default: 'present'.
 
 ##### `name`
 
-*Required* The name of the storage account. Must be globally unique.
+**Required**.
+
+The name of the storage account. Must be globally unique.
 
 ##### `location`
 
-*Required* The location where the storage account will be created. Details of available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). Location is read-only after the Storage Account has been created.
+**Required**
+
+The location where the storage account will be created. Location is read-only after the Storage Account has been created.
+
+Values: See the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). 
 
 ##### `resource_group`
 
-*Required* The resource group for the new storage account. See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
+**Required**.
+
+The resource group for the new storage account.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
 
 ##### `account_type`
 
-The type of storage account. This indicates the performance level and replication mechanism of the storage account. See [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx). Defaults to `Standard_GRS`.
+The type of storage account. This indicates the performance level and replication mechanism of the storage account.
+
+Values: See [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx).
+
+Defaults to 'Standard_GRS'.
 
 ##### `account_kind`
 
-The kind of storage account. This indicates whether the storage account is general `Storage` or `BlobStorage`. Defaults to `Storage`.
+The kind of storage account.
+
+Values: 'Storage' or 'BlobStorage'.
+
+Default: 'Storage'.
 
 #### Type: azure_resource_group
 
 ##### `ensure`
 
-Specifies the basic state of the resource group. Valid values are 'present' and 'absent'. Defaults to 'present'.
+Specifies the basic state of the resource group.
+
+Values: 'present', 'absent'.
+
+Default: 'present'.
 
 ##### `name`
 
-*Required* The name of the resource group. Must be no longer than 80 characters long. It can contain only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
+**Required**.
+
+The name of the resource group.
+
+Values: A string no longer than 80 characters long, containing only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
 
 ##### `location`
 
-*Required* The location where the resource group will be created. Details of available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+**Required**.
+
+The location where the resource group will be created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
 
 #### Type: azure_resource_template
 
 #### `ensure`
 
-Specifies the basic state of the resource group. Valid values are 'present' and 'absent'. Defaults to 'present'.
+Specifies the basic state of the resource group.
+
+Values: 'present' and 'absent'. Defaults to 'present'.
 
 ##### `name`
 
-*Required* The name of the template deployment. Must be no longer than 80 characters long. It can contain only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
+**Required**.
+
+The name of the template deployment. 
+
+Values: A string no longer than 80 characters long, containing only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
 
 ##### `resource_group`
 
-*Required* The resource group for the new template deployment. See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
+**Required**.
+
+The resource group for the new template deployment.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)..
 
 ##### `source`
 
-The URI of a template. May be http:// or https:// . Must not be specified when `content` is specified.
+The URI of a template. May be http:// or https:// .
+
+Must not be specified when `content` is specified.
 
 ##### `content`
 
-The text of an Azure Resource Template. Must not be specified when `source` is specified.
+The text of an Azure Resource Template.
+
+Must not be specified when `source` is specified.
 
 ##### `params`
 
-The params that are required by the azure resource template. Follows the form of `{ 'key_one' => 'value_one', 'key_two' => 'value_two'}`. Note that this format is specific to puppet. Must not be specified when `params_source` is specified.
+The params that are required by the Azure Resource Template. Follows the form of `{ 'key_one' => 'value_one', 'key_two' => 'value_two'}`.
+
+This format is specific to Puppet. Must not be specified when `params_source` is specified.
 
 ##### `params_source`
 
-The URI of a file containing the params in Azure Resource Model standard format. Note that the format of this file differs from the format accepted by the `params` attribute above. Must not be specified when `params` is specified.
+The URI of a file containing the params in Azure Resource Model standard format.
+
+The format of this file differs from the format accepted by the `params` attribute. Must not be specified when `params` is specified.
 
 ## Known issues
 
@@ -882,10 +1018,10 @@ For the azure module to work, all [azure gems](#installing-the-azure-module) mus
 
 ## Limitations
 
-Due to a Ruby Azure SDK dependency on the nokogiri gem, running the module on a Windows Agent is supported only with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) and newer. In these versions, the correct version of nokogiri is installed when you run the `gem install azure` command mentioned in [Installing the Azure module](#installing-the-azure-module).
+Because of a Ruby Azure SDK dependency on the nokogiri gem, running the module on a Windows Agent is supported only with puppet-agent 1.3.0 (a part of Puppet Enterprise 2015.3) and newer. In these versions, the correct version of nokogiri is installed when you run the `gem install azure` command mentioned in [Installing the Azure module](#installing-the-azure-module).
 
 ## Development
 
-If you run into an issue with this module, or if you would like to request a feature, please [file a ticket](https://tickets.puppetlabs.com/browse/MODULES/).
+If you have an issue with this module or would like to request a feature, [file a ticket](https://tickets.puppetlabs.com/browse/MODULES/).
 
-If you have problems getting this module up and running, please [contact Support](http://puppetlabs.com/services/customer-support).
+If you have problems with this module, [contact Support](http://puppetlabs.com/services/customer-support).
