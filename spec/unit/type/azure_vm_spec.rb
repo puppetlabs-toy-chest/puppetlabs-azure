@@ -42,6 +42,7 @@ describe 'azure_vm', :type => :type do
       :data_disks,
       :plan,
       :managed_disks,
+      :network_security_group_name,
     ]
   end
 

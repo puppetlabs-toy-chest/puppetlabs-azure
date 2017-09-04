@@ -286,6 +286,7 @@ azure_vm { 'sample':
   ip_configuration_name         => 'ip_config_test01',
   private_ip_allocation_method  => 'Dynamic',
   network_interface_name        => 'nicspec01',
+  network_security_group_name   => 'My-Network-Security-Group',
   extensions                    => {
     'CustomScriptForLinux' => {
        'auto_upgrade_minor_version' => false,

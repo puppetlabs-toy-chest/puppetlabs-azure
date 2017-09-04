@@ -28,6 +28,14 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
     "#{image_reference.publisher}:#{image_reference.offer}:#{image_reference.sku}:#{image_reference.version}"
   end
 
+  # Pick selected fields from Azure API representation of a
+  # vm to build a hash suitable to represent the resource in
+  # puppet.  Azure uses several discrete components, read by
+  # separate client classes to represent items such as
+  # network and storage.  As such, they are not directly
+  # walkable from a machine instance so are absent from the
+  # puppet representation we return, although they may be
+  # set with puppet at the time of VM creation if destired
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize, Metrics/PerceivedComplexity
     stopped = machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
     ensure_value = stopped ? :running : :stopped
@@ -153,6 +161,7 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
       virtual_network_name: default_to_resource_group(resource[:virtual_network_name]),
       ip_configuration_name: default_to_name(resource[:ip_configuration_name]),
       network_interface_name: default_based_on_name(resource[:network_interface_name]),
+      network_security_group_name: default_based_on_name(resource[:network_security_group_name]),
     })
 
     self.extensions = resource[:extensions] if resource[:extensions]
