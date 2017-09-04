@@ -58,12 +58,14 @@ module PuppetX
             register_providers
             create_resource_group(args)
             params = build_params(args)
-            create_storage_account({
-              storage_account: args[:storage_account],
-              resource_group: args[:resource_group],
-              storage_account_type: args[:storage_account_type],
-              location: args[:location],
-            })
+            if ! args[:managed_disks]
+              create_storage_account({
+                storage_account: args[:storage_account],
+                resource_group: args[:resource_group],
+                storage_account_type: args[:storage_account_type],
+                location: args[:location],
+              })
+            end
             ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params)
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
@@ -424,16 +426,27 @@ module PuppetX
         end
 
         def build_storage_profile(args)
+          os_disk =
+            if args[:managed_disks]
+              build(::Azure::ARM::Compute::Models::OSDisk, {
+                create_option: 'FromImage',
+                managed_disk: build(::Azure::ARM::Compute::Models::ManagedDiskParameters, {
+                  storage_account_type: args[:storage_account_type],
+                }),
+              })
+            else
+              build(::Azure::ARM::Compute::Models::OSDisk, {
+                caching: args[:os_disk_caching],
+                create_option: args[:os_disk_create_option],
+                name: args[:os_disk_name],
+                vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
+                  uri: build_os_vhd_uri(args),
+                })
+              })
+            end
           build(::Azure::ARM::Compute::Models::StorageProfile, {
             image_reference: build_image_reference(args),
-            os_disk: build(::Azure::ARM::Compute::Models::OSDisk, {
-              caching: args[:os_disk_caching],
-              create_option: args[:os_disk_create_option],
-              name: args[:os_disk_name],
-              vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
-                uri: build_os_vhd_uri(args),
-              })
-            }),
+            os_disk: os_disk,
             data_disks: build_data_disks(args),
           })
         end

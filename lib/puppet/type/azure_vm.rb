@@ -4,6 +4,7 @@ require_relative '../../puppet_x/puppetlabs/azure/property/read_only'
 require_relative '../../puppet_x/puppetlabs/azure/property/positive_integer'
 require_relative '../../puppet_x/puppetlabs/azure/property/string'
 require_relative '../../puppet_x/puppetlabs/azure/property/hash'
+require_relative '../../puppet_x/puppetlabs/azure/property/boolean'
 
 # azure_vm { 'sample':
 #   location         => 'West US'
@@ -25,6 +26,20 @@ Puppet::Type.newtype(:azure_vm) do
       # We check for both places so as to cover the puppet resource path as well
       if self[:ensure] == :present and self[property].nil? and self.provider.send(property) == :absent
         fail "You must provide a #{property}"
+      end
+    end
+
+    managed_disks_conflicts = [
+      :storage_account,
+      :os_disk_name,
+      :os_disk_vhd_name,
+      :os_disk_vhd_container_name,
+    ]
+    if self[:managed_disks]
+      managed_disks_conflicts.each do |property|
+        if ! self[property].nil?
+          fail "You cannot provide #{property} when manged_disks is set to true"
+        end
       end
     end
   end
@@ -231,7 +246,11 @@ These disks have a number of required properties:
 
   newproperty(:os_disk_vhd_container_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The os disk vhd container name'
-    defaultto 'vhds'
+    defaultto do
+      if ! resource[:managed_disks]
+        'vhds'
+      end
+    end
   end
 
   newproperty(:os_disk_vhd_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
@@ -296,6 +315,12 @@ The keys that should be in the hash are:
 
   newproperty(:network_interface_name, :parent => PuppetX::PuppetLabs::Azure::Property::String) do
     desc 'The network interface name'
+  end
+
+  newproperty(:managed_disks, :parent => PuppetX::PuppetLabs::Azure::Property::Boolean) do
+    desc 'Use Azure\'s managed disks feature'
+
+    defaultto false
   end
 
   autorequire(:azure_resource_group) do
