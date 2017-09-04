@@ -75,10 +75,10 @@ To use the Resource Manager API instead, you need a service principal on the Act
     ``` shell
     /opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
     /opt/puppetlabs/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.3.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.3.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.3.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.3.0' --no-ri --no-rdoc
+    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
+    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
+    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
+    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
     /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
     ```
 
@@ -87,10 +87,10 @@ To use the Resource Manager API instead, you need a service principal on the Act
     ``` shell
     gem install retries --no-ri --no-rdoc
     gem install azure --version="~>0.7.0" --no-ri --no-rdoc
-    gem install azure_mgmt_compute --version="~>0.3.0" --no-ri --no-rdoc
-    gem install azure_mgmt_storage --version="~>0.3.0" --no-ri --no-rdoc
-    gem install azure_mgmt_resources --version="~>0.3.0" --no-ri --no-rdoc
-    gem install azure_mgmt_network --version="~>0.3.0" --no-ri --no-rdoc
+    gem install azure_mgmt_compute --version="~>0.10.0" --no-ri --no-rdoc
+    gem install azure_mgmt_storage --version="~>0.10.0" --no-ri --no-rdoc
+    gem install azure_mgmt_resources --version="~>0.10.0" --no-ri --no-rdoc
+    gem install azure_mgmt_network --version="~>0.10.0" --no-ri --no-rdoc
     gem install hocon --version="~>1.1.2" --no-ri --no-rdoc
     ```
 
@@ -99,10 +99,10 @@ To use the Resource Manager API instead, you need a service principal on the Act
     ``` shell
     /opt/puppet/bin/gem install retries --no-ri --no-rdoc
     /opt/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.3.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.3.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.3.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_network --version='~>0.3.0' --no-ri --no-rdoc
+    /opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
+    /opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
+    /opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
+    /opt/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
     /opt/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
     ```
 

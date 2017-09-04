@@ -29,34 +29,34 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   end
 
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize, Metrics/PerceivedComplexity
-    stopped = machine.properties.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
+    stopped = machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
     ensure_value = stopped ? :running : :stopped
 
-    network_interface_name = unless machine.properties.network_profile.network_interfaces.empty?
-      machine.properties.network_profile.network_interfaces.first.id.split('/').last
+    network_interface_name = unless machine.network_profile.network_interfaces.empty?
+      machine.network_profile.network_interfaces.first.id.split('/').last
     end
 
-    vhd_name, vhd_container_name = unless machine.properties.storage_profile.os_disk.vhd.nil?
-      parts = machine.properties.storage_profile.os_disk.vhd.uri.split('/')
+    vhd_name, vhd_container_name = unless machine.storage_profile.os_disk.vhd.nil?
+      parts = machine.storage_profile.os_disk.vhd.uri.split('/')
       [parts[-1].split('.').first, parts[-2]]
     end
     if machine.resources
       extensions = machine.resources.inject(Hash.new) do |memo,res|
         memo[res.name] = {
-          'auto_upgrade_minor_version' => res.properties.auto_upgrade_minor_version,
-          'force_update_tag'           => res.properties.force_update_tag,
-          'publisher'                  => res.properties.publisher,
-          'type'                       => res.properties.type,
-          'type_handler_version'       => res.properties.type_handler_version,
-          'settings'                   => res.properties.settings,
-          'protected_settings'         => res.properties.protected_settings,
-          'provisioning_state'         => res.properties.provisioning_state, #read-only
+          'auto_upgrade_minor_version' => res.auto_upgrade_minor_version,
+          'force_update_tag'           => res.force_update_tag,
+          'publisher'                  => res.publisher,
+          'type'                       => res.virtual_machine_extension_type,
+          'type_handler_version'       => res.type_handler_version,
+          'settings'                   => res.settings,
+          'protected_settings'         => res.protected_settings,
+          'provisioning_state'         => res.provisioning_state, #read-only
         }
         memo
       end
     end
-    if machine.properties.storage_profile.data_disks
-      data_disks = machine.properties.storage_profile.data_disks.each_with_object(Hash.new) do |disk,memo|
+    if machine.storage_profile.data_disks
+      data_disks = machine.storage_profile.data_disks.each_with_object(Hash.new) do |disk,memo|
         memo[disk.name] = {
           'lun'           => disk.lun,
           'caching'       => disk.caching,
@@ -78,14 +78,14 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
     {
       name: machine.name,
       ensure: ensure_value,
-      image: build_image_from_reference(machine.properties.storage_profile.image_reference),
+      image: build_image_from_reference(machine.storage_profile.image_reference),
       resource_group: machine.id.split('/')[4].downcase,
       location: machine.location,
-      size: machine.properties.hardware_profile.vm_size,
-      user: machine.properties.os_profile.admin_username,
-      os_disk_name: machine.properties.storage_profile.os_disk.name,
-      os_disk_caching: machine.properties.storage_profile.os_disk.caching,
-      os_disk_create_option: machine.properties.storage_profile.os_disk.create_option,
+      size: machine.hardware_profile.vm_size,
+      user: machine.os_profile.admin_username,
+      os_disk_name: machine.storage_profile.os_disk.name,
+      os_disk_caching: machine.storage_profile.os_disk.caching,
+      os_disk_create_option: machine.storage_profile.os_disk.create_option,
       os_disk_vhd_container_name: vhd_container_name,
       os_disk_vhd_name: vhd_name,
       network_interface_name: network_interface_name,
