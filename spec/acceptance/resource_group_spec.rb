@@ -27,7 +27,7 @@ describe 'azure_resource_group when creating a resource group' do
   context 'when puppet resource is run' do
     include_context 'a puppet ARM resource run', 'azure_resource_group'
     puppet_resource_should_show('ensure', 'present')
-    puppet_resource_should_show('location', 'eastus')
+    puppet_resource_should_show('location', CHEAPEST_ARM_LOCATION)
   end
 
   context 'when we try and destroy the RG' do

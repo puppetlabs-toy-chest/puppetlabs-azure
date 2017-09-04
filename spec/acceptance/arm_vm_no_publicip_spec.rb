@@ -9,7 +9,7 @@ describe 'azure_vm when creating a machine with no public IP' do
       name: @name,
       ensure: 'present',
       optional: {
-        image: 'canonical:ubuntuserver:14.04.2-LTS:latest',
+        image: UBUNTU_IMAGE_ID,
         location: CHEAPEST_ARM_LOCATION,
         user: 'specuser',
         size: 'Standard_A0',
@@ -38,7 +38,7 @@ describe 'azure_vm when creating a machine with no public IP' do
   context 'when puppet resource is run' do
     include_context 'a puppet ARM resource run'
     puppet_resource_should_show('ensure', 'running')
-    puppet_resource_should_show('location', 'eastus')
+    puppet_resource_should_show('location', CHEAPEST_ARM_LOCATION)
     puppet_resource_should_show('image')
     puppet_resource_should_show('user')
     puppet_resource_should_show('size')

@@ -34,9 +34,9 @@ describe 'azure_vm when creating a machine with a plan' do
       SPEC_RESOURCE_GROUP,
       @client.get_network_interface(
         SPEC_RESOURCE_GROUP,
-        @machine.properties.network_profile.network_interfaces.first.id.split('/').last
-      ).properties.ip_configurations.first.properties.public_ipaddress.id.split('/').last
-    ).properties.ip_address
+        @machine.network_profile.network_interfaces.first.id.split('/').last
+      ).ip_configurations.first.public_ipaddress.id.split('/').last
+    ).ip_address
   end
 
   it_behaves_like 'an idempotent resource'
@@ -52,7 +52,7 @@ describe 'azure_vm when creating a machine with a plan' do
   context 'when puppet resource is run' do
     include_context 'a puppet ARM resource run'
     puppet_resource_should_show('ensure', 'running')
-    puppet_resource_should_show('location', 'eastus')
+    puppet_resource_should_show('location', CHEAPEST_ARM_LOCATION)
     puppet_resource_should_show('plan')
     puppet_resource_should_show('user')
     puppet_resource_should_show('size')

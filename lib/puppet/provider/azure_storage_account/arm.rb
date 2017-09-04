@@ -40,12 +40,15 @@ Puppet::Type.type(:azure_storage_account).provide(:arm, :parent => PuppetX::Pupp
     end
   end
 
-  def create
+  def create # rubocop:disable Metrics/AbcSize
+    # storage_account_type and storage_account_kind are enumerated and puppet
+    # will automatically convert them to symbols - we need them as strings or we
+    # will get an error during serialization
     create_storage_account({
       storage_account: resource[:name],
       resource_group: resource[:resource_group],
-      storage_account_type: resource[:account_type],
-      storage_account_kind: resource[:account_kind],
+      storage_account_type: resource[:account_type].to_s,
+      storage_account_kind: resource[:account_kind].to_s,
       location: resource[:location],
       tags: resource[:tags],
     })

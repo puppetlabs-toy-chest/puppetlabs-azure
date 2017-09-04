@@ -54,7 +54,7 @@ describe 'azure_vm when creating a machine with datadisks' do
   end
 
   it 'should have the correct size' do
-    expect(@machine.properties.hardware_profile.vm_size).to eq(@config[:optional][:size])
+    expect(@machine.hardware_profile.vm_size).to eq(@config[:optional][:size])
   end
 
   it 'should be running' do
