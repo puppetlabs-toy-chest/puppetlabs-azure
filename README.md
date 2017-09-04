@@ -346,6 +346,27 @@ azure_vm { 'managed-disks-example':
 
 Note that when using _managed disks_ its not possible to set _vhd_ options any more as the feature takes care of these for you.
 
+#### Connecting to networks
+By default, all network objects created while provisioning an `azure_vm` will be created in the resource group you created the VM in.  This works fine in basic environments where everthing you want to talk to on non-public addresses is within the same resource group but if you need to _plug in_ to a network in another resource group, you will need to specify these during VM creation to avoid creating your VM in a miniture DMZ where it can't reach any other networks.
+
+To allow this functionality, `virtual_network_name`, `subnet_name` and
+`network_security_group_name` all allow the slashes to lookup the requested object in other resource groups.  Note that `subnet_name` must also specify the virtual network if using this feature:
+
+```puppet
+azure_vm { 'web01':
+  ensure                      => present,
+  location                    => 'centralus',
+  image                       => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user                        => 'azureuser',
+  password                    => 'Password_!',
+  size                        => 'Standard_A0',
+  resource_group              => 'webservers-rg',
+  virtual_network_name        => 'hq-rg/delivery-vn',
+  subnet_name 	              => "hq-rg/delivery-vn/web-sn",
+  network_security_group_name => "hq-rg/delivery-nsg",
+}
+```
+
 ### List and manage VMs
 
 This module supports listing and managing machines via `puppet resource`.

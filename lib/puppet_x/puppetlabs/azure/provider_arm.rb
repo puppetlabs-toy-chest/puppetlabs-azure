@@ -202,6 +202,25 @@ module PuppetX
           machine.id.split('/')[4].downcase
         end
 
+        # support for slash delimted resource names, eg:
+        #   virtual networks: myrg/myvn
+        #   subnets: myrg/myvn/mysn
+        # when name parameter is slash delimited, split it and use directly.  in
+        # all other cases, append the original name to the array of defaults
+        # passed in - this will give you a name in the 'default' resource group
+        # which is the one the azure_vm was created in
+        def expand_name(defaults, name)
+          name_split = name.split('/')
+          expanded =
+            if name_split.size > 1
+              name_split
+            else
+              defaults.concat([name])
+            end
+
+          expanded
+        end
+
         def get_vm(name)
           get_all_vms.find { |vm| vm.name == name }
         end
@@ -296,7 +315,9 @@ module PuppetX
 
         def retrieve_virtual_network(args)
           begin
-            ProviderArm.network_client.virtual_networks.get(args[:resource_group], args[:virtual_network_name])
+            ProviderArm.network_client.virtual_networks.get(
+              *expand_name([args[:resource_group]], args[:virtual_network_name]),
+            )
           rescue MsRestAzure::AzureOperationError
             create_virtual_network(args)
           end
@@ -323,7 +344,9 @@ module PuppetX
 
         def retrieve_subnet(virtual_network, args)
           begin
-            ProviderArm.network_client.subnets.get(args[:resource_group], args[:virtual_network_name], args[:subnet_name])
+            ProviderArm.network_client.subnets.get(
+              *expand_name([args[:resource_group], args[:virtual_network_name]], args[:subnet_name]),
+            )
           rescue MsRestAzure::AzureOperationError
             create_subnet(virtual_network, args)
           end
@@ -342,7 +365,9 @@ module PuppetX
 
         def retrieve_network_security_group(args)
           begin
-            ProviderArm.network_client.network_security_groups.get(args[:resource_group], args[:network_security_group_name])
+            ProviderArm.network_client.network_security_groups.get(
+              *expand_name([args[:resource_group]], args[:network_security_group_name])
+            )
           rescue MsRestAzure::AzureOperationError
             create_network_security_group(args)
           end
