@@ -3,11 +3,11 @@ require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
 require 'puppet_x/puppetlabs/azure/provider_base'
 
-require 'azure_mgmt_compute'
-require 'azure_mgmt_resources'
-require 'azure_mgmt_storage'
-require 'azure_mgmt_network'
-require 'ms_rest_azure'
+require 'azure_mgmt_compute' if Puppet.features.azure?
+require 'azure_mgmt_resources' if Puppet.features.azure?
+require 'azure_mgmt_storage' if Puppet.features.azure?
+require 'azure_mgmt_network' if Puppet.features.azure?
+require 'ms_rest_azure' if Puppet.features.azure?
 
 module PuppetX
   module Puppetlabs
