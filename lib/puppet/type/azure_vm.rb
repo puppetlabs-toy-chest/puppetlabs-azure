@@ -330,6 +330,11 @@ The keys that should be in the hash are:
     end
   end
 
+  newproperty(:tags, :parent => PuppetX::PuppetLabs::Azure::Property::Hash) do
+    desc 'The tags for the instance'
+    defaultto {}
+  end
+
   autorequire(:azure_resource_group) do
     self[:resource_group]
   end

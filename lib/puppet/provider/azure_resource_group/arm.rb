@@ -8,7 +8,7 @@ Puppet::Type.type(:azure_resource_group).provide(:arm, :parent => PuppetX::Puppe
 
   mk_resource_methods
 
-  read_only(:location)
+  read_only(:location, :tags)
 
   def self.instances # rubocop:disable Metrics/AbcSize
     begin
@@ -17,6 +17,7 @@ Puppet::Type.type(:azure_resource_group).provide(:arm, :parent => PuppetX::Puppe
           name: rg.id.split('/')[4],
           ensure: :present,
           location: rg.location,
+          tags: rg.tags,
           object: rg,
         }
         Puppet.debug("Ignoring #{name} due to invalid or incomplete response from Azure") unless hash
@@ -40,6 +41,7 @@ Puppet::Type.type(:azure_resource_group).provide(:arm, :parent => PuppetX::Puppe
     create_resource_group({
       resource_group: resource[:name],
       location: resource[:location],
+      tags: resource[:tags],
     })
     @property_hash[:ensure] = :present
   end

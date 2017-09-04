@@ -8,7 +8,7 @@ Puppet::Type.type(:azure_storage_account).provide(:arm, :parent => PuppetX::Pupp
 
   mk_resource_methods
 
-  read_only(:location, :resource_group, :account_kind, :account_type)
+  read_only(:location, :resource_group, :account_kind, :account_type, :tags)
 
   def self.instances # rubocop:disable Metrics/AbcSize
     begin
@@ -17,6 +17,7 @@ Puppet::Type.type(:azure_storage_account).provide(:arm, :parent => PuppetX::Pupp
           name: sa.name,
           ensure: :present,
           location: sa.location,
+          tags: sa.tags,
           account_type: sa.sku.name,
           account_kind: sa.kind,
           resource_group: sa.id.split('/')[4],
@@ -46,6 +47,7 @@ Puppet::Type.type(:azure_storage_account).provide(:arm, :parent => PuppetX::Pupp
       storage_account_type: resource[:account_type],
       storage_account_kind: resource[:account_kind],
       location: resource[:location],
+      tags: resource[:tags],
     })
     @property_hash[:ensure] = :present
   end

@@ -287,6 +287,7 @@ azure_vm { 'sample':
   private_ip_allocation_method  => 'Dynamic',
   network_interface_name        => 'nicspec01',
   network_security_group_name   => 'My-Network-Security-Group',
+  tags                          => { 'department' => 'devops', 'foo' => 'bar'},
   extensions                    => {
     'CustomScriptForLinux' => {
        'auto_upgrade_minor_version' => false,
@@ -867,6 +868,15 @@ plan => {
 },
 ```
 
+##### `tags`
+A hash of tags to label with.
+
+Example:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
+
 ##### `extensions`
 
 The extension to configure on the VM. Azure VM Extensions implement behaviors or features that either help other programs work on Azure VMs. You can optionally configure this parameter to include an extension.
@@ -982,6 +992,15 @@ Values: 'Storage' or 'BlobStorage'.
 
 Default: 'Storage'.
 
+##### `tags`
+A hash of tags to label with.
+
+Example:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
+
 #### Type: azure_resource_group
 
 ##### `ensure`
@@ -1007,6 +1026,15 @@ Values: A string no longer than 80 characters long, containing only alphanumeric
 The location where the resource group will be created.
 
 Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+##### `tags`
+A hash of tags to label with.
+
+Example:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
 
 #### Type: azure_resource_template
 

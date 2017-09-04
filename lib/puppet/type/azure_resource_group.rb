@@ -3,6 +3,8 @@ require 'puppet/parameter/boolean'
 require_relative '../../puppet_x/puppetlabs/azure/property/read_only'
 require_relative '../../puppet_x/puppetlabs/azure/property/positive_integer'
 require_relative '../../puppet_x/puppetlabs/azure/property/string'
+require_relative '../../puppet_x/puppetlabs/azure/property/hash'
+
 
 Puppet::Type.newtype(:azure_resource_group) do
   @doc = 'Type representing a resource group in Microsoft Azure.'
@@ -43,5 +45,10 @@ Puppet::Type.newtype(:azure_resource_group) do
       super value
       fail 'the location must not be empty' if value.empty?
     end
+  end
+
+  newproperty(:tags, :parent => PuppetX::PuppetLabs::Azure::Property::Hash) do
+    desc 'The tags for the group'
+    defaultto {}
   end
 end
