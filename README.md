@@ -324,14 +324,14 @@ azure_vm { 'ssd-example':
 To successfully enable `Premium_LRS`, you **must** select a premium-capable VM size such as `Standard_DS1_v2`.  Regular HDD backed VMs can be created by using `Standard_LRS`.
 
 #### Boot/guest diagnostics
-The Azure portal provides switches to enable _boot_diagnostics_ and _guest diagnostics_.  Both of which require access to a storage account to dump the diagnostic data.
+The Azure portal provides switches to enable _boot_diagnostics_ and _guest diagnostics_.  Both switches require access to a storage account to dump the diagnostic data.
 
-The switch which behaves differenly depending what was activated:
-* Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics .  Enabled manually via the portal if required.  Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting.  If required, boot diagnostics can be enabled through the Azure portal.
+The switch behaves differently depending what is activated:
+* Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics .  If required, manually enable using the portal.  Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting.  If required, boot diagnostics can be enabled through the Azure portal.
 * Guest diagnostics - Configures an extension to capture live diagnostic output.  This needs to be _different_ depending on the selected guest OS and is enabled by supplying the appropriate data to the `extensions` parameter.
 
 #### Managed Disks
-Azure's _managed disks_ feature removes the requirement to associate a storage account with each Azure VM, removing one of the fundamental limitations of the platform.  To use managed disks with `azure_vm`, set the `manged_disks` parameter to true:
+Azure's _managed disks_ feature removes the requirement to associate a storage account with each Azure VM. To use managed disks with `azure_vm`, set the `managed_disks` parameter to true:
 
 ```puppet
 azure_vm { 'managed-disks-example':
@@ -344,10 +344,10 @@ azure_vm { 'managed-disks-example':
 }
 ```
 
-Note that when using _managed disks_ its not possible to set _vhd_ options any more as the feature takes care of these for you.
+When using _managed disks_ it's not possible to set _vhd_ options, the _managed disks_ feature takes care of these for you.
 
 #### Connecting to networks
-By default, all network objects created while provisioning an `azure_vm` will be created in the resource group you created the VM in.  This works fine in basic environments where everthing you want to talk to on non-public addresses is within the same resource group but if you need to _plug in_ to a network in another resource group, you will need to specify these during VM creation to avoid creating your VM in a miniture DMZ where it can't reach any other networks.
+By default, while provisioning an `azure_vm` all network objects are created and saved to the same the resource group as the VM.  This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. If you need to _plug in_ to a network in another resource group, specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks.
 
 To allow this functionality, `virtual_network_name`, `subnet_name` and
 `network_security_group_name` all allow the slashes to lookup the requested object in other resource groups.  Note that `subnet_name` must also specify the virtual network if using this feature:
@@ -504,7 +504,7 @@ Name of the image to use to create the virtual machine. This can be either a VM 
 
 **Required**.
 
-The location where the virtual machine will be created. Details of available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). Location is read-only after the VM has been created.
+The location where the virtual machine is created. Details of available values can be found on the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). Location is read-only after the VM has been created.
 
 ##### `user`
 
@@ -574,7 +574,7 @@ Default: `false`.
 
 ##### `custom_data`
 
-A block of data to be affiliated with a host upon launch. On Linux hosts, this can be a script to be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command (for example `touch /tmp/some-file`) which will be run under bash, or a multi-line file (for instance from a template) which can be any format supported by cloud-init.
+A block of data to be affiliated with a host upon launch. On Linux hosts, this can be a script to be executed on launch by cloud-init. On such Linux hosts, this can either be a single-line command (for example `touch /tmp/some-file`) which runs under bash, or a multi-line file (for instance from a template) which can be any format supported by cloud-init.
 
 Windows images (and Linux images without cloud-init) need to provide their own mechanism to execute or act on the provided data.
 
@@ -674,7 +674,7 @@ The name of the virtual machine. The name can have 64 characters at most. Some i
 
 Name of the image to use to create the virtual machine. **Required** if no Marketplace `plan` is provided.
 
-Values: Must be in the ARM image_refence format. See the [Azure image reference](https://azure.microsoft.com/en-gb/documentation/articles/virtual-machines-deploy-rmtemplates-azure-cli/).
+Values: Must be in the ARM image_reference format. See the [Azure image reference](https://azure.microsoft.com/en-gb/documentation/articles/virtual-machines-deploy-rmtemplates-azure-cli/).
 
 ``` shell
 canonical:ubuntuserver:14.04.2-LTS:latest
@@ -985,7 +985,7 @@ The name of the storage account. Must be globally unique.
 
 **Required**
 
-The location where the storage account will be created. Location is read-only after the Storage Account has been created.
+The location where the storage account is created. Location is read-only after the Storage Account has been created.
 
 Values: See the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). 
 
@@ -1044,7 +1044,7 @@ Values: A string no longer than 80 characters long, containing only alphanumeric
 
 **Required**.
 
-The location where the resource group will be created.
+The location where the resource group is created.
 
 Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
 
