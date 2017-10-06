@@ -5,15 +5,16 @@ Status](https://travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPV
 
 1. [Description - What the module does and why it is useful](#module-description)
 2. [Setup](#setup)
-  * [Requirements](#requirements)
-  * [Get Azure credentials](#get-azure-credentials)
-  * [Installing the Azure module](#installing-the-azure-module)
+   * [Requirements](#requirements)
+   * [Get Azure credentials](#get-azure-credentials)
+   * [Installing the Azure module](#installing-the-azure-module)
 3. [Usage - Configuration options and additional functionality](#usage)
 4. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
-  * [Types](#types)
-  * [Parameters](#parameters)
+   * [Types](#types)
+   * [Parameters](#parameters)
 5. [Known issues](#known-issues)
 6. [Limitations - OS compatibility, etc.](#limitations)
+7. [Development - reporting issues and getting support](#development)
 
 ## Description
 
@@ -257,7 +258,6 @@ azure_vm { 'sample':
 }
 ```
 
-
 This type also has many other properties you can manage:
 
 ```puppet
@@ -287,7 +287,7 @@ azure_vm { 'sample':
   private_ip_allocation_method  => 'Dynamic',
   network_interface_name        => 'nicspec01',
   network_security_group_name   => 'My-Network-Security-Group',
-  tags                          => { 'department' => 'devops', 'foo' => 'bar'},
+  tags                          => { 'department' => 'devops', 'foo' => 'bar' },
   extensions                    => {
     'CustomScriptForLinux' => {
        'auto_upgrade_minor_version' => false,
@@ -324,13 +324,16 @@ azure_vm { 'ssd-example':
 To successfully enable `Premium_LRS`, you **must** select a premium-capable VM size such as `Standard_DS1_v2`.  Regular HDD backed VMs can be created by using `Standard_LRS`.
 
 #### Boot/guest diagnostics
+
 The Azure portal provides switches to enable _boot_diagnostics_ and _guest diagnostics_.  Both switches require access to a storage account to dump the diagnostic data.
 
 The switch behaves differently depending what is activated:
+
 * Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics .  If required, manually enable using the portal.  Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting.  If required, boot diagnostics can be enabled through the Azure portal.
 * Guest diagnostics - Configures an extension to capture live diagnostic output.  This needs to be _different_ depending on the selected guest OS and is enabled by supplying the appropriate data to the `extensions` parameter.
 
 #### Managed Disks
+
 Azure's _managed disks_ feature removes the requirement to associate a storage account with each Azure VM. To use managed disks with `azure_vm`, set the `managed_disks` parameter to true:
 
 ```puppet
@@ -347,6 +350,7 @@ azure_vm { 'managed-disks-example':
 When using _managed disks_ it's not possible to set _vhd_ options, the _managed disks_ feature takes care of these for you.
 
 #### Connecting to networks
+
 By default, while provisioning an `azure_vm` all network objects are created and saved to the same the resource group as the VM.  This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. If you need to _plug in_ to a network in another resource group, specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks.
 
 To allow this functionality, `virtual_network_name`, `subnet_name` and
@@ -404,16 +408,16 @@ This lists Azure Resource Manager VMs:
 
 ```puppet
 azure_vm { 'sample':
-  location         => 'eastus',
-  image            => 'canonical:ubuntuserver:14.04.2-LTS:latest',
-  user             => 'azureuser',
-  password         => 'Password',
-  size             => 'Standard_A0',
-  resource_group   => 'testresacc01',
+  location       => 'eastus',
+  image          => 'canonical:ubuntuserver:14.04.2-LTS:latest',
+  user           => 'azureuser',
+  password       => 'Password',
+  size           => 'Standard_A0',
+  resource_group => 'testresacc01',
 }
 ```
 
-## Create Azure storage accounts
+### Create Azure storage accounts
 
 You can create a [storage account](https://azure.microsoft.com/en-us/documentation/articles/storage-create-storage-account/) using the following:
 
@@ -428,20 +432,20 @@ azure_storage_account { 'myStorageAccount':
 
 > **Note:** Storage accounts are created with the Azure Resource Manager API only.
 
-## Create Azure resource groups
+### Create Azure resource groups
 
 You can create a [resource group](https://azure.microsoft.com/en-us/documentation/articles/resource-group-overview/#resource-groups) using the following:
 
 ```puppet
 azure_resource_group { 'testresacc01':
-  ensure         => present,
-  location       => 'eastus',
+  ensure   => present,
+  location => 'eastus',
 }
 ```
 
 > **Note:** Resource groups are created with Azure Resource Manager API only.
 
-## Create Azure template deployment
+### Create Azure template deployment
 
 You can create a [resource template deployment](https://azure.microsoft.com/en-us/documentation/articles/solution-dev-test-environments/) using the following:
 
@@ -582,17 +586,17 @@ Windows images (and Linux images without cloud-init) need to provide their own m
 
 A list of endpoints to associate with the virtual machine. Supply an array of hashes describing the endpoints. Available keys are:
 
-  * `name`: *Required.* The name of this endpoint.
-  * `public_port`: *Required.* The public port to access this endpoint.
-  * `local_port`: *Required.* The internal port on which the virtual machine is listening.
-  * `protocol`: *Required.* `TCP` or `UDP`.
-  * `direct_server_return`: enable direct server return on the endpoint.
-  * `load_balancer_name`: If the endpoint should be added to a load balancer set, specify a name here. If the set does not exist yet, it is created automatically.
-  * `load_balancer`: A hash of the properties to add this endpoint to a load balancer configuration.
-    * `port`: *Required.* The internal port on which the virtual machine is listening.
-    * `protocol`: *Required.* The protocol to use for the availability probe.
-    * `interval`: The interval for the availability probe in seconds.
-    * `path`: a relative path used by the availability probe.
+* `name`: *Required.* The name of this endpoint.
+* `public_port`: *Required.* The public port to access this endpoint.
+* `local_port`: *Required.* The internal port on which the virtual machine is listening.
+* `protocol`: *Required.* `TCP` or `UDP`.
+* `direct_server_return`: enable direct server return on the endpoint.
+* `load_balancer_name`: If the endpoint should be added to a load balancer set, specify a name here. If the set does not exist yet, it is created automatically.
+* `load_balancer`: A hash of the properties to add this endpoint to a load balancer configuration.
+  * `port`: *Required.* The internal port on which the virtual machine is listening.
+  * `protocol`: *Required.* The protocol to use for the availability probe.
+  * `interval`: The interval for the availability probe in seconds.
+  * `path`: a relative path used by the availability probe.
 
 The most often used endpoints are SSH for Linux and WinRM for Windows. Usually they are configured for direct pass-through like this:
 
@@ -714,7 +718,7 @@ Values: See the Azure documentation for a [full list of sizes](https://azure.mic
 
 The resource group for the new virtual machine.
 
-Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)..
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
 
 ##### `storage_account`
 
@@ -726,7 +730,7 @@ Storage account name rules are defined in [Storage accounts](https://msdn.micros
 
 The type of storage account to be associated with the virtual machine.
 
-See [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx). 
+See [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx).
 Default: `Standard_GRS`.
 
 ##### `os_disk_name`
@@ -793,9 +797,9 @@ See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157
 
 The ip range for the private virtual network.
 
- May be a string or array of strings. See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx).
- 
- Default: '10.0.0.0/16'.
+May be a string or array of strings. See [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx).
+
+Default: '10.0.0.0/16'.
 
 ##### `subnet_name`
 
@@ -890,6 +894,7 @@ plan => {
 ```
 
 ##### `tags`
+
 A hash of tags to label with.
 
 Example:
@@ -987,7 +992,7 @@ The name of the storage account. Must be globally unique.
 
 The location where the storage account is created. Location is read-only after the Storage Account has been created.
 
-Values: See the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/). 
+Values: See the [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
 
 ##### `resource_group`
 
@@ -1014,6 +1019,7 @@ Values: 'Storage' or 'BlobStorage'.
 Default: 'Storage'.
 
 ##### `tags`
+
 A hash of tags to label with.
 
 Example:
@@ -1069,7 +1075,7 @@ Values: 'present' and 'absent'. Defaults to 'present'.
 
 **Required**.
 
-The name of the template deployment. 
+The name of the template deployment.
 
 Values: A string no longer than 80 characters long, containing only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
 
@@ -1083,7 +1089,7 @@ Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/ar
 
 ##### `source`
 
-The URI of a template. May be http:// or https:// .
+The URI of a template. May be http:// or https://.
 
 Must not be specified when `content` is specified.
 
@@ -1117,4 +1123,4 @@ Because of a Ruby Azure SDK dependency on the nokogiri gem, running the module o
 
 If you have an issue with this module or would like to request a feature, [file a ticket](https://tickets.puppetlabs.com/browse/MODULES/).
 
-If you have problems with this module, [contact Support](http://puppetlabs.com/services/customer-support).
+If you have problems with this module, [contact Support](https://puppet.com/support-services/customer-support).
