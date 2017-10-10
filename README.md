@@ -76,10 +76,10 @@ Install the required gems with this command on `puppet-agent` 1.2 (included in P
 ``` shell
 /opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
 /opt/puppetlabs/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.14.0' --no-ri --no-rdoc
 /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
 ```
 
@@ -88,10 +88,10 @@ When installing on Windows, launch `Start Command Prompt with Puppet` and enter:
 ``` shell
 gem install retries --no-ri --no-rdoc
 gem install azure --version="~>0.7.0" --no-ri --no-rdoc
-gem install azure_mgmt_compute --version="~>0.10.0" --no-ri --no-rdoc
-gem install azure_mgmt_storage --version="~>0.10.0" --no-ri --no-rdoc
-gem install azure_mgmt_resources --version="~>0.10.0" --no-ri --no-rdoc
-gem install azure_mgmt_network --version="~>0.10.0" --no-ri --no-rdoc
+gem install azure_mgmt_compute --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_storage --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_resources --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_network --version="~>0.14.0" --no-ri --no-rdoc
 gem install hocon --version="~>1.1.2" --no-ri --no-rdoc
 ```
 
@@ -100,10 +100,10 @@ On versions of `puppet agent` older than 1.2 (Puppet Enterprise 2015.2.0), use t
 ``` shell
 /opt/puppet/bin/gem install retries --no-ri --no-rdoc
 /opt/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_network --version='~>0.14.0' --no-ri --no-rdoc
 /opt/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
 ```
 

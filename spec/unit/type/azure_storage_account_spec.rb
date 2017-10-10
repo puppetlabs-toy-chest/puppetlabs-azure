@@ -12,9 +12,12 @@ describe 'azure_storage_account', :type => :type do
   let :properties do
     [
       :ensure,
-      :location,
       :account_type,
+      :sku_name,
       :account_kind,
+      :access_tier,
+      :https_traffic_only,
+      :location,
       :tags,
       :resource_group,
     ]
@@ -47,7 +50,7 @@ describe 'azure_storage_account', :type => :type do
 
   [
     'location',
-    'account_type',
+    'sku_name',
     'account_kind',
     'resource_group',
   ].each do |property|
@@ -100,9 +103,41 @@ describe 'azure_storage_account', :type => :type do
       end
     end
 
+    context 'with account_type instead of sku_name' do
+      let :config do
+        result = default_config
+        result.delete(:sku_name)
+        result[:account_type] = 'Standard_GRS'
+        result
+      end
+
+      it 'should be invalid' do
+        expect { type_class.new(config) }.to_not raise_error
+      end
+    end
+
+    context 'with non-alpha characters in the name' do
+      let :config do
+        result = default_config
+        result[:name] = 'Junk! Entry%'
+        result
+      end
+
+      it 'should be invalid' do
+        expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /name can contain only alphanumeric characters/)
+      end
+    end
 
     it "should default ensure to present" do
       expect(storage_account[:ensure]).to eq(:present)
+    end
+
+    it "should default account_kind to Storage" do
+      expect(storage_account[:account_kind]).to eq(:Storage)
+    end
+
+    it "should default https_traffic_only to false" do
+      expect(storage_account[:https_traffic_only]).to be_falsey
     end
   end
 end

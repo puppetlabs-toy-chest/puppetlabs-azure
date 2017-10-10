@@ -13,7 +13,7 @@ describe 'azure_storage_account when creating a storage account' do
       optional: {
         location: CHEAPEST_ARM_LOCATION,
         resource_group: SPEC_RESOURCE_GROUP,
-        account_type: 'Standard_GRS',
+        sku_name: 'Standard_GRS',
         account_kind: 'Storage',
       },
     }
@@ -33,7 +33,7 @@ describe 'azure_storage_account when creating a storage account' do
     include_context 'a puppet ARM resource run', 'azure_storage_account'
     puppet_resource_should_show('ensure', 'present')
     puppet_resource_should_show('location', CHEAPEST_ARM_LOCATION)
-    puppet_resource_should_show('account_type', 'Standard_GRS')
+    puppet_resource_should_show('sku_name', 'Standard_GRS')
     puppet_resource_should_show('account_kind', 'Storage')
     puppet_resource_should_show('resource_group', SPEC_RESOURCE_GROUP.downcase)
   end
