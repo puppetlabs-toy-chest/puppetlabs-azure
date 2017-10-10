@@ -1,3 +1,14 @@
+## Supported Version 1.2.0
+### Added
+ - Support for Azure's managed disks feature removes the requirement to associate a storage account with each Azure VM, removing one of the fundamental limitations of the platform.
+ - Premium SSD backed VMs for enhanced performance of production class environments are now supported and documented.
+ - The network security group can now be specified when creating a VM.
+ - Cross networking support. By default, all network objects created while provisioning a azure_vm will be created in the resource group you created the VM in. This works fine in basic environments where everything you want to talk to on non-public addresses is within the same resource group but if you need to plug into a network in another resource group.
+ - Tagging is now supported for Puppet Types.
+
+### Fixed
+ - Redundant acceptance tests removed.
+
 ## Supported Version 1.1.1
 This release adds support for Puppet 4.9.4.
 
