@@ -146,24 +146,9 @@ module PuppetX
           deployments
         end
 
-        def get_deployments(resource_group) # rubocop:disable Metrics/AbcSize
+        def get_deployments(resource_group)
           begin
-            deployments = []
-            Puppet.debug "Getting deployments in resource group #{resource_group}"
-            result = ProviderArm.resource_client.deployments.list_as_lazy(resource_group)
-            deployments += result.value
-
-            while ! result.next_link.nil? and ! result.next_link.empty? do
-              result = ProviderArm.resource_client.deployments.list_next(result.next_link)
-              deployments += result.value
-            end
-
-            deployments.collect do |deployment|
-              d = ProviderArm.resource_client.deployments.get(resource_group_from(deployment), deployment.name)
-              #export = ProviderArm.resource_client.deployments.export_template(resource_group_from(deployment), deployment.name)
-              #d.properties.template = export.template if export
-              d
-            end
+            ProviderArm.resource_client.deployments.list_by_resource_group(resource_group)
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -171,20 +156,9 @@ module PuppetX
           end
         end
 
-        def get_all_rgs # rubocop:disable Metrics/AbcSize
+        def get_all_rgs
           begin
-            rgs = []
-            result = ProviderArm.resource_client.resource_groups.list_as_lazy
-            rgs += result.value
-
-            while ! result.next_link.nil? and ! result.next_link.empty? do
-              result = ProviderArm.resource_client.resource_groups.list_next(result.next_link)
-              rgs += result.value
-            end
-
-            rgs.collect do |rg|
-              ProviderArm.resource_client.resource_groups.get(rg.name)
-            end
+            ProviderArm.resource_client.resource_groups.list
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -468,7 +442,7 @@ module PuppetX
         end
 
         def build_virtual_machine_extensions(args) # rubocop:disable Metrics/AbcSize
-          props = 
+          props =
             if args[:properties].is_a?(Hash)
               {
                 force_update_tag: args[:properties]['force_update_tag'],

@@ -2,10 +2,10 @@ source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
 gem 'azure', '~> 0.7.0'
 
-gem 'azure_mgmt_storage', '~> 0.10.0'
-gem 'azure_mgmt_compute', '~> 0.10.0'
-gem 'azure_mgmt_resources', '~> 0.10.0'
-gem 'azure_mgmt_network', '~> 0.10.0'
+gem 'azure_mgmt_storage', '~> 0.11.0'
+gem 'azure_mgmt_compute', '~> 0.11.0'
+gem 'azure_mgmt_resources', '~> 0.11.0'
+gem 'azure_mgmt_network', '~> 0.11.0'
 
 gem 'hocon'
 gem 'retries'
@@ -30,7 +30,7 @@ group :test do
 end
 
 group :development do
-  gem 'pry'
+  gem 'pry-byebug'
   gem 'puppet-blacksmith'
   # required by puppet-blacksmith
   gem 'rest-client', '~> 1.8.0' # for ruby 1.9 compatibility

@@ -7,7 +7,8 @@ describe 'azure_vm when creating a machine with all available properties' do
 
   before(:all) do
     @custom_data_file = '/tmp/needle'
-    @extension_file = '/tmp/extensionz'
+    @extension_file = is_windows? ? '/cygdrive/c/extenionz.txt' : '/tmp/extensionz'
+
     @tag_seed = SecureRandom.hex(8)
     @config = {
       name: @name,
@@ -16,7 +17,7 @@ describe 'azure_vm when creating a machine with all available properties' do
         image: UBUNTU_IMAGE_ID,
         location: CHEAPEST_ARM_LOCATION,
         user: 'specuser',
-        size: 'Standard_A0',
+        size: 'Standard_DS3_v2',
         resource_group: SPEC_RESOURCE_GROUP,
         password: 'SpecPass123!@#$%',
         storage_account: @storage_account_name,
@@ -55,6 +56,36 @@ describe 'azure_vm when creating a machine with all available properties' do
         },
       },
     }
+    @config = {
+      name: @name,
+      ensure: 'present',
+      optional: {
+        image: UBUNTU_IMAGE_ID,
+        location: CHEAPEST_ARM_LOCATION,
+        user: 'specuser',
+        size: 'Standard_DS3_v2',
+        resource_group: SPEC_RESOURCE_GROUP,
+        password: 'SpecPass123!@#$%',
+        storage_account: @storage_account_name,
+        storage_account_type: 'Standard_GRS',
+        os_disk_name: 'osdisk01',
+        os_disk_caching: 'ReadWrite',
+        os_disk_create_option: 'FromImage',
+        os_disk_vhd_container_name: 'conttest1',
+        os_disk_vhd_name: 'osvhdtest1',
+        dns_domain_name: "cloudspecdomain#{@tag_seed}",
+        dns_servers: '8.8.8.8 8.8.4.4',
+        public_ip_allocation_method: 'Dynamic',
+        public_ip_address_name: "pubip_#{@tag_seed}",
+        virtual_network_name: "vnettest#{@tag_seed}",
+        custom_data: "touch #{@custom_data_file}",
+        subnet_name: 'subnet111',
+        subnet_address_prefix: '10.0.2.0/24',
+        ip_configuration_name: "ip_config_#{@tag_seed}",
+        private_ip_allocation_method: 'Dynamic',
+        network_interface_name: "nicspec_#{@tag_seed}",
+      }
+    } if is_windows?
     @template = 'azure_vm.pp.tmpl'
     @client = AzureARMHelper.new
     @manifest = PuppetManifest.new(@template, @config)
@@ -83,28 +114,31 @@ describe 'azure_vm when creating a machine with all available properties' do
     expect(@client.vm_running?(@machine)).to be true
   end
 
-  it 'should have run the extension' do
-    pending 'Access to SSH requires a network security group with appropriate rule'
-    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
-    # so we retry this a few times (~10 minutes worth - extensions take ages to come online)
-    5.times do
-      @result = run_command_over_ssh(@ip, "test -f #{@extension_file}", 'password', 22)
-      break if @result.exit_status.zero?
-      sleep 10
+  unless is_windows?
+    it 'should have run the extension' do
+      pending 'Access to SSH requires a network security group with appropriate rule'
+      # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
+      # so we retry this a few times (~10 minutes worth - extensions take ages to come online)
+      5.times do
+        @result = is_windows? ? run_command_over_winrm("test -f #{@extension_file}") : run_command_over_ssh(@ip, "test -f #{@extension_file}", @config[:optional][:password], 22)
+        break if @result.exit_status.zero?
+        sleep 10
+      end
+      expect(@result.exit_status).to eq 0
     end
-    expect(@result.exit_status).to eq 0
-  end
 
-  it 'should have run the custom data script' do
-    pending 'Access to SSH requires a network security group with appropriate rule'
-    # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
-    # so we retry this a few times
-    5.times do
-      @result = run_command_over_ssh(@ip, "test -f #{@custom_data_file}", 'password', 22)
-      break if @result.exit_status.zero?
-      sleep 10
+
+    it 'should have run the custom data script' do
+      pending 'Access to SSH requires a network security group with appropriate rule'
+      # It's possible to get an SSH connection before cloud-init kicks in and sets the file.
+      # so we retry this a few times
+      5.times do
+        @result = run_command_over_ssh(@ip, "test -f #{@custom_data_file}", @config[:optional][:password], 22)
+        break if @result.exit_status.zero?
+        sleep 10
+      end
+      expect(@result.exit_status).to eq 0
     end
-    expect(@result.exit_status).to eq 0
   end
 
   context 'when puppet resource is run' do
@@ -118,7 +152,7 @@ describe 'azure_vm when creating a machine with all available properties' do
     puppet_resource_should_show('network_interface_name')
     puppet_resource_should_show('os_disk_vhd_container_name')
     puppet_resource_should_show('os_disk_vhd_name')
-    puppet_resource_should_show('extensions')
+    puppet_resource_should_show('extensions') unless is_windows?
   end
 
   context 'when we try and stop the VM' do

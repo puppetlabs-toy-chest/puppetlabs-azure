@@ -38,8 +38,8 @@ namespace :parallel do
 end
 
 PE_RELEASES = {
-  '2016.2' => 'http://pm.puppetlabs.com/puppet-enterprise/2016.4.6/',
-  '2017.2' => 'http://pm.puppetlabs.com/puppet-enterprise/2017.2.2/'
+  '2017.2' => 'http://neptune.puppetlabs.lan/2017.2/ci-ready/'
+  # '2017.3' => 'http://neptune.puppetlabs.lan/2017.3/ci-ready/'
 }.freeze
 
 desc "Run acceptance tests"
@@ -63,7 +63,7 @@ arm_tests = [
 classic_resources = [
   'spec/*/storage_account_spec.rb',
   'spec/*/resource_group_spec.rb',
-  'spec/*/resource_template_spec.rb',
+  'spec/*/resource_template_spec.rb'
 ]
 
 classic_operations = [
@@ -93,13 +93,13 @@ task :envs do
   ENV['BEAKER_debug'] = true if ENV['BEAKER_DEBUG']
   ENV['BEAKER_TESTMODE'] = 'agent'
   ENV['BEAKER_set'] = ENV['BEAKER_set'] || 'pooler/centos7m_windows2012r2a'
-  ENV['PUPPET_INSTALL_VERSION'] = ENV['PUPPET_INSTALL_VERSION'] || '2017.1'
+  ENV['PUPPET_INSTALL_VERSION'] = ENV['PUPPET_INSTALL_VERSION'] || '2017.2'
   ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES[ENV['PUPPET_INSTALL_VERSION']]
   ENV['PUPPET_INSTALL_TYPE'] = "pe"
   ENV['BEAKER_PE_VER'] = ENV['BEAKER_PE_VER'] || `curl http://getpe.delivery.puppetlabs.net/latest/#{ENV['PUPPET_INSTALL_VERSION']}`
   for env in mandatory_envs
     fail "#{env} must be set" unless ENV[env]
-  end 
+  end
 end
 
 desc "Run fast acceptance tests"

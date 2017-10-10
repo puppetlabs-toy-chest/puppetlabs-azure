@@ -5,6 +5,7 @@ describe 'azure_vm_classic when creating a new Windows machine' do
   include_context 'with a known name and storage account name'
 
   before(:all) do
+    @name = "CLOUDCON#{SecureRandom.hex(3)}"
     @config = {
       name: @name,
       ensure: 'present',

@@ -12,6 +12,7 @@ require 'ssh-exec'
 require 'retries'
 require 'shellwords'
 require 'winrm'
+require 'openssl'
 
 require 'puppet_x/puppetlabs/azure/config'
 require 'puppet_x/puppetlabs/azure/not_finished'
@@ -30,12 +31,15 @@ require 'azure/core'
 require 'azure/virtual_machine_image_management/virtual_machine_image_management_service'
 
 CHEAPEST_ARM_LOCATION="centralus".freeze
-CHEAPEST_CLASSIC_LOCATION="Central US".freeze
+CHEAPEST_CLASSIC_LOCATION="East US".freeze
 UBUNTU_IMAGE_ID="Canonical:UbuntuServer:16.04-LTS:latest".freeze
 
 # For personal resource groups
 SPEC_RESOURCE_GROUP="CLOUD-ARM-#{ENV['USER'] || 'tests'}".freeze
 SPEC_CLOUD_SERVICE="CLOUD-CS-#{ENV['USER'] || 'tests'}".freeze
+
+# Fix for windows SSH issues.
+OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
 # these are image names for the classic portal and change periodically which
 # can break the tests.  To obtain a new listing, load the create VM screen in
@@ -93,10 +97,10 @@ RSpec.configure do |c|
             [ 'git' ],
             [ 'hocon', 'retries' ],
             # Azure gems require pinning because they are still under heavy development and change their API frequently
-            [ 'azure_mgmt_compute', '--version=~> 0.10.0' ],
-            [ 'azure_mgmt_network', '--version=~> 0.10.0' ],
-            [ 'azure_mgmt_resources', '--version=~> 0.10.0' ],
-            [ 'azure_mgmt_storage', '--version=~> 0.10.0' ],
+            [ 'azure_mgmt_compute', '--version=~> 0.11.0' ],
+            [ 'azure_mgmt_network', '--version=~> 0.11.0' ],
+            [ 'azure_mgmt_resources', '--version=~> 0.11.0' ],
+            [ 'azure_mgmt_storage', '--version=~> 0.11.0' ],
             [ 'azure', '--version=~> 0.7.0' ],
           ]
 
@@ -116,7 +120,7 @@ RSpec.configure do |c|
 
             install_cmd = [ 'install' ]
 
-            # gems.unshift([ 'nokogiri', '--version=~> 1.7.1-x64-mingw32' ])
+            gems.unshift([ 'nokogiri', '--version=~> 1.7.1-x64-mingw32' ])
             gems.each do |args|
               command = (windows_cmd + install_cmd + args + additional_gem_opts).collect { |a| "\\\"#{a}\\\"" }.join(" ")
               on(host, "bash -c \"#{command}\"")
@@ -182,7 +186,6 @@ class PuppetManifest < Mustache
 
   def execute
     @attempts = 1
-    sleep 30
     result = Beaker::TestmodeSwitcher::DSL.execute_manifest(self.render, beaker_opts)
     while result.output =~/remote server\: Error 500 on SERVER\:/
       result = Beaker::TestmodeSwitcher::DSL.execute_manifest(self.render, beaker_opts)
@@ -304,8 +307,9 @@ class AzureARMHelper
   end
 
   def get_storage_account(name)
-    accounts = list_storage_accounts.value
-    accounts.find { |x| x.name == name }
+    accounts = list_storage_accounts
+    # Azure: storage has retained the value key, none of the other types seem to have.
+    accounts.value.find { |x| x.name == name }
   end
 
   def get_network_interface(resource_group, network_interface_name)

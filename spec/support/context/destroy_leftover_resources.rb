@@ -7,7 +7,15 @@ shared_context 'destroy left-over created resources after use' do
         @client.destroy_disk(disk_name)
       end
     end
+    while @client.get_cloud_service(@machine) do
+      puts "The cloud service #{@machine.cloud_service_name} has not been deleted yet. Sleeping for 10 seconds..."
+      sleep 10
+    end
     @client.destroy_storage_account(@storage_account_name) if @client.get_storage_account(@storage_account_name)
+    while @client.get_storage_account(@storage_account_name) do
+      puts "The storage account #{@storage_account_name} has not been deleted yet. Sleeping for 10 seconds..."
+      sleep 10
+    end
   end
 end
 
