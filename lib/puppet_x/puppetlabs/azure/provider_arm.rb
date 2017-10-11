@@ -69,6 +69,8 @@ module PuppetX
               })
             end
             ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -87,6 +89,8 @@ module PuppetX
             })
           })
           ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:vm_name], params)
+        rescue MsRestAzure::AzureOperationError => err
+          raise Puppet::Error, JSON.parse(err.message)['message']
         rescue MsRest::DeserializationError => err
           raise Puppet::Error, err.response_body
         rescue MsRest::RestError => err
@@ -96,6 +100,8 @@ module PuppetX
         def delete_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -106,6 +112,8 @@ module PuppetX
         def stop_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -116,6 +124,8 @@ module PuppetX
         def start_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -129,6 +139,8 @@ module PuppetX
             sas.collect do |sa|
               ProviderArm.storage_client.storage_accounts.get_properties(resource_group_from(sa), sa.name)
             end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -149,6 +161,8 @@ module PuppetX
         def get_deployments(resource_group)
           begin
             ProviderArm.resource_client.deployments.list_by_resource_group(resource_group)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -159,6 +173,8 @@ module PuppetX
         def get_all_rgs
           begin
             ProviderArm.resource_client.resource_groups.list
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -179,6 +195,8 @@ module PuppetX
             vms.collect do |vm|
               ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView')
             end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -246,6 +264,8 @@ module PuppetX
         def delete_resource_template(rg, name)
           begin
             ProviderArm.resource_client.deployments.delete(rg, name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -262,6 +282,8 @@ module PuppetX
         def delete_resource_group(rg)
           begin
             ProviderArm.resource_client.resource_groups.delete(rg.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -277,6 +299,8 @@ module PuppetX
         def delete_storage_account(sa)
           begin
             ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -292,6 +316,8 @@ module PuppetX
         def delete_extension(sa)
           begin
             ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
