@@ -198,6 +198,25 @@ module PuppetX
           end
         end
 
+        def get_all_subnets # rubocop:disable Metrics/AbcSize
+          begin
+            subnets = []
+            Puppet.debug "Getting all subnets from subscription"
+            ProviderArm.network_client.virtual_networks.list_all.collect do |vnet|
+              ProviderArm.network_client.subnets.list(resource_group_from(vnet), vnet.name).collect do |subnet|
+                subnets << subnet
+              end
+            end
+            subnets
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def get_all_vms # rubocop:disable Metrics/AbcSize
           begin
             vms = []
@@ -394,7 +413,12 @@ module PuppetX
             }) unless args[:location].nil? || args[:virtual_network_address_space].nil?
 
             # Auto-create the subnet
-            create_subnet(args)
+            create_subnet({
+              resource_group: args[:resource_group],
+              virtual_network: args[:virtual_network_name],
+              name: args[:subnet_name],
+              address_prefix: args[:subnet_address_prefix],
+            })
           end
         end
 
@@ -438,25 +462,59 @@ module PuppetX
           ProviderArm.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
         end
 
-        def retrieve_subnet(args)
+        def retrieve_subnet(args) # rubocop:disable Metrics/AbcSize
           begin
             ProviderArm.network_client.subnets.get(
               *expand_name([args[:resource_group], args[:virtual_network_name]], args[:subnet_name]),
             )
           rescue MsRestAzure::AzureOperationError
-            create_subnet(args)
+            # Auto-create a specified but missing subnet
+            create_subnet({
+              resource_group: args[:resource_group],
+              virtual_network: args[:virtual_network_name],
+              name: args[:subnet_name],
+              address_prefix: args[:subnet_address_prefix],
+            })
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
           end
         end
 
-        def create_subnet(args)
-          Puppet.debug("Creating subnet '#{args[:subnet_name]}' on vnet '#{args[:virtual_network_name]}'")
-          params = build_subnet_params(args)
-          ProviderArm.network_client.subnets.create_or_update(
-            args[:resource_group],
-            args[:virtual_network_name],
-            args[:subnet_name],
-            params
-          )
+        def create_subnet(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Creating subnet '#{args[:name]}' on vnet '#{args[:virtual_network]}'")
+          begin
+            ProviderArm.network_client.subnets.create_or_update(
+              args[:resource_group],
+              args[:virtual_network],
+              args[:name],
+              build_subnet_params(args)
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def delete_subnet(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Deleting subnet '#{args[:name]}' on vnet '#{args[:virtual_network]}'")
+          begin
+            ProviderArm.network_client.subnets.delete(
+              args[:resource_group],
+              args[:virtual_network],
+              args[:name],
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def retrieve_network_security_group(args)
@@ -479,9 +537,8 @@ module PuppetX
           )
         end
 
-
-        def create_network_interface(args, subnet)
-          params = build_network_interface_param(args, subnet)
+        def create_network_interface(args)
+          params = build_network_interface_param(args)
           ProviderArm.network_client.network_interfaces.create_or_update(args[:resource_group], params.name, params)
         end
 
@@ -654,7 +711,10 @@ module PuppetX
 
         def build_subnet_params(args)
           build(::Azure::ARM::Network::Models::Subnet, {
-            address_prefix: args[:subnet_address_prefix],
+            name: args[:name],
+            address_prefix: args[:address_prefix],
+            network_security_group: args[:network_security_group],
+            route_table: args[:route_table],
           })
         end
 
@@ -667,7 +727,8 @@ module PuppetX
           })
         end
 
-        def build_network_interface_param(args, subnet)
+        def build_network_interface_param(args)
+          subnet = retrieve_subnet(args)
           public_ipaddress = unless args[:public_ip_allocation_method] == 'None'
             create_public_ip_address(args)
           end
@@ -691,15 +752,34 @@ module PuppetX
         end
 
         def build_network_profile(args)
-          build(::Azure::ARM::Compute::Models::NetworkProfile, {
+          begin
             #XXX This should handle multiple network interfaces
-            network_interfaces: [
-              create_network_interface(
-                args,
-                retrieve_subnet(args),
-              )
-            ]
-          })
+            network_interface = get_or_create_network_interface(args)
+
+            build(::Azure::ARM::Compute::Models::NetworkProfile, {
+              network_interfaces: [network_interface]
+            })
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def get_or_create_network_interface(args)
+          begin
+            get_network_interface(
+              *expand_name([args[:resource_group]], args[:network_interface_name])
+            )
+          rescue MsRestAzure::AzureOperationError
+            create_network_interface(args)
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def build_plan(args)
