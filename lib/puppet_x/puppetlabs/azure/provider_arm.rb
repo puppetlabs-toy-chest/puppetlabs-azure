@@ -78,7 +78,7 @@ module PuppetX
           end
         end
 
-        def update_vm_storage_profile(args)
+        def update_vm_storage_profile(args) # rubocop:disable Metrics/AbcSize
           # never appears to be called, changing data_disks parameter after VM
           # creation has no effect
           params = build(::Azure::ARM::Compute::Models::VirtualMachine, {
@@ -133,7 +133,7 @@ module PuppetX
           end
         end
 
-        def get_all_sas
+        def get_all_sas # rubocop:disable Metrics/AbcSize
           begin
             sas = ProviderArm.storage_client.storage_accounts.list.value
             sas.collect do |sa|
@@ -313,7 +313,7 @@ module PuppetX
           ProviderArm.compute_client.virtual_machine_extensions.create_or_update(args[:resource_group], args[:vm_name], args[:name], params)
         end
 
-        def delete_extension(sa)
+        def delete_extension(sa) # rubocop:disable Metrics/AbcSize
           begin
             ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
           rescue MsRestAzure::AzureOperationError => err
