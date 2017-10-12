@@ -60,10 +60,11 @@ module PuppetX
             params = build_params(args)
 
             if ! args[:managed_disks]
-              create_storage_account({
-                storage_account: args[:storage_account],
+              # ensure the storage account is set up
+              get_or_create_storage_account({
+                name: args[:storage_account],
                 resource_group: args[:resource_group],
-                storage_account_type: args[:storage_account_type],
+                sku_name: args[:storage_account_type],
                 location: args[:location],
                 tags: args[:tags],
               })
@@ -123,12 +124,14 @@ module PuppetX
           end
         end
 
-        def get_all_sas
+        def get_all_sas # rubocop:disable Metrics/AbcSize
           begin
             sas = ProviderArm.storage_client.storage_accounts.list.value
             sas.collect do |sa|
               ProviderArm.storage_client.storage_accounts.get_properties(resource_group_from(sa), sa.name)
             end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -269,14 +272,51 @@ module PuppetX
           end
         end
 
-        def create_storage_account(args)
-          params = build_storage_account_create_parameters(args)
-          ProviderArm.storage_client.storage_accounts.create(args[:resource_group], args[:storage_account], params)
+        def get_or_create_storage_account(args) # rubocop:disable Metrics/AbcSize
+          # ensure the storage account exists
+          begin
+            get_storage_account({
+              name: args[:name],
+              resource_group: args[:resource_group],
+            })
+          rescue MsRestAzure::AzureOperationError
+            create_storage_account({
+              name: args[:name],
+              resource_group: args[:resource_group],
+              sku_name: args[:sku_name],
+              location: args[:location],
+            })
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
-        def delete_storage_account(sa)
+        def get_storage_account(args)
+          ProviderArm.storage_client.storage_accounts.get_properties(args[:resource_group], args[:name])
+        end
+
+        def create_storage_account(args)
+          params = build_storage_account_create_parameters(args)
           begin
-            ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+            ProviderArm.storage_client.storage_accounts.create(args[:resource_group], args[:name], params)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def delete_storage_account(args)
+          begin
+            ProviderArm.storage_client.storage_accounts.delete(args[:resource_group], args[:name])
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -431,14 +471,18 @@ module PuppetX
         end
 
         def build_storage_account_create_parameters(args)
-          build(::Azure::ARM::Storage::Models::StorageAccountCreateParameters, {
+          buildparams = {
             location: args[:location],
             tags: args[:tags],
-            kind: Object.const_get("::Azure::ARM::Storage::Models::Kind::#{args[:storage_account_kind] || :Storage}"),
+            kind: Object.const_get("::Azure::ARM::Storage::Models::Kind::#{args[:account_kind] || :Storage}"),
             sku: build(::Azure::ARM::Storage::Models::Sku, {
-              name: args[:storage_account_type],
+              name: args[:sku_name],
             })
-          })
+          }
+          if args[:account_kind] == :BlobStorage
+            buildparams[:access_tier] = Object.const_get("::Azure::ARM::Storage::Models::AccessTier::#{args[:access_tier] || :Hot}")
+          end
+          build(::Azure::ARM::Storage::Models::StorageAccountCreateParameters, buildparams)
         end
 
         def build_virtual_machine_extensions(args) # rubocop:disable Metrics/AbcSize
@@ -463,30 +507,39 @@ module PuppetX
           })
         end
 
-        def build_storage_profile(args)
-          os_disk =
-            if args[:managed_disks]
-              build(::Azure::ARM::Compute::Models::OSDisk, {
-                create_option: 'FromImage',
-                managed_disk: build(::Azure::ARM::Compute::Models::ManagedDiskParameters, {
-                  storage_account_type: args[:storage_account_type],
-                }),
-              })
-            else
-              build(::Azure::ARM::Compute::Models::OSDisk, {
-                caching: args[:os_disk_caching],
-                create_option: args[:os_disk_create_option],
-                name: args[:os_disk_name],
-                vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
-                  uri: build_os_vhd_uri(args),
+        def build_storage_profile(args) # rubocop:disable Metrics/AbcSize
+          begin
+            os_disk =
+              if args[:managed_disks]
+                build(::Azure::ARM::Compute::Models::OSDisk, {
+                  create_option: 'FromImage',
+                  managed_disk: build(::Azure::ARM::Compute::Models::ManagedDiskParameters, {
+                    storage_account_type: args[:storage_account_type],
+                  }),
                 })
-              })
-            end
-          build(::Azure::ARM::Compute::Models::StorageProfile, {
-            image_reference: build_image_reference(args),
-            os_disk: os_disk,
-            data_disks: build_data_disks(args),
-          })
+              else
+                build(::Azure::ARM::Compute::Models::OSDisk, {
+                  caching: args[:os_disk_caching],
+                  create_option: args[:os_disk_create_option],
+                  name: args[:os_disk_name],
+                  vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
+                    uri: build_os_vhd_uri(args),
+                  }),
+                })
+              end
+
+            build(::Azure::ARM::Compute::Models::StorageProfile, {
+              image_reference: build_image_reference(args),
+              os_disk: os_disk,
+              data_disks: build_data_disks(args),
+            })
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def build_data_disks(args)

@@ -97,10 +97,10 @@ RSpec.configure do |c|
             [ 'git' ],
             [ 'hocon', 'retries' ],
             # Azure gems require pinning because they are still under heavy development and change their API frequently
-            [ 'azure_mgmt_compute', '--version=~> 0.11.0' ],
-            [ 'azure_mgmt_network', '--version=~> 0.11.0' ],
-            [ 'azure_mgmt_resources', '--version=~> 0.11.0' ],
-            [ 'azure_mgmt_storage', '--version=~> 0.11.0' ],
+            [ 'azure_mgmt_compute', '--version=~> 0.14.0' ],
+            [ 'azure_mgmt_network', '--version=~> 0.14.0' ],
+            [ 'azure_mgmt_resources', '--version=~> 0.14.0' ],
+            [ 'azure_mgmt_storage', '--version=~> 0.14.0' ],
             [ 'azure', '--version=~> 0.7.0' ],
           ]
 
