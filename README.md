@@ -721,6 +721,53 @@ Details of the prefix are available at [Virtual Network setup](https://msdn.micr
 
 Default: ['10.0.0.0/16']
 
+#### Type: azure_network_security_group
+
+##### `ensure`
+
+Specifies the basic state of the virtual machine.
+
+Values: 'present', 'absent'.
+
+Values have the following effects:
+
+* 'present': Ensure that the network security group exists in Azure. If it doesn't yet exist, a new one is created.
+* 'absent': Ensures that the network security group doesn't exist on Azure
+
+Default: 'present'.
+
+##### `name`
+
+**Required**.
+
+The name of the network security group. The name can have 64 characters at most.
+
+##### `location`
+
+**Required**.
+
+Location to create the virtual network. Location is read-only after the vnet has been created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+##### `resource_group`
+
+**Required**.
+
+The resource group for the new virtual network.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
+
+##### `tags`
+
+A hash of tags to label with.
+
+Example:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
+
 #### Type: azure_vm
 
 ##### `ensure`

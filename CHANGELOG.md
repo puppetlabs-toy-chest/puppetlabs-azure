@@ -1,3 +1,5 @@
+## Supported Version 1.2.4
+This release adds the azure_network_security_group resource type
 
 ## Supported Version 1.2.2
 This release adds the azure_vnet resource type
