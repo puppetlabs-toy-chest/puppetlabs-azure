@@ -169,6 +169,21 @@ module PuppetX
           end
         end
 
+        def get_all_vnets # rubocop:disable Metrics/AbcSize
+          begin
+            Puppet.debug "Getting all virtual networks from subscription"
+            ProviderArm.network_client.virtual_networks.list_all.collect do |vnet|
+              ProviderArm.network_client.virtual_networks.get(resource_group_from(vnet), vnet.name)
+            end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def get_all_vms # rubocop:disable Metrics/AbcSize
           begin
             vms = []
@@ -341,20 +356,51 @@ module PuppetX
           end
         end
 
-        def retrieve_virtual_network(args)
+        def retrieve_virtual_network(args) # rubocop:disable Metrics/AbcSize
           begin
             ProviderArm.network_client.virtual_networks.get(
               *expand_name([args[:resource_group]], args[:virtual_network_name]),
             )
           rescue MsRestAzure::AzureOperationError
-            create_virtual_network(args)
+            # Auto-create a specified but missing virtual network
+            create_virtual_network({
+              resource_group: args[:resource_group],
+              name: args[:virtual_network_name],
+              location: args[:location],
+              address_prefixes: [args[:virtual_network_address_space]],
+              dns_servers: args[:dns_servers].split,
+            }) unless args[:location].nil? || args[:virtual_network_address_space].nil?
+
+            # Auto-create the subnet
+            create_subnet(args)
           end
         end
 
-        def create_virtual_network(args)
-          Puppet.debug("Creating vnet '#{args[:virtual_network_name]}'")
-          params = build_virtual_network_params(args)
-          ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params)
+        def create_virtual_network(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Creating vnet '#{args[:resource_group]}/#{args[:name]}'")
+          begin
+            params = build_virtual_network_params(args)
+            ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:name], params)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def delete_virtual_network(rg, name)
+          Puppet.debug("Deleting vnet '#{rg}/#{name}'")
+          begin
+            ProviderArm.network_client.virtual_networks.delete(rg, name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def create_public_ip_address(args)
@@ -370,22 +416,22 @@ module PuppetX
           ProviderArm.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
         end
 
-        def retrieve_subnet(virtual_network, args)
+        def retrieve_subnet(args)
           begin
             ProviderArm.network_client.subnets.get(
               *expand_name([args[:resource_group], args[:virtual_network_name]], args[:subnet_name]),
             )
           rescue MsRestAzure::AzureOperationError
-            create_subnet(virtual_network, args)
+            create_subnet(args)
           end
         end
 
-        def create_subnet(virtual_network, args)
-          Puppet.debug("Creating subnet '#{args[:subnet_name]}' on vnet '#{virtual_network.name}'")
+        def create_subnet(args)
+          Puppet.debug("Creating subnet '#{args[:subnet_name]}' on vnet '#{args[:virtual_network_name]}'")
           params = build_subnet_params(args)
           ProviderArm.network_client.subnets.create_or_update(
             args[:resource_group],
-            virtual_network.name,
+            args[:virtual_network_name],
             args[:subnet_name],
             params
           )
@@ -572,20 +618,16 @@ module PuppetX
         end
 
         def build_virtual_network_params(args)
-          build(::Azure::ARM::Network::Models::VirtualNetwork, {
+          vnet_params = {
             location: args[:location],
             address_space: build(::Azure::ARM::Network::Models::AddressSpace, {
-              address_prefixes: args[:virtual_network_address_space],
+              address_prefixes: args[:address_prefixes],
             }),
             dhcp_options: build(::Azure::ARM::Network::Models::DhcpOptions, {
-              dns_servers: args[:dns_servers].split,
+              dns_servers: args[:dns_servers],
             }),
-            #XXX This should handle arrays
-            subnets: [build(::Azure::ARM::Network::Models::Subnet, {
-              name: args[:subnet_name],
-              address_prefix: args[:subnet_address_prefix],
-            })]
-          })
+          }
+          build(::Azure::ARM::Network::Models::VirtualNetwork, vnet_params)
         end
 
         def build_subnet_params(args)
@@ -632,7 +674,7 @@ module PuppetX
             network_interfaces: [
               create_network_interface(
                 args,
-                retrieve_subnet(retrieve_virtual_network(args), args),
+                retrieve_subnet(args),
               )
             ]
           })

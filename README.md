@@ -29,7 +29,7 @@ Microsoft Azure exposes a powerful API for creating and managing its Infrastruct
     *   [azure_mgmt_storage](https://rubygems.org/gems/azure_mgmt_storage) 0.3.x
     *   [azure_mgmt_compute](https://rubygems.org/gems/azure_mgmt_compute) 0.3.x
     *   [azure_mgmt_resources](https://rubygems.org/gems/azure_mgmt_resources) 0.3.x
-    *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.3.x
+    *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.14.x
     *   [hocon](https://rubygems.org/gems/hocon) 1.1.x
 *   Azure credentials (as detailed below).
 
@@ -351,10 +351,18 @@ When using _managed disks_ it's not possible to set _vhd_ options, the _managed 
 
 #### Connecting to networks
 
-By default, while provisioning an `azure_vm` all network objects are created and saved to the same the resource group as the VM.  This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. If you need to _plug in_ to a network in another resource group, specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks.
+You can create Azure Resource Manager virtual networks using the following:
 
-To allow this functionality, `virtual_network_name`, `subnet_name` and
-`network_security_group_name` all allow the slashes to lookup the requested object in other resource groups.  Note that `subnet_name` must also specify the virtual network if using this feature:
+```puppet
+azure_virtual_network { 'vnettest01':
+  ensure           => present,
+  location         => 'eastus',
+  address_prefixes => ['10.0.0.0/16'], # Array of IP address prefixes for the VNet
+  dns_servers      => [],              # Array of DNS server IP addresses
+}
+```
+
+Specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks. To attach a VM to a virtual network, specify the `virtual_network_name`, `subnet_name` and `network_security_group_name` parameters. These all allow slashes to lookup the requested object in other resource groups.  Note that `subnet_name` must also specify the virtual network if using this feature:
 
 ```puppet
 azure_vm { 'web01':
@@ -368,6 +376,19 @@ azure_vm { 'web01':
   virtual_network_name        => 'hq-rg/delivery-vn',
   subnet_name 	              => "hq-rg/delivery-vn/web-sn",
   network_security_group_name => "hq-rg/delivery-nsg",
+}
+```
+
+If virtual network parameters specified in the `azure_vm` do not exist, they will be created in the same resource group as the VM.  This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. You can avoid this automatic creation by not specifying `virtual_network_address_space`
+
+```puppet
+azure_vm { 'web01':
+  ensure                        => present,
+  location                      => 'centralus',
+  resource_group                => 'webservers-rg',
+  virtual_network_name          => 'vnettest01',
+  virtual_network_address_space => '10.0.0.0/16',
+  ...
 }
 ```
 
@@ -650,6 +671,55 @@ The hostname of the running virtual machine.
 _Read Only_.
 
 The link to the underlying disk image for the virtual machine.
+
+#### Type: azure_vnet
+
+##### `ensure`
+
+Specifies the basic state of the virtual machine.
+
+Values: 'present', 'running', stopped', 'absent'.
+
+Values have the following effects:
+
+* 'present': Ensure that the virtual network exists in Azure. If the virtual network doesn't yet exist, a new one is created.
+* 'absent': Ensures that the virtual network doesn't exist on Azure
+
+Default: 'present'.
+
+##### `name`
+
+**Required**.
+
+The name of the virtual network. The name can have 64 characters at most.
+
+##### `location`
+
+**Required**.
+
+Location to create the virtual network. Location is read-only after the vnet has been created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+##### `resource_group`
+
+**Required**.
+
+The resource group for the new virtual network.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
+
+##### `dns_servers`
+
+An array of DNS servers to be given to vms in the virtual network
+
+Default: [] # None
+
+##### `address_prefixes`
+
+Details of the prefix are available at [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx).
+
+Default: ['10.0.0.0/16']
 
 #### Type: azure_vm
 

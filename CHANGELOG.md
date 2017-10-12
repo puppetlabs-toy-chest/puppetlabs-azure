@@ -1,3 +1,7 @@
+
+## Supported Version 1.2.2
+This release adds the azure_vnet resource type
+
 ## Supported Version 1.2.1
 This release adds support for blob, cold, and https-only storage accounts
 
