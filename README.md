@@ -1,6 +1,3 @@
-[![Build
-Status](https://travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPVz69Qso5L)](https://travis-ci.com/puppetlabs/puppetlabs-azure)
-
 #### Table of contents
 
 1. [Description - What the module does and why it is useful](#module-description)
