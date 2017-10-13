@@ -523,18 +523,47 @@ module PuppetX
               *expand_name([args[:resource_group]], args[:network_security_group_name])
             )
           rescue MsRestAzure::AzureOperationError
-            create_network_security_group(args)
+            create_network_security_group({
+              name: args[:network_security_group_name],
+              resource_group: args[:resource_group],
+              location: args[:location],
+              tags: args[:tags],
+            })
           end
         end
 
-        def create_network_security_group(args)
-          Puppet.debug("Creating network security group '#{args[:network_security_group_name]}'")
-          params = build_network_security_group_params(args)
-          ProviderArm.network_client.network_security_groups.create_or_update(
-            args[:resource_group],
-            args[:network_security_group_name],
-            params
-          )
+        def create_network_security_group(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Creating network security group '#{args[:resource_group]}/#{args[:name]}'")
+          begin
+            params = build_network_security_group_params(args)
+            ProviderArm.network_client.network_security_groups.create_or_update(
+              args[:name],
+              args[:resource_group],
+              params
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def delete_network_security_group(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Delete network security group '#{args[:resource_group]}/#{args[:name]}'")
+          begin
+            ProviderArm.network_client.network_security_groups.delete(
+              args[:name],
+              args[:resource_group],
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def create_network_interface(args)
