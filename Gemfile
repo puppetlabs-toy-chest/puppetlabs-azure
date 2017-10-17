@@ -20,13 +20,17 @@ group :test do
   # json_pure 2.0.2 added a requirement on ruby >= 2. We pin to json_pure 2.0.1
   # if using ruby 1.x
   gem 'json_pure', '<=2.0.1', :require => false if RUBY_VERSION =~ /^1\./
-  gem 'rubocop', '~> 0.41.0'
+  gem 'rubocop', '~> 0.49.0'
   gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
   gem 'parallel_tests', '< 2.10.0' if RUBY_VERSION < '2.0.0'
   gem 'parallel_tests' if RUBY_VERSION >= '2.0.0'
   gem 'listen', '~> 3.0.0'
   gem 'public_suffix', '~> 1.4.0' #used for azure, 1.5.0 dropped ruby 1.9
+  gem "puppet-lint-i18n", :git => 'git@github.com:puppetlabs/puppet-lint-i18n.git'
+  gem "puppet_pot_generator", :git => 'git@github.com:puppetlabs/puppet_pot_generator.git'
+  gem 'rubocop-i18n'
+  gem 'gettext-setup'
 end
 
 group :development do

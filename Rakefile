@@ -6,6 +6,8 @@ require 'puppet-lint/tasks/puppet-lint'
 require 'puppet-syntax/tasks/puppet-syntax'
 require 'rubocop/rake_task'
 
+require 'puppet_pot_generator/rake_tasks'
+
 # This gem isn't always present, for instance
 # on Travis with --without development
 begin

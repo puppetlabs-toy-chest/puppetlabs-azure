@@ -69,6 +69,6 @@
     }
   ],
   "dependencies": [
-
+    {"name":"puppetlabs/translate","version_requirement":">= 0.0.1 < 1.0.0"}
   ]
 }
