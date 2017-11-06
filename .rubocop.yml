@@ -1,3 +1,6 @@
+---
+require:
+ - rubocop-i18n
 AllCops:
   Exclude:
     # Ignore HTML related things
@@ -303,7 +306,7 @@ Style/EmptyLiteral:
 Metrics/LineLength:
   Enabled: false
 
-Style/MethodCallParentheses:
+Style/MethodCallWithArgsParentheses:
   Enabled: false
 
 Style/MethodDefParentheses:
