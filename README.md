@@ -1,6 +1,3 @@
-[![Build
-Status](https://travis-ci.com/puppetlabs/puppetlabs-azure.svg?token=RqtxRv25TsPVz69Qso5L)](https://travis-ci.com/puppetlabs/puppetlabs-azure)
-
 #### Table of contents
 
 1. [Description - What the module does and why it is useful](#module-description)
@@ -29,7 +26,7 @@ Microsoft Azure exposes a powerful API for creating and managing its Infrastruct
     *   [azure_mgmt_storage](https://rubygems.org/gems/azure_mgmt_storage) 0.3.x
     *   [azure_mgmt_compute](https://rubygems.org/gems/azure_mgmt_compute) 0.3.x
     *   [azure_mgmt_resources](https://rubygems.org/gems/azure_mgmt_resources) 0.3.x
-    *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.3.x
+    *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.14.x
     *   [hocon](https://rubygems.org/gems/hocon) 1.1.x
 *   Azure credentials (as detailed below).
 
@@ -37,159 +34,159 @@ Microsoft Azure exposes a powerful API for creating and managing its Infrastruct
 
 To use this module, you need an Azure account. If you already have one, you can skip this section.
 
-1.  Sign up for an [Azure account](https://azure.microsoft.com/en-us/free/).
+First, sign up for an [Azure account](https://azure.microsoft.com/en-us/free/).
 
-2.  Install [the Azure CLI 1.0](https://docs.microsoft.com/en-us/azure/cli-install-nodejs), which is a cross-platform node.js-based tool that works on Windows and Linux. This is required to generate a certificate for the Puppet module, but it's also a useful way of interacting with Azure. Currently these instructions have not been updated for the CLI 2.0 tool ('az' commands) but this module uses the API.
+Install [the Azure CLI 1.0](https://docs.microsoft.com/en-us/azure/cli-install-nodejs), which is a cross-platform node.js-based tool that works on Windows and Linux. This is required to generate a certificate for the Puppet module, but it's also a useful way of interacting with Azure. Currently these instructions have not been updated for the CLI 2.0 tool ('az' commands) but this module uses the API.
 
-3.  [Register the CLI](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-connect/) with your Azure account.
+[Register the CLI](https://azure.microsoft.com/en-gb/documentation/articles/xplat-cli-connect/) with your Azure account.
 
-    a. On the command line, enter:
+On the command line, enter:
 
-    ``` shell
-    azure account download
-    azure account import <path to your .publishsettings file>
-    ```
+``` shell
+azure account download
+azure account import <path to your .publishsettings file>
+```
 
-    b. After you've created the account, export the PEM certificate file using the following command:
+After you've created the account, export the PEM certificate file using the following command:
 
-    ``` shell
-    azure account cert export
-    ```
+``` shell
+azure account cert export
+```
 
-4.  Get a subscription ID using the `azure account list` command:
+Next, get a subscription ID using the `azure account list` command:
 
-    ``` shell
-    $ azure account list
-    info:    Executing command account list
-    data:    Name                    Id                                     Tenant Id  Current
-    data:    ----------------------  -------------------------------------  ---------  -------
-    data:    Pay-As-You-Go           xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx  undefined  true
-    info:    account list command OK
-    ```
+``` shell
+$ azure account list
+info:    Executing command account list
+data:    Name                    Id                                     Tenant Id  Current
+data:    ----------------------  -------------------------------------  ---------  -------
+data:    Pay-As-You-Go           xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx  undefined  true
+info:    account list command OK
+```
 
 To use the Resource Manager API instead, you need a service principal on the Active Directory. A quick way to create one for Puppet is [pendrica/azure-credentials](https://github.com/pendrica/azure-credentials). Its [puppet mode](https://github.com/pendrica/azure-credentials#puppet-style-output-note--v-displays-the-file-on-screen-after-creation) can create the `azure.conf` (see below) for you. Alternatively, the official documentation covers [creating this and retrieving the required credentials](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/).
 
 ### Installing the Azure module
 
-1.  Install the required gems with this command on `puppet-agent` 1.2 (included in Puppet Enterprise 2015.2.0) or later:
+Install the required gems with this command on `puppet-agent` 1.2 (included in Puppet Enterprise 2015.2.0) or later:
 
-    ``` shell
-    /opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
-    ```
+``` shell
+/opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
+```
 
-    When installing on Windows, launch `Start Command Prompt with Puppet` and enter:
+When installing on Windows, launch `Start Command Prompt with Puppet` and enter:
 
-    ``` shell
-    gem install retries --no-ri --no-rdoc
-    gem install azure --version="~>0.7.0" --no-ri --no-rdoc
-    gem install azure_mgmt_compute --version="~>0.10.0" --no-ri --no-rdoc
-    gem install azure_mgmt_storage --version="~>0.10.0" --no-ri --no-rdoc
-    gem install azure_mgmt_resources --version="~>0.10.0" --no-ri --no-rdoc
-    gem install azure_mgmt_network --version="~>0.10.0" --no-ri --no-rdoc
-    gem install hocon --version="~>1.1.2" --no-ri --no-rdoc
-    ```
+``` shell
+gem install retries --no-ri --no-rdoc
+gem install azure --version="~>0.7.0" --no-ri --no-rdoc
+gem install azure_mgmt_compute --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_storage --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_resources --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_network --version="~>0.14.0" --no-ri --no-rdoc
+gem install hocon --version="~>1.1.2" --no-ri --no-rdoc
+```
 
-    On versions of `puppet agent` older than 1.2 (Puppet Enterprise 2015.2.0), use the older path to the `gem` binary:
+On versions of `puppet agent` older than 1.2 (Puppet Enterprise 2015.2.0), use the older path to the `gem` binary:
 
-    ``` shell
-    /opt/puppet/bin/gem install retries --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
-    /opt/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
-    ```
+``` shell
+/opt/puppet/bin/gem install retries --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_network --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
+```
 
-    > **Note:** You must pin Azure gem installs to the correct version detailed in the example above for the azure module to work properly. The example above pins the hocon gem version to prevent possible incompatibilities.
+> **Note:** You must pin Azure gem installs to the correct version detailed in the example above for the azure module to work properly. The example above pins the hocon gem version to prevent possible incompatibilities.
 
-2.  Set the following environment variables specific to your Azure installation.
+Set the following environment variables specific to your Azure installation.
 
-    If using the classic API, provide this information:
+If using the classic API, provide this information:
 
-    ``` shell
-    export AZURE_MANAGEMENT_CERTIFICATE='/path/to/pem/file'
-    export AZURE_SUBSCRIPTION_ID='your-subscription-id'
-    ```
+``` shell
+export AZURE_MANAGEMENT_CERTIFICATE='/path/to/pem/file'
+export AZURE_SUBSCRIPTION_ID='your-subscription-id'
+```
 
-    At a Windows command prompt, specify the information **without quotes around any of the values**:
+At a Windows command prompt, specify the information **without quotes around any of the values**:
 
 
-    ``` shell
-    SET AZURE_MANAGEMENT_CERTIFICATE=C:\Path\To\file.pem
-    SET AZURE_SUBSCRIPTION_ID=your-subscription-id
-    ```
+``` shell
+SET AZURE_MANAGEMENT_CERTIFICATE=C:\Path\To\file.pem
+SET AZURE_SUBSCRIPTION_ID=your-subscription-id
+```
 
-    If using the Resource Management API, provide this information:
+If using the Resource Management API, provide this information:
 
-    ``` shell
-    export AZURE_SUBSCRIPTION_ID='your-subscription-id'
-    export AZURE_TENANT_ID='your-tenant-id'
-    export AZURE_CLIENT_ID='your-client-id'
-    export AZURE_CLIENT_SECRET='your-client-secret'
-    ```
+``` shell
+export AZURE_SUBSCRIPTION_ID='your-subscription-id'
+export AZURE_TENANT_ID='your-tenant-id'
+export AZURE_CLIENT_ID='your-client-id'
+export AZURE_CLIENT_SECRET='your-client-secret'
+```
 
-    At a Windows command prompt, specify the information **without quotes around any of the values**:
+At a Windows command prompt, specify the information **without quotes around any of the values**:
 
-    ``` shell
-    SET AZURE_SUBSCRIPTION_ID=your-subscription-id
-    SET AZURE_TENANT_ID=your-tenant-id
-    SET AZURE_CLIENT_ID=your-client-id
-    SET AZURE_CLIENT_SECRET=your-client-secret
-    ```
+``` shell
+SET AZURE_SUBSCRIPTION_ID=your-subscription-id
+SET AZURE_TENANT_ID=your-tenant-id
+SET AZURE_CLIENT_ID=your-client-id
+SET AZURE_CLIENT_SECRET=your-client-secret
+```
 
-    If you are working with **both** Resource Manager and classic virtual machines, provide all of the above credentials.
+If you are working with **both** Resource Manager and classic virtual machines, provide all of the above credentials.
 
-    Alternatively, you can provide the information in a configuration file of [HOCON format](https://github.com/typesafehub/config). Store this as `azure.conf` in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html):
+Alternatively, you can provide the information in a configuration file of [HOCON format](https://github.com/typesafehub/config). Store this as `azure.conf` in the relevant [confdir](https://docs.puppetlabs.com/puppet/latest/reference/dirs_confdir.html):
 
-    * \*nix Systems: `/etc/puppetlabs/puppet`
-    * Windows: `C:\ProgramData\PuppetLabs\puppet\etc`
-    * Non-root users: `~/.puppetlabs/etc/puppet`
+* \*nix Systems: `/etc/puppetlabs/puppet`
+* Windows: `C:\ProgramData\PuppetLabs\puppet\etc`
+* Non-root users: `~/.puppetlabs/etc/puppet`
 
-    The file format is:
+The file format is:
 
-    ``` shell
-    azure: {
-      subscription_id: "your-subscription-id"
-      management_certificate: "/path/to/pem/file"
-    }
-    ```
+``` shell
+azure: {
+  subscription_id: "your-subscription-id"
+  management_certificate: "/path/to/pem/file"
+}
+```
 
-    When creating this file on Windows, note that as a JSON-based config file format, paths must be properly escaped:
+When creating this file on Windows, note that as a JSON-based config file format, paths must be properly escaped:
 
-    ``` shell
-    azure: {
-      subscription_id: "your-subscription-id"
-      management_certificate: "C:\\path\\to\\file.pem"
-    }
-    ```
+``` shell
+azure: {
+  subscription_id: "your-subscription-id"
+  management_certificate: "C:\\path\\to\\file.pem"
+}
+```
 
-    > **Note**: Make sure to have at least hocon 1.1.2 installed on windows. With older versions, you have to make sure to make sure that the `azure.conf` is encoded as UTF-8 without a byte order mark (BOM). See [HC-82](https://tickets.puppetlabs.com/browse/HC-82), and [HC-83](https://tickets.puppetlabs.com/browse/HC-83) for technical details. Starting with hocon 1.1.2, UTF-8 with or without BOM works.
+> **Note**: Make sure to have at least hocon 1.1.2 installed on windows. With older versions, you have to make sure to make sure that the `azure.conf` is encoded as UTF-8 without a byte order mark (BOM). See [HC-82](https://tickets.puppetlabs.com/browse/HC-82), and [HC-83](https://tickets.puppetlabs.com/browse/HC-83) for technical details. Starting with hocon 1.1.2, UTF-8 with or without BOM works.
 
-    Or, with the Resource Management API:
+Or, with the Resource Management API:
 
-    ``` shell
-    azure: {
-      subscription_id: "your-subscription-id"
-      tenant_id: "your-tenant-id"
-      client_id: "your-client-id"
-      client_secret: "your-client-secret"
-    }
-    ```
+``` shell
+azure: {
+  subscription_id: "your-subscription-id"
+  tenant_id: "your-tenant-id"
+  client_id: "your-client-id"
+  client_secret: "your-client-secret"
+}
+```
 
-    You can use either the environment variables **or** the config file. If both are present, the environment variables are used. You cannot have some settings in environment variables and others in the config file.
+You can use either the environment variables **or** the config file. If both are present, the environment variables are used. You cannot have some settings in environment variables and others in the config file.
 
-3.  Install the module with:
+Next, Install the module with:
 
-    ``` shell
-    puppet module install puppetlabs-azure
-    ```
+``` shell
+puppet module install puppetlabs-azure
+```
 
 ## Usage
 
@@ -351,10 +348,18 @@ When using _managed disks_ it's not possible to set _vhd_ options, the _managed 
 
 #### Connecting to networks
 
-By default, while provisioning an `azure_vm` all network objects are created and saved to the same the resource group as the VM.  This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. If you need to _plug in_ to a network in another resource group, specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks.
+You can create Azure Resource Manager virtual networks using the following:
 
-To allow this functionality, `virtual_network_name`, `subnet_name` and
-`network_security_group_name` all allow the slashes to lookup the requested object in other resource groups.  Note that `subnet_name` must also specify the virtual network if using this feature:
+```puppet
+azure_virtual_network { 'vnettest01':
+  ensure           => present,
+  location         => 'eastus',
+  address_prefixes => ['10.0.0.0/16'], # Array of IP address prefixes for the VNet
+  dns_servers      => [],              # Array of DNS server IP addresses
+}
+```
+
+Specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks. To attach a VM to a virtual network, specify the `virtual_network_name`, `subnet_name` and `network_security_group_name` parameters. These all allow slashes to lookup the requested object in other resource groups.  Note that `subnet_name` must also specify the virtual network if using this feature:
 
 ```puppet
 azure_vm { 'web01':
@@ -368,6 +373,19 @@ azure_vm { 'web01':
   virtual_network_name        => 'hq-rg/delivery-vn',
   subnet_name 	              => "hq-rg/delivery-vn/web-sn",
   network_security_group_name => "hq-rg/delivery-nsg",
+}
+```
+
+If virtual network parameters specified in the `azure_vm` do not exist, they will be created in the same resource group as the VM.  This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. You can avoid this automatic creation by not specifying `virtual_network_address_space`
+
+```puppet
+azure_vm { 'web01':
+  ensure                        => present,
+  location                      => 'centralus',
+  resource_group                => 'webservers-rg',
+  virtual_network_name          => 'vnettest01',
+  virtual_network_address_space => '10.0.0.0/16',
+  ...
 }
 ```
 
@@ -650,6 +668,102 @@ The hostname of the running virtual machine.
 _Read Only_.
 
 The link to the underlying disk image for the virtual machine.
+
+#### Type: azure_vnet
+
+##### `ensure`
+
+Specifies the basic state of the virtual machine.
+
+Values: 'present', 'running', stopped', 'absent'.
+
+Values have the following effects:
+
+* 'present': Ensure that the virtual network exists in Azure. If the virtual network doesn't yet exist, a new one is created.
+* 'absent': Ensures that the virtual network doesn't exist on Azure
+
+Default: 'present'.
+
+##### `name`
+
+**Required**.
+
+The name of the virtual network. The name can have 64 characters at most.
+
+##### `location`
+
+**Required**.
+
+Location to create the virtual network. Location is read-only after the vnet has been created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+##### `resource_group`
+
+**Required**.
+
+The resource group for the new virtual network.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
+
+##### `dns_servers`
+
+An array of DNS servers to be given to vms in the virtual network
+
+Default: [] # None
+
+##### `address_prefixes`
+
+Details of the prefix are available at [Virtual Network setup](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx).
+
+Default: ['10.0.0.0/16']
+
+#### Type: azure_network_security_group
+
+##### `ensure`
+
+Specifies the basic state of the virtual machine.
+
+Values: 'present', 'absent'.
+
+Values have the following effects:
+
+* 'present': Ensure that the network security group exists in Azure. If it doesn't yet exist, a new one is created.
+* 'absent': Ensures that the network security group doesn't exist on Azure
+
+Default: 'present'.
+
+##### `name`
+
+**Required**.
+
+The name of the network security group. The name can have 64 characters at most.
+
+##### `location`
+
+**Required**.
+
+Location to create the virtual network. Location is read-only after the vnet has been created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+##### `resource_group`
+
+**Required**.
+
+The resource group for the new virtual network.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
+
+##### `tags`
+
+A hash of tags to label with.
+
+Example:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
 
 #### Type: azure_vm
 
