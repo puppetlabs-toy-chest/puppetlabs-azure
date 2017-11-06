@@ -1,0 +1,8 @@
+azure_subnet { '{{name}}':
+  ensure => {{ensure}},
+  resource_group => '{{resource_group}}',
+  virtual_network => '{{virtual_network}}',
+  {{#optional}}
+  {{k}} => '{{v}}',
+  {{/optional}}
+}

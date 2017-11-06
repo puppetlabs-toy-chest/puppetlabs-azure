@@ -1,31 +1,30 @@
 require 'spec_helper'
 
-describe 'azure_storage_account', :type => :type do
-  let(:type_class) { Puppet::Type.type(:azure_storage_account) }
+describe 'azure_vnet', :type => :type do
+  let(:type_class) { Puppet::Type.type(:azure_vnet) }
 
   let :params do
     [
       :name,
+      :provider,
     ]
   end
 
   let :properties do
     [
       :ensure,
-      :account_type,
-      :sku_name,
-      :account_kind,
-      :access_tier,
-      :https_traffic_only,
       :location,
-      :tags,
       :resource_group,
+      :etag,
+      :address_prefixes,
+      :dns_servers,
+      :subnets,
     ]
   end
 
   let :default_config do
     {
-      name: 'testsa',
+      name: 'testvnet',
       location: 'eastus',
       resource_group: 'testresourcegrp',
     }
@@ -50,12 +49,38 @@ describe 'azure_storage_account', :type => :type do
 
   [
     'location',
-    'sku_name',
-    'account_kind',
     'resource_group',
   ].each do |property|
     it "should require #{property} to be a string" do
       expect(type_class).to require_string_for(property)
+    end
+  end
+
+  # verify Arrays
+  [
+    'address_prefixes',
+    'dns_servers',
+  ].each do |property|
+    it "should require #{property} to be an Array" do
+      config = default_config
+      config[property] = 2
+      expect do
+        type_class.new(config)
+      end.to raise_error(Puppet::Error, /#{property} must be an Array/)
+    end
+  end
+
+  #  Arrays
+  [
+    'etag',
+    'subnets',
+  ].each do |property|
+    it "should prevent setting #{property}" do
+      config = default_config
+      config[property] = 'junk'
+      expect do
+        type_class.new(config)
+      end.to raise_error(Puppet::Error, /#{property} is a read-only property/)
     end
   end
 
@@ -64,12 +89,12 @@ describe 'azure_storage_account', :type => :type do
       default_config
     end
 
-    let :storage_account do
+    let :vnet do
       type_class.new(config)
     end
 
     it 'should be valid' do
-      expect { storage_account }.to_not raise_error
+      expect { vnet }.to_not raise_error
     end
 
     [
@@ -81,13 +106,13 @@ describe 'azure_storage_account', :type => :type do
           config.delete(key)
           config[:ensure] = :present
           p config
-          expect { storage_account }.to raise_error(Puppet::Error, /You must provide a #{key}/)
+          expect { vnet }.to raise_error(Puppet::Error, /You must provide a #{key}/)
         end
       end
       it "should not fail with ensure => absent" do
         config.delete(key)
         config[:ensure] = :absent
-        expect { storage_account }.to_not raise_error
+        expect { vnet }.to_not raise_error
       end
     end
 
@@ -103,41 +128,50 @@ describe 'azure_storage_account', :type => :type do
       end
     end
 
-    context 'with account_type instead of sku_name' do
+    context 'with a name greater than 64 characters' do
       let :config do
         result = default_config
-        result.delete(:sku_name)
-        result[:account_type] = 'Standard_GRS'
+        result[:name] = SecureRandom.hex(33)
         result
       end
 
       it 'should be invalid' do
-        expect { type_class.new(config) }.to_not raise_error
+        expect { type_class.new(config) }.to raise_error(Puppet::Error, /the name must be between 1 and 64 characters long/)
       end
     end
 
-    context 'with non-alpha characters in the name' do
+    context 'with a resource group greater than 64 characters' do
       let :config do
         result = default_config
-        result[:name] = 'Junk! Entry%'
+        result[:resource_group] = SecureRandom.hex(33)
         result
       end
 
       it 'should be invalid' do
-        expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /name can contain only alphanumeric characters/)
+        expect { type_class.new(config) }.to raise_error(Puppet::Error, /the resource group must be less that 65 characters/)
       end
     end
 
-    it "should default ensure to present" do
-      expect(storage_account[:ensure]).to eq(:present)
+    context 'with no location' do
+      let :config do
+        result = default_config
+        result[:location] = ''
+        result
+      end
+
+      it 'should be invalid' do
+        expect { type_class.new(config) }.to raise_error(Puppet::ResourceError, /the location must not be empty/)
+      end
     end
 
-    it "should default account_kind to Storage" do
-      expect(storage_account[:account_kind]).to eq(:Storage)
-    end
-
-    it "should default https_traffic_only to false" do
-      expect(storage_account[:https_traffic_only]).to be_falsey
+    {
+      :ensure => :present,
+      :dns_servers => [],
+      :address_prefixes => ['10.0.0.0/16'],
+    }.each do |property, value|
+      it "should default #{property} to #{value}" do
+        expect(vnet[property]).to eq(value)
+      end
     end
   end
 end

@@ -81,14 +81,6 @@ classic_windows = [
   'spec/*/windows_machine_spec.rb'
 ]
 
-mandatory_envs = [
-  'AZURE_MANAGEMENT_CERTIFICATE',
-  'AZURE_CLIENT_ID',
-  'AZURE_CLIENT_SECRET',
-  'AZURE_SUBSCRIPTION_ID',
-  'AZURE_TENANT_ID'
-]
-
 task :envs do
   ENV['BEAKER_debug'] = true if ENV['BEAKER_DEBUG']
   ENV['BEAKER_TESTMODE'] = 'agent'
@@ -97,9 +89,6 @@ task :envs do
   ENV['BEAKER_PE_DIR'] = ENV['BEAKER_PE_DIR'] || PE_RELEASES[ENV['PUPPET_INSTALL_VERSION']]
   ENV['PUPPET_INSTALL_TYPE'] = "pe"
   ENV['BEAKER_PE_VER'] = ENV['BEAKER_PE_VER'] || `curl http://getpe.delivery.puppetlabs.net/latest/#{ENV['PUPPET_INSTALL_VERSION']}`
-  for env in mandatory_envs
-    fail "#{env} must be set" unless ENV[env]
-  end
 end
 
 desc "Run fast acceptance tests"

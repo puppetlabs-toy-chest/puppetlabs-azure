@@ -1,0 +1,11 @@
+azure_network_security_group { '{{name}}':
+  ensure => {{ensure}},
+  location => '{{location}}',
+  resource_group => '{{resource_group}}',
+  {{#optional}}
+  {{k}} => '{{v}}',
+  {{/optional}}
+  {{#nonstring}}
+  {{k}} => {{{v}}},
+  {{/nonstring}}
+}

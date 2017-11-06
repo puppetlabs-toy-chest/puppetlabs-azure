@@ -1,0 +1,11 @@
+azure_vnet { '{{name}}':
+  ensure => {{ensure}},
+  location => '{{resource_group}}',
+  resource_group => '{{resource_group}}',
+  {{#optional}}
+  {{k}} => '{{v}}',
+  {{/optional}}
+  {{#nonstring}}
+  {{k}} => {{{v}}},
+  {{/nonstring}}
+}
