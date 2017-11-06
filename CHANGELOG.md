@@ -1,3 +1,8 @@
+## Supported Version 1.2.1
+### Added
+ - This release adds internationalization for the README.md.
+ - The first supported language is Japanese.
+
 ## Supported Version 1.2.0
 ### Added
  - Support for Azure's managed disks feature removes the requirement to associate a storage account with each Azure VM, removing one of the fundamental limitations of the platform.

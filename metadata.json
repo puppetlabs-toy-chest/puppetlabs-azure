@@ -1,6 +1,6 @@
 {
   "name": "puppetlabs-azure",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Puppet Labs",
   "summary": "Create and manage machines running on Microsoft Azure with Puppet",
   "license": "Apache-2.0",
@@ -65,7 +65,7 @@
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">=4.9.4 < 6.0.0"
+      "version_requirement": ">=4.2.1 < 6.0.0"
     }
   ],
   "dependencies": [
