@@ -12,7 +12,7 @@ Puppet::Type.type(:azure_resource_template).provide(:arm, :parent => PuppetX::Pu
   def self.instances # rubocop:disable Metrics/AbcSize
     begin
       PuppetX::Puppetlabs::Azure::ProviderArm.new.get_all_deployments.collect do |dep|
-        params = dep.properties.parameters.each_with_object({}) do |(k,v),memo|
+        params = params = (dep.properties.parameters || {}).each_with_object({}) do |(k,v),memo|
           memo[k] = v['value']
         end
 
