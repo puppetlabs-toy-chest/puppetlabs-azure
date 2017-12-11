@@ -1,7 +1,7 @@
 require 'spec_helper_acceptance'
 
 describe 'azure_vm when creating a machine with a security group' do
-  include_context 'with certificate copied to system under test'
+  include_context 'with certificate copied to system under test for ARM'
   include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 

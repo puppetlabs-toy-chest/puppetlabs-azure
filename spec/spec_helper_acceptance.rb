@@ -73,6 +73,7 @@ WINDOWS_DOS_FORMAT_AZURE_CERT="c:\\#{CERT_FILE}".freeze
 #
 # end
 
+ENV['BEAKER_TESTMODE'] = ENV['BEAKER_TESTMODE'] || 'local'
 
 RSpec.configure do |c|
   c.filter_run :focus => true
@@ -97,10 +98,10 @@ RSpec.configure do |c|
             [ 'git' ],
             [ 'hocon', 'retries' ],
             # Azure gems require pinning because they are still under heavy development and change their API frequently
-            [ 'azure_mgmt_compute', '--version=~> 0.11.0' ],
-            [ 'azure_mgmt_network', '--version=~> 0.11.0' ],
-            [ 'azure_mgmt_resources', '--version=~> 0.11.0' ],
-            [ 'azure_mgmt_storage', '--version=~> 0.11.0' ],
+            [ 'azure_mgmt_compute', '--version=~> 0.14.0' ],
+            [ 'azure_mgmt_network', '--version=~> 0.14.0' ],
+            [ 'azure_mgmt_resources', '--version=~> 0.14.0' ],
+            [ 'azure_mgmt_storage', '--version=~> 0.14.0' ],
             [ 'azure', '--version=~> 0.7.0' ],
           ]
 
@@ -134,22 +135,23 @@ RSpec.configure do |c|
             end
           end
         end
-      end
+      
 
-      proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-      hosts.each do |host|
-        # set :target_module_path manually to work around beaker-rspec bug that does not
-        # persist distmoduledir across runs with reused nodes
-        # TODO: ticket up this bug for beaker-rspec
-        module_path = is_windows?(host=host) ? '/cygdrive/c/ProgramData/PuppetLabs/code/modules' : '/etc/puppetlabs/code/modules'
-        install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => module_path)
-      end
-    end
+        proj_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+        hosts.each do |host|
+          # set :target_module_path manually to work around beaker-rspec bug that does not
+          # persist distmoduledir across runs with reused nodes
+          # TODO: ticket up this bug for beaker-rspec
+          module_path = is_windows?(host=host) ? '/cygdrive/c/ProgramData/PuppetLabs/code/modules' : '/etc/puppetlabs/code/modules'
+          install_dev_puppet_module_on(host, :source => proj_root, :module_name => 'azure', :target_module_path => module_path)
+        end
 
-    # Deploy Azure credentials
-    if ENV['AZURE_MANAGEMENT_CERTIFICATE']
-      hosts.each do |host|
-       scp_to host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], is_windows?(host) ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT
+        # Deploy Azure credentials
+        if ENV['AZURE_MANAGEMENT_CERTIFICATE']
+          hosts.each do |host|
+          scp_to host, ENV['AZURE_MANAGEMENT_CERTIFICATE'], is_windows?(host) ? WINDOWS_AZURE_CERT : LINUX_AZURE_CERT
+          end
+        end
       end
     end
   end
@@ -312,12 +314,20 @@ class AzureARMHelper
     accounts.value.find { |x| x.name == name }
   end
 
-  def get_network_interface(resource_group, network_interface_name)
-    AzureARMHelper.network_client.network_interfaces.get(resource_group, network_interface_name)
+  def get_network_interface(resource_group_name, network_interface_name)
+    AzureARMHelper.network_client.network_interfaces.get(resource_group_name, network_interface_name)
   end
 
-  def get_public_ip_address(resource_group, public_ip_address_name)
-    AzureARMHelper.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
+  def get_virtual_network(resource_group_name, vnet_name)
+    AzureARMHelper.network_client.virtual_networks.get(resource_group_name, vnet_name)
+  end
+
+  def get_subnet(resource_group_name, vnet_name, subnet_name)
+    AzureARMHelper.network_client.subnets.get(resource_group_name, vnet_name, subnet_name)
+  end
+
+  def get_public_ip_address(resource_group_name, public_ip_address_name)
+    AzureARMHelper.network_client.public_ipaddresses.get(resource_group_name, public_ip_address_name)
   end
 
   def destroy_storage_account(resource_group_name, name)
@@ -470,6 +480,7 @@ def run_command_over_ssh(host, command, auth_method, port=22)
                    :password => @config[:optional][:password],
                    :keys => [@local_private_key_path],
                    :auth_methods => [auth_method],
+                   :paranoid => Net::SSH::Verifiers::Null.new,
                    :verbose => :info) do |ssh|
       SshExec.ssh_exec!(ssh, command)
     end
@@ -508,7 +519,9 @@ end
 
 def beaker_opts
   azure_cert = is_windows? ? WINDOWS_DOS_FORMAT_AZURE_CERT : LINUX_AZURE_CERT
-  @env ||= {
+  azure_cert = ENV['AZURE_MANAGEMENT_CERTIFICATE'] if ENV['BEAKER_TESTMODE'] == 'local'
+
+  @env = ENV['BEAKER_TESTMODE'] != 'local' ? {
       debug: true,
       trace: true,
       environment: {
@@ -518,7 +531,7 @@ def beaker_opts
         'AZURE_SUBSCRIPTION_ID' => ENV['AZURE_SUBSCRIPTION_ID'],
         'AZURE_TENANT_ID' => ENV['AZURE_TENANT_ID'],
       }
-    }
+    } : {}
 end
 
 def is_windows?(host = nil)

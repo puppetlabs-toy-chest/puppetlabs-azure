@@ -7,7 +7,6 @@ describe 'azure_vm when creating a machine with cross-network resource groups' d
     end
   end
 
-  include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
   # taken from provider_arm
@@ -23,6 +22,7 @@ describe 'azure_vm when creating a machine with cross-network resource groups' d
     # we must directly make resources we want to refer to using the azure API
     # before running puppet or we will get an error.  We can't use puppet to
     # create them because it does not have the required primatives yet
+    
     @other_rg_name = "puppetlabs-azure-test"
     @virtual_network_name = "network-vn"
     @subnet_name = "subnet-sn"
