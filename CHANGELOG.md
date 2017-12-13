@@ -1,3 +1,14 @@
+## Supported Version 1.3.0
+## Added
+ - New Puppet Types and Providers for subnet, vnet and network_security_group.
+ - Support for the Microsoft ARM 0.14 API
+ - Support for SKU in Storage Accounts.
+ - Types for access_tier and https_traffic_only in Storage Accounts.
+ - Overhaul of acceptance testing to run locally on the host.
+
+## Fixed
+ - Acceptance tests now can run locally on your host. (bundle exec rake fast) This should complete in ~ 24 mins and verify the basic stack on ARM. To commit PR's please continue to run (bundle exec rake acceptance).
+
 ## Supported Version 1.2.1
 ### Added
  - This release adds internationalization for the README.md.
