@@ -303,7 +303,7 @@ Style/EmptyLiteral:
 Metrics/LineLength:
   Enabled: false
 
-Style/MethodCallParentheses:
+Style/MethodCallWithoutArgsParentheses:
   Enabled: false
 
 Style/MethodDefParentheses:
@@ -476,4 +476,15 @@ Style/TrailingCommaInArguments:
 
 # hitting https://github.com/bbatsov/rubocop/issues/3283
 Lint/ShadowedException:
+  Enabled: false
+
+# disabled for the moment due to rubocop gem changes
+
+Metrics/BlockLength:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
+
+Style/MultilineIfModifier:
   Enabled: false

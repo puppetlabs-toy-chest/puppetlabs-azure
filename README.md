@@ -23,9 +23,9 @@ Microsoft Azure exposes a powerful API for creating and managing its Infrastruct
 
 *   Ruby Gems as follows (see [Installing the Azure module](#installing-the-azure-module), below).
     *   [azure](https://rubygems.org/gems/azure) 0.7.x
-    *   [azure_mgmt_storage](https://rubygems.org/gems/azure_mgmt_storage) 0.3.x
-    *   [azure_mgmt_compute](https://rubygems.org/gems/azure_mgmt_compute) 0.3.x
-    *   [azure_mgmt_resources](https://rubygems.org/gems/azure_mgmt_resources) 0.3.x
+    *   [azure_mgmt_storage](https://rubygems.org/gems/azure_mgmt_storage) 0.14.x
+    *   [azure_mgmt_compute](https://rubygems.org/gems/azure_mgmt_compute) 0.14.x
+    *   [azure_mgmt_resources](https://rubygems.org/gems/azure_mgmt_resources) 0.14.x
     *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.14.x
     *   [hocon](https://rubygems.org/gems/hocon) 1.1.x
 *   Azure credentials (as detailed below).
@@ -673,7 +673,7 @@ The link to the underlying disk image for the virtual machine.
 
 ##### `ensure`
 
-Specifies the basic state of the virtual machine.
+Specifies the basic state of the virtual network.
 
 Values: 'present', 'running', stopped', 'absent'.
 
@@ -1224,6 +1224,99 @@ This format is specific to Puppet. Must not be specified when `params_source` is
 The URI of a file containing the params in Azure Resource Model standard format.
 
 The format of this file differs from the format accepted by the `params` attribute. Must not be specified when `params` is specified.
+
+
+#### Type: azure_vnet
+
+##### `ensure`
+
+Specifies the basic state of the virtual network.
+
+Values: present, absent.
+
+Default: present.
+
+##### `name`
+
+**Required**.
+
+The name of the vnet.
+
+Values: A string no longer than 80 characters long, containing only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
+
+##### `location`
+
+**Required**.
+
+The location where the vnet is created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+##### `resource_group`
+
+**Required**.
+
+The resource group with which to associate the vnet.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)..
+
+##### `tags`
+A hash of tags to label with.
+
+Example:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
+
+#### Type: azure_subnet
+
+##### `ensure`
+
+Specifies the basic state of the subnet.
+
+Values: present, absent.
+
+Default: present.
+
+##### `name`
+
+**Required**.
+
+The name of the subnet.
+
+Values: A string no longer than 80 characters long, containing only alphanumeric characters, dash, underscore, opening parenthesis, closing parenthesis, and period. The name cannot end with a period.
+
+##### `location`
+
+**Required**.
+
+The location where the subnet is created.
+
+Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regions/).
+
+##### `resource_group`
+
+**Required**.
+
+The resource group with which to associate the subnet.
+
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)..
+
+##### `virtual_network`
+
+**Required**.
+
+The virtual network with which to associate the subnet.
+
+##### `tags`
+A hash of tags to label with.
+
+Example:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
 
 ## Known issues
 

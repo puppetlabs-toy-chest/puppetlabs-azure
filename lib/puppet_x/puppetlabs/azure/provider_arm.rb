@@ -60,15 +60,18 @@ module PuppetX
             params = build_params(args)
 
             if ! args[:managed_disks]
-              create_storage_account({
-                storage_account: args[:storage_account],
+              # ensure the storage account is set up
+              get_or_create_storage_account({
+                name: args[:storage_account],
                 resource_group: args[:resource_group],
-                storage_account_type: args[:storage_account_type],
+                sku_name: args[:storage_account_type],
                 location: args[:location],
                 tags: args[:tags],
               })
             end
             ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:name], params)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -76,7 +79,7 @@ module PuppetX
           end
         end
 
-        def update_vm_storage_profile(args)
+        def update_vm_storage_profile(args) # rubocop:disable Metrics/AbcSize
           # never appears to be called, changing data_disks parameter after VM
           # creation has no effect
           params = build(::Azure::ARM::Compute::Models::VirtualMachine, {
@@ -87,6 +90,8 @@ module PuppetX
             })
           })
           ProviderArm.compute_client.virtual_machines.create_or_update(args[:resource_group], args[:vm_name], params)
+        rescue MsRestAzure::AzureOperationError => err
+          raise Puppet::Error, JSON.parse(err.message)['message']
         rescue MsRest::DeserializationError => err
           raise Puppet::Error, err.response_body
         rescue MsRest::RestError => err
@@ -96,6 +101,8 @@ module PuppetX
         def delete_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.delete(resource_group, machine.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -106,6 +113,8 @@ module PuppetX
         def stop_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.power_off(resource_group, machine.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -116,6 +125,8 @@ module PuppetX
         def start_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -123,12 +134,14 @@ module PuppetX
           end
         end
 
-        def get_all_sas
+        def get_all_sas # rubocop:disable Metrics/AbcSize
           begin
             sas = ProviderArm.storage_client.storage_accounts.list.value
             sas.collect do |sa|
               ProviderArm.storage_client.storage_accounts.get_properties(resource_group_from(sa), sa.name)
             end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -149,6 +162,8 @@ module PuppetX
         def get_deployments(resource_group)
           begin
             ProviderArm.resource_client.deployments.list_by_resource_group(resource_group)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -159,6 +174,42 @@ module PuppetX
         def get_all_rgs
           begin
             ProviderArm.resource_client.resource_groups.list
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def get_all_vnets # rubocop:disable Metrics/AbcSize
+          begin
+            Puppet.debug "Getting all virtual networks from subscription"
+            ProviderArm.network_client.virtual_networks.list_all.collect do |vnet|
+              ProviderArm.network_client.virtual_networks.get(resource_group_from(vnet), vnet.name)
+            end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def get_all_subnets # rubocop:disable Metrics/AbcSize
+          begin
+            subnets = []
+            Puppet.debug "Getting all subnets from subscription"
+            ProviderArm.network_client.virtual_networks.list_all.collect do |vnet|
+              ProviderArm.network_client.subnets.list(resource_group_from(vnet), vnet.name).collect do |subnet|
+                subnets << subnet
+              end
+            end
+            subnets
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -179,6 +230,8 @@ module PuppetX
             vms.collect do |vm|
               ProviderArm.compute_client.virtual_machines.get(resource_group_from(vm), vm.name, 'instanceView')
             end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -246,6 +299,8 @@ module PuppetX
         def delete_resource_template(rg, name)
           begin
             ProviderArm.resource_client.deployments.delete(rg, name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -262,6 +317,8 @@ module PuppetX
         def delete_resource_group(rg)
           begin
             ProviderArm.resource_client.resource_groups.delete(rg.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -269,14 +326,51 @@ module PuppetX
           end
         end
 
-        def create_storage_account(args)
-          params = build_storage_account_create_parameters(args)
-          ProviderArm.storage_client.storage_accounts.create(args[:resource_group], args[:storage_account], params)
+        def get_or_create_storage_account(args) # rubocop:disable Metrics/AbcSize
+          # ensure the storage account exists
+          begin
+            get_storage_account({
+              name: args[:name],
+              resource_group: args[:resource_group],
+            })
+          rescue MsRestAzure::AzureOperationError
+            create_storage_account({
+              name: args[:name],
+              resource_group: args[:resource_group],
+              sku_name: args[:sku_name],
+              location: args[:location],
+            })
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
-        def delete_storage_account(sa)
+        def get_storage_account(args)
+          ProviderArm.storage_client.storage_accounts.get_properties(args[:resource_group], args[:name])
+        end
+
+        def create_storage_account(args)
+          params = build_storage_account_create_parameters(args)
           begin
-            ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+            ProviderArm.storage_client.storage_accounts.create(args[:resource_group], args[:name], params)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def delete_storage_account(args)
+          begin
+            ProviderArm.storage_client.storage_accounts.delete(args[:resource_group], args[:name])
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::DeserializationError => err
             raise Puppet::Error, err.response_body
           rescue MsRest::RestError => err
@@ -289,9 +383,11 @@ module PuppetX
           ProviderArm.compute_client.virtual_machine_extensions.create_or_update(args[:resource_group], args[:vm_name], args[:name], params)
         end
 
-        def delete_extension(sa)
+        def delete_extension(sa) # rubocop:disable Metrics/AbcSize
           begin
             ProviderArm.storage_client.storage_accounts.delete(resource_group, sa.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
           rescue MsRest::HttpOperationError => err
             raise Puppet::Error, err.body
           rescue MsRest::DeserializationError => err
@@ -301,20 +397,56 @@ module PuppetX
           end
         end
 
-        def retrieve_virtual_network(args)
+        def retrieve_virtual_network(args) # rubocop:disable Metrics/AbcSize
           begin
             ProviderArm.network_client.virtual_networks.get(
               *expand_name([args[:resource_group]], args[:virtual_network_name]),
             )
           rescue MsRestAzure::AzureOperationError
-            create_virtual_network(args)
+            # Auto-create a specified but missing virtual network
+            create_virtual_network({
+              resource_group: args[:resource_group],
+              name: args[:virtual_network_name],
+              location: args[:location],
+              address_prefixes: args[:virtual_network_address_space],
+              dns_servers: args[:dns_servers].split,
+            }) unless args[:location].nil? || args[:virtual_network_address_space].nil?
+
+            # Auto-create the subnet
+            create_subnet({
+              resource_group: args[:resource_group],
+              virtual_network: args[:virtual_network_name],
+              name: args[:subnet_name],
+              address_prefix: args[:subnet_address_prefix],
+            })
           end
         end
 
-        def create_virtual_network(args)
-          Puppet.debug("Creating vnet '#{args[:virtual_network_name]}'")
-          params = build_virtual_network_params(args)
-          ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:virtual_network_name], params)
+        def create_virtual_network(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Creating vnet '#{args[:resource_group]}/#{args[:name]}'")
+          begin
+            params = build_virtual_network_params(args)
+            ProviderArm.network_client.virtual_networks.create_or_update(args[:resource_group], args[:name], params)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def delete_virtual_network(rg, name)
+          Puppet.debug("Deleting vnet '#{rg}/#{name}'")
+          begin
+            ProviderArm.network_client.virtual_networks.delete(rg, name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def create_public_ip_address(args)
@@ -330,25 +462,59 @@ module PuppetX
           ProviderArm.network_client.public_ipaddresses.get(resource_group, public_ip_address_name)
         end
 
-        def retrieve_subnet(virtual_network, args)
+        def retrieve_subnet(args) # rubocop:disable Metrics/AbcSize
           begin
             ProviderArm.network_client.subnets.get(
               *expand_name([args[:resource_group], args[:virtual_network_name]], args[:subnet_name]),
             )
           rescue MsRestAzure::AzureOperationError
-            create_subnet(virtual_network, args)
+            # Auto-create a specified but missing subnet
+            create_subnet({
+              resource_group: args[:resource_group],
+              virtual_network: args[:virtual_network_name],
+              name: args[:subnet_name],
+              address_prefix: args[:subnet_address_prefix],
+            })
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
           end
         end
 
-        def create_subnet(virtual_network, args)
-          Puppet.debug("Creating subnet '#{args[:subnet_name]}' on vnet '#{virtual_network.name}'")
-          params = build_subnet_params(args)
-          ProviderArm.network_client.subnets.create_or_update(
-            args[:resource_group],
-            virtual_network.name,
-            args[:subnet_name],
-            params
-          )
+        def create_subnet(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Creating subnet '#{args[:name]}' on vnet '#{args[:virtual_network]}'")
+          begin
+            ProviderArm.network_client.subnets.create_or_update(
+              args[:resource_group],
+              args[:virtual_network],
+              args[:name],
+              build_subnet_params(args)
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def delete_subnet(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Deleting subnet '#{args[:name]}' on vnet '#{args[:virtual_network]}'")
+          begin
+            ProviderArm.network_client.subnets.delete(
+              args[:resource_group],
+              args[:virtual_network],
+              args[:name],
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def retrieve_network_security_group(args)
@@ -357,23 +523,51 @@ module PuppetX
               *expand_name([args[:resource_group]], args[:network_security_group_name])
             )
           rescue MsRestAzure::AzureOperationError
-            create_network_security_group(args)
+            create_network_security_group({
+              name: args[:network_security_group_name],
+              resource_group: args[:resource_group],
+              location: args[:location],
+              tags: args[:tags],
+            })
           end
         end
 
-        def create_network_security_group(args)
-          Puppet.debug("Creating network security group '#{args[:network_security_group_name]}'")
-          params = build_network_security_group_params(args)
-          ProviderArm.network_client.network_security_groups.create_or_update(
-            args[:resource_group],
-            args[:network_security_group_name],
-            params
-          )
+        def create_network_security_group(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Creating network security group '#{args[:resource_group]}/#{args[:name]}'")
+          begin
+            params = build_network_security_group_params(args)
+            ProviderArm.network_client.network_security_groups.create_or_update(
+              args[:resource_group],
+              args[:name],
+              params
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
+        def delete_network_security_group(args) # rubocop:disable Metrics/AbcSize
+          Puppet.debug("Delete network security group '#{args[:resource_group]}/#{args[:name]}'")
+          begin
+            ProviderArm.network_client.network_security_groups.delete(
+              args[:name],
+              args[:resource_group],
+            )
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
 
-        def create_network_interface(args, subnet)
-          params = build_network_interface_param(args, subnet)
+        def create_network_interface(args)
+          params = build_network_interface_param(args)
           ProviderArm.network_client.network_interfaces.create_or_update(args[:resource_group], params.name, params)
         end
 
@@ -431,14 +625,18 @@ module PuppetX
         end
 
         def build_storage_account_create_parameters(args)
-          build(::Azure::ARM::Storage::Models::StorageAccountCreateParameters, {
+          buildparams = {
             location: args[:location],
             tags: args[:tags],
-            kind: Object.const_get("::Azure::ARM::Storage::Models::Kind::#{args[:storage_account_kind] || :Storage}"),
+            kind: Object.const_get("::Azure::ARM::Storage::Models::Kind::#{args[:account_kind] || :Storage}"),
             sku: build(::Azure::ARM::Storage::Models::Sku, {
-              name: args[:storage_account_type],
+              name: args[:sku_name],
             })
-          })
+          }
+          if args[:account_kind] == :BlobStorage
+            buildparams[:access_tier] = Object.const_get("::Azure::ARM::Storage::Models::AccessTier::#{args[:access_tier] || :Hot}")
+          end
+          build(::Azure::ARM::Storage::Models::StorageAccountCreateParameters, buildparams)
         end
 
         def build_virtual_machine_extensions(args) # rubocop:disable Metrics/AbcSize
@@ -463,30 +661,39 @@ module PuppetX
           })
         end
 
-        def build_storage_profile(args)
-          os_disk =
-            if args[:managed_disks]
-              build(::Azure::ARM::Compute::Models::OSDisk, {
-                create_option: 'FromImage',
-                managed_disk: build(::Azure::ARM::Compute::Models::ManagedDiskParameters, {
-                  storage_account_type: args[:storage_account_type],
-                }),
-              })
-            else
-              build(::Azure::ARM::Compute::Models::OSDisk, {
-                caching: args[:os_disk_caching],
-                create_option: args[:os_disk_create_option],
-                name: args[:os_disk_name],
-                vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
-                  uri: build_os_vhd_uri(args),
+        def build_storage_profile(args) # rubocop:disable Metrics/AbcSize
+          begin
+            os_disk =
+              if args[:managed_disks]
+                build(::Azure::ARM::Compute::Models::OSDisk, {
+                  create_option: 'FromImage',
+                  managed_disk: build(::Azure::ARM::Compute::Models::ManagedDiskParameters, {
+                    storage_account_type: args[:storage_account_type],
+                  }),
                 })
-              })
-            end
-          build(::Azure::ARM::Compute::Models::StorageProfile, {
-            image_reference: build_image_reference(args),
-            os_disk: os_disk,
-            data_disks: build_data_disks(args),
-          })
+              else
+                build(::Azure::ARM::Compute::Models::OSDisk, {
+                  caching: args[:os_disk_caching],
+                  create_option: args[:os_disk_create_option],
+                  name: args[:os_disk_name],
+                  vhd: build(::Azure::ARM::Compute::Models::VirtualHardDisk, {
+                    uri: build_os_vhd_uri(args),
+                  }),
+                })
+              end
+
+            build(::Azure::ARM::Compute::Models::StorageProfile, {
+              image_reference: build_image_reference(args),
+              os_disk: os_disk,
+              data_disks: build_data_disks(args),
+            })
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def build_data_disks(args)
@@ -519,25 +726,24 @@ module PuppetX
         end
 
         def build_virtual_network_params(args)
-          build(::Azure::ARM::Network::Models::VirtualNetwork, {
+          vnet_params = {
             location: args[:location],
             address_space: build(::Azure::ARM::Network::Models::AddressSpace, {
-              address_prefixes: args[:virtual_network_address_space],
+              address_prefixes: args[:address_prefixes],
             }),
             dhcp_options: build(::Azure::ARM::Network::Models::DhcpOptions, {
-              dns_servers: args[:dns_servers].split,
+              dns_servers: args[:dns_servers],
             }),
-            #XXX This should handle arrays
-            subnets: [build(::Azure::ARM::Network::Models::Subnet, {
-              name: args[:subnet_name],
-              address_prefix: args[:subnet_address_prefix],
-            })]
-          })
+          }
+          build(::Azure::ARM::Network::Models::VirtualNetwork, vnet_params)
         end
 
         def build_subnet_params(args)
           build(::Azure::ARM::Network::Models::Subnet, {
-            address_prefix: args[:subnet_address_prefix],
+            name: args[:name],
+            address_prefix: args[:address_prefix],
+            network_security_group: args[:network_security_group],
+            route_table: args[:route_table],
           })
         end
 
@@ -550,7 +756,10 @@ module PuppetX
           })
         end
 
-        def build_network_interface_param(args, subnet)
+        def build_network_interface_param(args) # rubocop:disable Metrics/AbcSize
+          retrieve_virtual_network(args)
+
+          subnet = retrieve_subnet(args)
           public_ipaddress = unless args[:public_ip_allocation_method] == 'None'
             create_public_ip_address(args)
           end
@@ -574,15 +783,34 @@ module PuppetX
         end
 
         def build_network_profile(args)
-          build(::Azure::ARM::Compute::Models::NetworkProfile, {
+          begin
             #XXX This should handle multiple network interfaces
-            network_interfaces: [
-              create_network_interface(
-                args,
-                retrieve_subnet(retrieve_virtual_network(args), args),
-              )
-            ]
-          })
+            network_interface = get_or_create_network_interface(args)
+
+            build(::Azure::ARM::Compute::Models::NetworkProfile, {
+              network_interfaces: [network_interface]
+            })
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
+        def get_or_create_network_interface(args)
+          begin
+            get_network_interface(
+              *expand_name([args[:resource_group]], args[:network_interface_name])
+            )
+          rescue MsRestAzure::AzureOperationError
+            create_network_interface(args)
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
         end
 
         def build_plan(args)

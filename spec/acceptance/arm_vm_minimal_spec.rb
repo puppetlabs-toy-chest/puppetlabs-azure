@@ -9,12 +9,18 @@ describe 'azure_vm when creating a machine with all available properties' do
       name: @name,
       ensure: 'present',
       optional: {
-        image: UBUNTU_IMAGE_ID,
         location: CHEAPEST_ARM_LOCATION,
         user: 'specuser',
         size: 'Standard_A0',
         resource_group: SPEC_RESOURCE_GROUP,
         password: 'SpecPass123!@#$%',
+      },
+      nonstring: {
+        plan: {
+          'name'      => '2016-1',
+          'product'   => 'puppet-enterprise',
+          'publisher' => 'puppet',
+        },
       },
     }
     @template = 'azure_vm.pp.tmpl'
@@ -42,9 +48,9 @@ describe 'azure_vm when creating a machine with all available properties' do
     include_context 'a puppet ARM resource run'
     puppet_resource_should_show('ensure', 'running')
     puppet_resource_should_show('location', CHEAPEST_ARM_LOCATION)
-    puppet_resource_should_show('image')
     puppet_resource_should_show('user')
     puppet_resource_should_show('size')
+    puppet_resource_should_show('plan')    
     puppet_resource_should_show('resource_group')
     puppet_resource_should_show('network_interface_name')
     puppet_resource_should_show('os_disk_vhd_container_name')

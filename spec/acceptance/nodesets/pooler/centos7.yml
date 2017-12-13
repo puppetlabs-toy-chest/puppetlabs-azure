@@ -1,5 +1,5 @@
 HOSTS:
-  centos7:
+  sex62en1ceupc4d.delivery.puppetlabs.net:
     roles:
       - master
       - dashboard
