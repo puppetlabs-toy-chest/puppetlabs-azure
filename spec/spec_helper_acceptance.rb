@@ -292,7 +292,7 @@ class AzureARMHelper
   end
 
   def list_resource_templates(resource_group)
-    AzureARMHelper.resource_client.deployments.list(resource_group)
+    AzureARMHelper.resource_client.deployments.list_by_resource_group(resource_group)
   end
 
   def get_resource_template(resource_group,name)
