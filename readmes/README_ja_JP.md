@@ -1,17 +1,17 @@
 #### 目次
 
-1. [説明 - モジュールの機能とその有益性](#説明)
-2. [セットアップ](#セットアップ)
-   * [前提条件](#前提条件)
-   * [Azure認証情報を取得](#azure認証情報を取得)
-   * [Azureモジュールのインストール ](#azureモジュールのインストール)
-3. [使用方法 - 設定オプションと追加機能](#使用方法)
-4. [参考 - モジュールの機能と動作について](#リファレンス)
-   * [タイプ](#タイプ)
-   * [パラメータ](#パラメータ)
-5. [既知の問題](#既知の問題)
-6. [制約事項 - OSの互換性など](#制約事項)
-7. [開発ー問題を報告してサポートを得る](#開発)
+1. [説明 - モジュールの機能とその有益性](#module-description)
+2. [セットアップ](#setup)
+   * [前提条件](#requirements)
+   * [Azure認証情報を取得](#get-azure-credentials)
+   * [Azureモジュールのインストール ](#installing-the-azure-module)
+3. [使用方法 - 設定オプションと追加機能](#usage)
+4. [参考 - モジュールの機能と動作について](#reference)
+   * [タイプ](#types)
+   * [パラメータ](#parameters)
+5. [既知の問題](#known-issues)
+6. [制約事項 - OSの互換性など](#limitations)
+7. [開発ー問題を報告してサポートを得る](#development)
 
 ## 説明
 
@@ -23,10 +23,10 @@ Microsoft Azureはインフラを作成および管理するための強力なAP
 
 *   次のようなRuby Gems([Installing the Azure module](#installing-the-azure-module), 下記参照)
     *   [azure](https://rubygems.org/gems/azure) 0.7.x
-    *   [azure_mgmt_storage](https://rubygems.org/gems/azure_mgmt_storage) 0.3.x
-    *   [azure_mgmt_compute](https://rubygems.org/gems/azure_mgmt_compute) 0.3.x
-    *   [azure_mgmt_resources](https://rubygems.org/gems/azure_mgmt_resources) 0.3.x
-    *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.3.x
+    *   [azure_mgmt_storage](https://rubygems.org/gems/azure_mgmt_storage) 0.14.x
+    *   [azure_mgmt_compute](https://rubygems.org/gems/azure_mgmt_compute) 0.14.x
+    *   [azure_mgmt_resources](https://rubygems.org/gems/azure_mgmt_resources) 0.14.x
+    *   [azure_mgmt_network](https://rubygems.org/gems/azure_mgmt_network) 0.14.x
     *   [hocon](https://rubygems.org/gems/hocon) 1.1.x
 *   Azure認証情報(詳細は下記参照)。
 
@@ -73,10 +73,10 @@ info:    account list command OK
 ``` shell
 /opt/puppetlabs/puppet/bin/gem install retries --no-ri --no-rdoc
 /opt/puppetlabs/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_compute --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_storage --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_resources --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppetlabs/puppet/bin/gem install azure_mgmt_network --version='~>0.14.0' --no-ri --no-rdoc
 /opt/puppetlabs/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
 ```
 
@@ -85,10 +85,10 @@ Windowsにインストールするときに、`Start Command Prompt with Puppet`
 ``` shell
 gem install retries --no-ri --no-rdoc
 gem install azure --version="~>0.7.0" --no-ri --no-rdoc
-gem install azure_mgmt_compute --version="~>0.10.0" --no-ri --no-rdoc
-gem install azure_mgmt_storage --version="~>0.10.0" --no-ri --no-rdoc
-gem install azure_mgmt_resources --version="~>0.10.0" --no-ri --no-rdoc
-gem install azure_mgmt_network --version="~>0.10.0" --no-ri --no-rdoc
+gem install azure_mgmt_compute --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_storage --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_resources --version="~>0.14.0" --no-ri --no-rdoc
+gem install azure_mgmt_network --version="~>0.14.0" --no-ri --no-rdoc
 gem install hocon --version="~>1.1.2" --no-ri --no-rdoc
 ```
 
@@ -97,10 +97,10 @@ gem install hocon --version="~>1.1.2" --no-ri --no-rdoc
 ``` shell
 /opt/puppet/bin/gem install retries --no-ri --no-rdoc
 /opt/puppet/bin/gem install azure --version='~>0.7.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.10.0' --no-ri --no-rdoc
-/opt/puppet/bin/gem install azure_mgmt_network --version='~>0.10.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_compute --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_storage --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_resources --version='~>0.14.0' --no-ri --no-rdoc
+/opt/puppet/bin/gem install azure_mgmt_network --version='~>0.14.0' --no-ri --no-rdoc
 /opt/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
 ```
 
@@ -348,10 +348,18 @@ _管理ディスク_の使用時には_vhd_オプションは設定できず、_
 
 #### ネットワークへの接続
 
-デフォルトでは、`azure_vm`のプロビジョニングの際に、すべてのネットワークオブジェクトを、VMと同じリソースグループに作成、保存します。これは、非パブリックアドレス上で通信相手がすべて同じリソースグループ内にある基本的な環境で役に立ちます。他のリソースグループのネットワークに_プラグイン_する必要がある場合、ネットワークオブジェクトが、他のネットワークに届かない小規模なDMZにVMを作成しないように指定します。
+次を使用して、Azure Resource Managerの仮想ネットワークを作成できます。
 
-この機能を許可するには、`virtual_network_name`、`subnet_name`、
-`network_security_group_name`はすべて、スラッシュを用いて他のリソースグループのリクエストオブジェクトを検索できるようにします。この機能を使用する場合は、`subnet_name`も仮想ネットワークを指定する必要があることに注意してください。
+```puppet
+azure_virtual_network { 'vnettest01':
+  ensure           => present,
+  location         => 'eastus',
+  address_prefixes => ['10.0.0.0/16'], # Array of IP address prefixes for the VNet
+  dns_servers      => [],              # Array of DNS server IP addresses
+}
+```
+
+ネットワークオブジェクトは、他のネットワークに届かない小規模なDMZにVMが作成されないように指定します。VMを仮想ネットワークに接続するには、`virtual_network_name`、`subnet_name`、`network_security_group_name`パラメータを指定します。これらはすべて、スラッシュを用いて他のリソースグループのリクエストオブジェクトを検索できるようにします。この機能を使用する場合は、`subnet_name`も仮想ネットワークを指定する必要があることに注意してください。
 
 ```puppet
 azure_vm { 'web01':
@@ -365,6 +373,19 @@ azure_vm { 'web01':
   virtual_network_name        => 'hq-rg/delivery-vn',
   subnet_name                 => "hq-rg/delivery-vn/web-sn",
   network_security_group_name => "hq-rg/delivery-nsg",
+}
+```
+
+`azure_vm`で指定された仮想ネットワークパラメータが存在しない場合、VMと同じリソースグループ内に自動作成されます。これは、非パブリックアドレス上で通信相手がすべて同じリソースグループ内にある基本的な環境で役に立ちます。自動作成を行わないようにするには、`virtual_network_address_space`の指定を省略します。
+
+```puppet
+azure_vm { 'web01':
+  ensure                        => present,
+  location                      => 'centralus',
+  resource_group                => 'webservers-rg',
+  virtual_network_name          => 'vnettest01',
+  virtual_network_address_space => '10.0.0.0/16',
+  ...
 }
 ```
 
@@ -647,6 +668,102 @@ _Read Only_。
 _Read Only_。
 
 仮想マシンの基盤となるディスクイメージのへのリンク。
+
+#### タイプ: azure_vnet
+
+##### `ensure`
+
+仮想ネットワークの基本的な状態を指定します。 
+
+値: 'present'、'running'、stopped'、'absent'。 
+
+値には以下の効果があります。 
+
+* 'present': Azure内に仮想ネットワークが存在するようにします。仮想ネットワークが存在しない場合、新規作成されます。
+* 'absent': Azure上に仮想ネットワークが存在しないようにします。
+
+デフォルト値: 'present'。　
+
+##### `name`
+
+**必須**。　
+
+仮想ネットワークの名前。名前は最大64文字までです。
+
+##### `location`
+
+**必須**。　
+
+仮想ネットワークを作成するロケーション。仮想ネットワークが作成された後は、ロケーションは読込専用になります。
+
+値: [Azure地域マニュアル](http://azure.microsoft.com/en-gb/regions/)を参照してください。　
+
+##### `resource_group`　
+
+**必須**。　
+
+新しい仮想ネットワークのリソースグループ。
+
+値: [リソースグループ](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)を参照してください。
+
+##### `dns_servers`
+
+仮想ネットワーク内のVMに与えられるDNSサーバの配列
+
+デフォルト値: [] # なし
+
+##### `address_prefixes`
+
+プレフィックスの詳細は[仮想ネットワーク設定](https://msdn.microsoft.com/en-us/library/azure/jj157100.aspx)で利用できます。
+
+デフォルト: ['10.0.0.0/16']
+
+#### タイプ: azure_network_security_group
+
+##### `ensure`
+
+仮想マシンの基本的な状態を指定します。 
+
+値: 'present'、'absent'
+
+値には以下の効果があります。 
+
+* 'present': Azure内にネットワークセキュリティグループが存在するようにします。存在しない場合、新規作成されます。
+* 'absent': Azure上にネットワークセキュリティグループが存在しないようにします。
+
+デフォルト値: 'present'。　
+
+##### `name`
+
+**必須**。　
+
+ネットワークセキュリティグループの名前。名前は最大64文字までです。
+
+##### `location`
+
+**必須**。　
+
+仮想ネットワークを作成するロケーション。仮想ネットワークが作成された後は、ロケーションは読込専用になります。
+
+値: [Azure地域マニュアル](http://azure.microsoft.com/en-gb/regions/)を参照してください。　
+
+##### `resource_group`　
+
+**必須**。　
+
+新しい仮想ネットワークのリソースグループ。
+
+値: [リソースグループ](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)を参照してください。
+
+##### `tags`
+
+ラベルを付けるタグのハッシュ。
+
+例:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
 
 #### タイプ: azure_vm
 
@@ -1107,6 +1224,99 @@ Azure Resource Templateが必要とするパラメータ。`{ 'key_one' => 'valu
 Azure Resource Model標準フォーマットにパラメータを含むファイルのURI。
 
 このファイルのフォーマットは`params`属性で許可されるフォーマットとは異なります。`params`が指定されているときには、指定してはいけません。
+
+
+#### タイプ: azure_vnet
+
+##### `ensure`
+
+仮想ネットワークの基本的な状態を指定します。 
+
+値: 'present'、'absent'
+
+デフォルト値: 'present'。　
+
+##### `name`
+
+**必須**。　
+
+仮想ネットワークの名前。
+
+値: 80文字以内で、英数字、ダッシュ、アンダースコア、開き括弧、閉じ括弧、およびピリオドを含みます。名前はピリオドでは終われません。　
+
+##### `location`
+
+**必須**。　
+
+仮想ネットワークが作成されるロケーション。
+
+値: [Azure地域マニュアル](http://azure.microsoft.com/en-gb/regions/)を参照してください。　
+
+##### `resource_group`　
+
+**必須**。　
+
+仮想ネットワークを関連付けるリソースグループ。
+
+値: [リソースグループ](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)を参照してください。
+
+##### `tags`
+ラベルを付けるタグのハッシュ。
+
+例:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
+
+#### タイプ: azure_subnet
+
+##### `ensure`
+
+サブネットの基本的な状態を指定します。
+
+値: 'present'、'absent'
+
+デフォルト値: 'present'。　
+
+##### `name`
+
+**必須**。　
+
+サブネットの名前。
+
+値: 80文字以内で、英数字、ダッシュ、アンダースコア、開き括弧、閉じ括弧、およびピリオドを含みます。名前はピリオドでは終われません。　
+
+##### `location`
+
+**必須**。　
+
+サブネットが作成されるロケーション。
+
+値: [Azure地域マニュアル](http://azure.microsoft.com/en-gb/regions/)を参照してください。　
+
+##### `resource_group`　
+
+**必須**。　
+
+サブネットを関連付けるリソースグループ。
+
+値: [リソースグループ](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)を参照してください。
+
+##### `virtual_network`
+
+**必須**。　
+
+サブネットを関連付ける仮想ネットワーク。
+
+##### `tags`
+ラベルを付けるタグのハッシュ。
+
+例:
+
+```puppet
+tags => {'department' => 'devops', 'foo' => 'bar'}
+```
 
 ## 既知の問題
 
