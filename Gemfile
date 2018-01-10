@@ -23,6 +23,7 @@ group :test do
   gem 'public_suffix', '~> 1.4.0' #used for azure, 1.5.0 dropped ruby 1.9
   gem 'rake'
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
+  gem 'rspec_junit_formatter'
   gem 'rubocop', '~> 0.49.0'
   gem 'semantic_puppet'
   gem 'simplecov', '>= 0.11.0'
