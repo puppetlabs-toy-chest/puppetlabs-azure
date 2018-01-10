@@ -24,6 +24,7 @@ group :test do
   gem 'rake'
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
   gem 'rubocop', '~> 0.49.0'
+  gem 'semantic_puppet'
   gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
 end
@@ -32,11 +33,9 @@ group :development do
   gem 'guard-rake'  
   gem 'puppet-blacksmith'
   # required by puppet-blacksmith
-  gem 'pry-byebug'
+  gem 'pry'
   gem 'pry-rescue'
-  gem 'pry-stack_explorer'
   gem 'rest-client', '~> 1.8.0' # for ruby 1.9 compatibility
-  
 end
 
 group :acceptance do
