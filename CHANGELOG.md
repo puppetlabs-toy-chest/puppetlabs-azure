@@ -1,3 +1,7 @@
+## Supported Version 1.3.1
+## Added
+ - Japanese translations updated to reflect the 1.3.0 README.md.
+
 ## Supported Version 1.3.0
 ## Added
  - New Puppet Types and Providers for subnet, vnet and network_security_group.
