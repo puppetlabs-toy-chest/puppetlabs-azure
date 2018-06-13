@@ -59,6 +59,7 @@ Puppet::Type.newtype(:azure_vm) do
         provider.create
       end
     end
+
     newvalue(:stopped) do
       if provider.exists?
         provider.stop unless provider.stopped?
@@ -67,6 +68,17 @@ Puppet::Type.newtype(:azure_vm) do
         provider.stop
       end
     end
+
+    newvalue(:deallocated) do
+      if provider.exists?
+        provider.deallocate unless provider.deallocated?
+      else
+        provider.create
+        provider.deallocate
+      end
+    end
+
+
     def change_to_s(current, desired)
       current = :running if current == :present
       desired = current if desired == :present and current != :absent
