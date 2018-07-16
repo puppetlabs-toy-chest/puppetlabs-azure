@@ -37,8 +37,12 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
   # puppet representation we return, although they may be
   # set with puppet at the time of VM creation if destired
   def self.machine_to_hash(machine) # rubocop:disable Metrics/AbcSize, Metrics/PerceivedComplexity
-    stopped = machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
-    ensure_value = stopped ? :running : :stopped
+    stopped = machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }
+    deallocated = machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/deallocated/ }
+    ensure_value = nil
+    ensure_value = stopped ? :stopped : ensure_value
+    ensure_value = deallocated ? :deallocated : ensure_value
+    ensure_value = ensure_value.nil? ? :running : ensure_value
 
     network_interface_name = unless machine.network_profile.network_interfaces.empty?
       machine.network_profile.network_interfaces.first.id.split('/').last
@@ -212,5 +216,13 @@ Puppet::Type.type(:azure_vm).provide(:azure_arm, :parent => PuppetX::Puppetlabs:
 
   def stopped?
     ! machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/stopped/ }.nil?
+  end
+
+  def deallocated?
+    ! machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/deallocated/ }.nil?
+  end
+
+  def running?
+    ! machine.instance_view.statuses.find { |s| s.code =~ /PowerState\/running/ }.nil?
   end
 end

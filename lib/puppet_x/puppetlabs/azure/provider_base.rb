@@ -49,10 +49,25 @@ module PuppetX
           !stopped?
         end
 
+        def stopped?
+         exists? && @property_hash[:ensure] == :stopped 
+        end
+
+
+	def deallocated?
+	  exists? && @property_hash[:ensure] == :deallocated	
+	end
+
         def stop
           Puppet.info("Stopping #{name}")
           stop_vm(machine)
           @property_hash[:ensure] = :stopped
+        end
+
+        def deallocate
+          Puppet.info("Deallocating #{name}")
+          deallocate_vm(machine)
+          @property_hash[:ensure] = :deallocated
         end
 
         def start

@@ -45,7 +45,7 @@ describe provider_class do
     end
   end
 
-  [:exists?, :create, :destroy, :running?, :stopped?, :start, :stop].each do |method|
+  [:exists?, :create, :destroy, :running?, :stopped?, :start, :stop, :deallocate, :deallocated?].each do |method|
     it "should respond to the instance method #{method}" do
       expect(provider_class.new).to respond_to(method)
     end

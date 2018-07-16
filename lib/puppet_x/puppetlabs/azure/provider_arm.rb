@@ -122,6 +122,18 @@ module PuppetX
           end
         end
 
+        def deallocate_vm(machine)
+          begin
+            ProviderArm.compute_client.virtual_machines.deallocate(resource_group, machine.name)
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def start_vm(machine)
           begin
             ProviderArm.compute_client.virtual_machines.start(resource_group, machine.name)
