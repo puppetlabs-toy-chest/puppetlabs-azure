@@ -17,6 +17,8 @@
 
 Microsoft Azure exposes a powerful API for creating and managing its Infrastructure as a Service platform. The azure module allows you to drive that API using Puppet code. This allows you to use Puppet to create, stop, restart, and destroy Virtual Machines, and eventually to manage other resources, meaning you can manage even more of your infrastructure as code.
 
+> **Note**: This module and the [puppetlabs-azure_arm](https://forge.puppet.com/puppetlabs/azure_arm) module are mutually exclusive and should not be installed on the same machine. To avoid potential errors during a puppet run, install each module on separate machines.
+
 ## Setup
 
 ### Requirements
