@@ -1,4 +1,4 @@
-#### Table of contents
+#### Table of Contents
 
 1. [Description - What the module does and why it is useful](#module-description)
 2. [Setup](#setup)
@@ -104,7 +104,7 @@ On versions of `puppet agent` older than 1.2 (Puppet Enterprise 2015.2.0), use t
 /opt/puppet/bin/gem install hocon --version='~>1.1.2' --no-ri --no-rdoc
 ```
 
-> **Note:** You must pin Azure gem installs to the correct version detailed in the example above for the azure module to work properly. The example above pins the hocon gem version to prevent possible incompatibilities.
+> **Note**: You must pin Azure gem installs to the correct version detailed in the example above for the azure module to work properly. The example above pins the hocon gem version to prevent possible incompatibilities.
 
 Set the following environment variables specific to your Azure installation.
 
@@ -318,16 +318,16 @@ azure_vm { 'ssd-example':
 
 ```
 
-To successfully enable `Premium_LRS`, you **must** select a premium-capable VM size such as `Standard_DS1_v2`.  Regular HDD backed VMs can be created by using `Standard_LRS`.
+To successfully enable `Premium_LRS`, you **must** select a premium-capable VM size such as `Standard_DS1_v2`. Regular HDD backed VMs can be created by using `Standard_LRS`.
 
 #### Boot/guest diagnostics
 
-The Azure portal provides switches to enable _boot_diagnostics_ and _guest diagnostics_.  Both switches require access to a storage account to dump the diagnostic data.
+The Azure portal provides switches to enable _boot_diagnostics_ and _guest diagnostics_. Both switches require access to a storage account to dump the diagnostic data.
 
 The switch behaves differently depending what is activated:
 
-* Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics .  If required, manually enable using the portal.  Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting.  If required, boot diagnostics can be enabled through the Azure portal.
-* Guest diagnostics - Configures an extension to capture live diagnostic output.  This needs to be _different_ depending on the selected guest OS and is enabled by supplying the appropriate data to the `extensions` parameter.
+* Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics. If required, manually enable using the portal. Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting. If required, boot diagnostics can be enabled through the Azure portal.
+* Guest diagnostics - Configures an extension to capture live diagnostic output. This needs to be _different_ depending on the selected guest OS and is enabled by supplying the appropriate data to the `extensions` parameter.
 
 #### Managed Disks
 
@@ -359,7 +359,7 @@ azure_virtual_network { 'vnettest01':
 }
 ```
 
-Specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks. To attach a VM to a virtual network, specify the `virtual_network_name`, `subnet_name` and `network_security_group_name` parameters. These all allow slashes to lookup the requested object in other resource groups.  Note that `subnet_name` must also specify the virtual network if using this feature:
+Specify the network objects to avoid creating your VM in a miniture DMZ where it can't reach other networks. To attach a VM to a virtual network, specify the `virtual_network_name`, `subnet_name` and `network_security_group_name` parameters. These all allow slashes to lookup the requested object in other resource groups. Note that `subnet_name` must also specify the virtual network if using this feature:
 
 ```puppet
 azure_vm { 'web01':
@@ -376,7 +376,7 @@ azure_vm { 'web01':
 }
 ```
 
-If virtual network parameters specified in the `azure_vm` do not exist, they will be created in the same resource group as the VM.  This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. You can avoid this automatic creation by not specifying `virtual_network_address_space`
+If virtual network parameters specified in the `azure_vm` do not exist, they will be created in the same resource group as the VM. This works for basic environments where everything you want to talk to on non-public addresses is within the same resource group. You can avoid this automatic creation by not specifying `virtual_network_address_space`.
 
 ```puppet
 azure_vm { 'web01':
@@ -448,7 +448,7 @@ azure_storage_account { 'myStorageAccount':
 }
 ```
 
-> **Note:** Storage accounts are created with the Azure Resource Manager API only.
+> **Note**: Storage accounts are created with the Azure Resource Manager API only.
 
 ### Create Azure resource groups
 
@@ -680,7 +680,7 @@ Values: 'present', 'running', stopped', 'absent'.
 Values have the following effects:
 
 * 'present': Ensure that the virtual network exists in Azure. If the virtual network doesn't yet exist, a new one is created.
-* 'absent': Ensures that the virtual network doesn't exist on Azure
+* 'absent': Ensures that the virtual network doesn't exist on Azure.
 
 Default: 'present'.
 
@@ -708,7 +708,7 @@ Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/ar
 
 ##### `dns_servers`
 
-An array of DNS servers to be given to vms in the virtual network
+An array of DNS servers to be given to vms in the virtual network.
 
 Default: [] # None
 
@@ -729,7 +729,7 @@ Values: 'present', 'absent'.
 Values have the following effects:
 
 * 'present': Ensure that the network security group exists in Azure. If it doesn't yet exist, a new one is created.
-* 'absent': Ensures that the network security group doesn't exist on Azure
+* 'absent': Ensures that the network security group doesn't exist on Azure.
 
 Default: 'present'.
 
@@ -845,6 +845,7 @@ Storage account name rules are defined in [Storage accounts](https://msdn.micros
 The type of storage account to be associated with the virtual machine.
 
 See [Valid account types](https://msdn.microsoft.com/en-us/library/azure/mt163564.aspx).
+
 Default: `Standard_GRS`.
 
 ##### `os_disk_name`
@@ -1026,7 +1027,7 @@ This parameter can be either a single hash (single extension) or multiple hashes
 Example:
 
 ```puppet
-extensions     => {
+extensions => {
   'CustomScriptForLinux' => {
      'auto_upgrade_minor_version' => false,
      'publisher'                  => 'Microsoft.OSTCExtensions',
@@ -1043,13 +1044,13 @@ extensions     => {
 To install the Puppet agent as an extension on a Windows VM:
 
 ```puppet
-extensions     => {
+extensions => {
   'PuppetExtension' => {
      'auto_upgrade_minor_version' => true,
      'publisher'                  => 'Puppet',
      'type'                       => 'PuppetAgent',
      'type_handler_version'       => '1.5',
-     'protected_settings'                   => {
+     'protected_settings'         => {
        'PUPPET_MASTER_SERVER': 'mypuppetmaster.com'
      },
    },
@@ -1102,7 +1103,7 @@ The name of the storage account. Must be globally unique.
 
 ##### `location`
 
-**Required**
+**Required**.
 
 The location where the storage account is created. Location is read-only after the Storage Account has been created.
 
@@ -1199,7 +1200,7 @@ Values: A string no longer than 80 characters long, containing only alphanumeric
 
 The resource group for the new template deployment.
 
-Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)..
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
 
 ##### `source`
 
@@ -1301,7 +1302,7 @@ Values: See [Azure regions documentation](http://azure.microsoft.com/en-gb/regio
 
 The resource group with which to associate the subnet.
 
-Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/)..
+Values: See [Resource Groups](https://azure.microsoft.com/en-gb/documentation/articles/resource-group-overview/).
 
 ##### `virtual_network`
 
