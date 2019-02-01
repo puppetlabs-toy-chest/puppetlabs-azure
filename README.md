@@ -326,7 +326,7 @@ The Azure portal provides switches to enable _boot_diagnostics_ and _guest diagn
 
 The switch behaves differently depending what is activated:
 
-* Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics. If required, manually enable using the portal. Since boot diagnostics only apply at boot time, their most useful for interactive debugging when a VM is having a problems booting. If required, boot diagnostics can be enabled through the Azure portal.
+* Boot diagnostics - Configures the VM `diagnosticsProfile` setting to write out boot diagnostics. If required, manually enable using the portal. Because boot diagnostics only apply at boot time, they're most useful for interactive debugging when a VM is having a problems booting. If required, boot diagnostics can be enabled through the Azure portal.
 * Guest diagnostics - Configures an extension to capture live diagnostic output. This needs to be _different_ depending on the selected guest OS and is enabled by supplying the appropriate data to the `extensions` parameter.
 
 #### Managed Disks
