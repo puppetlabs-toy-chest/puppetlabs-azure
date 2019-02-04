@@ -13,6 +13,14 @@
 6. [Limitations - OS compatibility, etc.](#limitations)
 7. [Development - reporting issues and getting support](#development)
 
+## Future
+
+The [Azure ARM](https://forge.puppet.com/puppetlabs/azure_arm) module, which supersedes this module, supports over 1500 tasks, types, providers.
+
+To try it out, visit the [Puppet Forge](https://forge.puppet.com/puppetlabs/azure_arm) or view the [Github repo](https://github.com/puppetlabs/puppetlabs-azure_arm).
+
+This [Azure module](https://github.com/puppetlabs/puppetlabs-azure) will eventually deprecate in the future.
+
 ## Description
 
 Microsoft Azure exposes a powerful API for creating and managing its Infrastructure as a Service platform. The azure module allows you to drive that API using Puppet code. This allows you to use Puppet to create, stop, restart, and destroy Virtual Machines, and eventually to manage other resources, meaning you can manage even more of your infrastructure as code.
