@@ -308,6 +308,14 @@ class AzureARMHelper
     AzureARMHelper.storage_client.storage_accounts.list
   end
 
+  def get_network_security_group(resource_group_name, name)
+    AzureARMHelper.network_client.network_security_groups.get(resource_group_name, name)
+  end
+
+  def destroy_network_security_group(resource_group_name, name)
+    AzureARMHelper.network_client.network_security_groups.delete(resource_group_name, name)
+  end
+
   def get_storage_account(name)
     accounts = list_storage_accounts
     # Azure: storage has retained the value key, none of the other types seem to have.
