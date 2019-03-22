@@ -6,6 +6,7 @@ gem 'azure_mgmt_compute', '~> 0.14.0'
 gem 'azure_mgmt_network', '~> 0.14.0'
 gem 'azure_mgmt_resources', '~> 0.14.0'
 gem 'azure_mgmt_storage', '~> 0.14.0'
+gem 'facets'
 
 gem 'hocon'
 gem 'retries'
@@ -25,17 +26,17 @@ group :test do
   gem 'rspec-puppet', :git => 'https://github.com/rodjek/rspec-puppet.git'
   gem 'rspec_junit_formatter'
   gem 'rubocop', '~> 0.49.0'
+  gem 'rubocop-rspec'
   gem 'semantic_puppet'
   gem 'simplecov', '>= 0.11.0'
   gem 'simplecov-console'
 end
 
 group :development do
-  gem 'guard-rake'  
+  gem 'guard-rake'
+  gem 'pry-byebug'
   gem 'puppet-blacksmith'
   # required by puppet-blacksmith
-  gem 'pry'
-  gem 'pry-rescue'
   gem 'rest-client', '~> 1.8.0' # for ruby 1.9 compatibility
 end
 

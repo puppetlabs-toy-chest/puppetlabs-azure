@@ -161,6 +161,20 @@ module PuppetX
           end
         end
 
+        def get_all_network_security_groups # rubocop:disable Metrics/AbcSize
+          begin
+            ProviderArm.network_client.network_security_groups.list_all.collect do |sg|
+              ProviderArm.network_client.network_security_groups.get(resource_group_from(sg), sg.name)
+            end
+          rescue MsRestAzure::AzureOperationError => err
+            raise Puppet::Error, JSON.parse(err.message)['message']
+          rescue MsRest::DeserializationError => err
+            raise Puppet::Error, err.response_body
+          rescue MsRest::RestError => err
+            raise Puppet::Error, err.to_s
+          end
+        end
+
         def get_all_deployments
           deployments = []
           rgs = get_all_rgs.collect(&:name)
@@ -566,8 +580,8 @@ module PuppetX
           Puppet.debug("Delete network security group '#{args[:resource_group]}/#{args[:name]}'")
           begin
             ProviderArm.network_client.network_security_groups.delete(
-              args[:name],
               args[:resource_group],
+              args[:name],
             )
           rescue MsRestAzure::AzureOperationError => err
             raise Puppet::Error, JSON.parse(err.message)['message']

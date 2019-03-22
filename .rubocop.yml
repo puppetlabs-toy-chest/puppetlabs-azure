@@ -4,6 +4,9 @@ AllCops:
     - '**/*.erb'
     # Ignore vendored gems
     - 'vendor/**/*'
+    
+RSpec:
+  Enabled: false
 
 Lint/ConditionPosition:
   Enabled: true
@@ -41,7 +44,7 @@ Lint/AmbiguousOperator:
 Lint/AssignmentInCondition:
   Enabled: true
 
-Style/SpaceBeforeComment:
+Layout/SpaceBeforeComment:
   Enabled: true
 
 # DISABLED - not useful
@@ -70,7 +73,7 @@ Lint/AmbiguousRegexpLiteral:
   Enabled: false
 
 # DISABLED
-Lint/Eval:
+Security/Eval:
   Enabled: false
 
 # DISABLED
@@ -118,7 +121,7 @@ Lint/UselessAssignment:
 Lint/Void:
   Enabled: true
 
-Style/AccessModifierIndentation:
+Layout/AccessModifierIndentation:
   Enabled: false
 
 Style/AccessorMethodName:
@@ -127,13 +130,13 @@ Style/AccessorMethodName:
 Style/Alias:
   Enabled: false
 
-Style/AlignArray:
+Layout/AlignArray:
   Enabled: false
 
-Style/AlignHash:
+Layout/AlignHash:
   Enabled: false
 
-Style/AlignParameters:
+Layout/AlignParameters:
   Enabled: false
 
 Metrics/BlockNesting:
@@ -151,7 +154,7 @@ Style/BracesAroundHashParameters:
 Style/CaseEquality:
   Enabled: false
 
-Style/CaseIndentation:
+Layout/CaseIndentation:
   Enabled: false
 
 Style/CharacterLiteral:
@@ -185,67 +188,67 @@ Style/WordArray:
 Style/UnneededPercentQ:
   Enabled: false
 
-Style/Tab:
+Layout/Tab:
   Enabled: false
 
-Style/SpaceBeforeSemicolon:
+Layout/SpaceBeforeSemicolon:
   Enabled: false
 
-Style/TrailingBlankLines:
+Layout/TrailingBlankLines:
   Enabled: false
 
-Style/SpaceInsideBlockBraces:
+Layout/SpaceInsideBlockBraces:
   Enabled: false
 
-Style/SpaceInsideBrackets:
+Layout/SpaceInsideBrackets:
   Enabled: false
 
-Style/SpaceInsideHashLiteralBraces:
+Layout/SpaceInsideHashLiteralBraces:
   Enabled: false
 
-Style/SpaceInsideParens:
+Layout/SpaceInsideParens:
   Enabled: false
 
-Style/LeadingCommentSpace:
+Layout/LeadingCommentSpace:
   Enabled: false
 
-Style/SpaceBeforeFirstArg:
+Layout/SpaceBeforeFirstArg:
   Enabled: false
 
-Style/SpaceAfterColon:
+Layout/SpaceAfterColon:
   Enabled: false
 
-Style/SpaceAfterComma:
+Layout/SpaceAfterComma:
   Enabled: false
 
-Style/SpaceAroundKeyword:
+Layout/SpaceAroundKeyword:
   Enabled: false
 
-Style/SpaceAfterMethodName:
+Layout/SpaceAfterMethodName:
   Enabled: false
 
-Style/SpaceAfterNot:
+Layout/SpaceAfterNot:
   Enabled: false
 
-Style/SpaceAfterSemicolon:
+Layout/SpaceAfterSemicolon:
   Enabled: false
 
-Style/SpaceAroundEqualsInParameterDefault:
+Layout/SpaceAroundEqualsInParameterDefault:
   Enabled: false
 
-Style/SpaceAroundOperators:
+Layout/SpaceAroundOperators:
   Enabled: false
 
-Style/SpaceBeforeBlockBraces:
+Layout/SpaceBeforeBlockBraces:
   Enabled: false
 
-Style/SpaceBeforeComma:
+Layout/SpaceBeforeComma:
   Enabled: false
 
 Style/CollectionMethods:
   Enabled: false
 
-Style/CommentIndentation:
+Layout/CommentIndentation:
   Enabled: false
 
 Style/ColonMethodCall:
@@ -266,7 +269,7 @@ Style/Documentation:
 Style/DefWithParentheses:
   Enabled: false
 
-Style/DotPosition:
+Layout/DotPosition:
   Enabled: false
 
 # DISABLED - used for converting to bool
@@ -276,25 +279,25 @@ Style/DoubleNegation:
 Style/EachWithObject:
   Enabled: false
 
-Style/EmptyLineBetweenDefs:
+Layout/EmptyLineBetweenDefs:
   Enabled: false
 
-Style/IndentArray:
+Layout/IndentArray:
   Enabled: false
 
-Style/IndentHash:
+Layout/IndentHash:
   Enabled: false
 
-Style/IndentationConsistency:
+Layout/IndentationConsistency:
   Enabled: false
 
-Style/IndentationWidth:
+Layout/IndentationWidth:
   Enabled: false
 
-Style/EmptyLines:
+Layout/EmptyLines:
   Enabled: false
 
-Style/EmptyLinesAroundAccessModifier:
+Layout/EmptyLinesAroundAccessModifier:
   Enabled: false
 
 Style/EmptyLiteral:
@@ -312,7 +315,7 @@ Style/MethodDefParentheses:
 Style/LineEndConcatenation:
   Enabled: false
 
-Style/TrailingWhitespace:
+Layout/TrailingWhitespace:
   Enabled: false
 
 Style/StringLiterals:

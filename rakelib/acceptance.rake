@@ -8,6 +8,10 @@ fast_tests = [
   'spec/*/arm_vm_spec.rb'
 ]
 
+security_group_tests = [
+  'spec/*/azure_security_group_spec.rb'
+]
+
 acceptance_tests = [
   'spec/*/arm_vm_minimal_spec.rb',
   'spec/*/all_properties_spec.rb'
@@ -43,6 +47,11 @@ end
 desc "Run fast acceptance tests"
 RSpec::Core::RakeTask.new(:fast => [:spec_prep, :envs]) do |t|
   t.pattern = fast_tests
+end
+
+desc "Run security group acceptance tests"
+RSpec::Core::RakeTask.new(:security_group => [:spec_prep, :envs]) do |t|
+  t.pattern = security_group_tests
 end
 
 desc "Run acceptance tests"

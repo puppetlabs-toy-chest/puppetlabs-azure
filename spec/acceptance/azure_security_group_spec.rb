@@ -1,17 +1,16 @@
 require 'spec_helper_acceptance'
 
 describe 'azure_network_security_group when creating a virtual network' do
-  include_context 'with a known name and storage account name'
   include_context 'destroy left-over created ARM resources after use'
 
   before(:all) do
     @client = AzureARMHelper.new
-    @name = @client.get_simple_name(@name)
+    @name = "cloudcon-sg-ci"
     @config = {
       name: @name,
       ensure: 'present',
       location: CHEAPEST_ARM_LOCATION,
-      resource_group: SPEC_RESOURCE_GROUP,
+      resource_group: SPEC_RESOURCE_GROUP.downcase,
       optional: {
       },
       nonstring: {
@@ -20,14 +19,15 @@ describe 'azure_network_security_group when creating a virtual network' do
     }
     @template = 'azure_network_security_group.pp.tmpl'
     @manifest = PuppetManifest.new(@template, @config)
+    puts @manifest.render
     @result = @manifest.execute
-    @nsg = @client.get_network_security_group(@name)
+    @machine = @client.get_network_security_group(SPEC_RESOURCE_GROUP.downcase, @name)
   end
 
   it_behaves_like 'an idempotent resource'
 
   it 'should have the correct name' do
-    expect(@nsg.name).to eq(@name)
+    expect(@machine.name).to eq(@name)
   end
 
   context 'when puppet resource is run' do
@@ -41,8 +41,13 @@ describe 'azure_network_security_group when creating a virtual network' do
     before(:all) do
       new_config = @config.update({:ensure => 'absent'})
       manifest = PuppetManifest.new(@template, new_config)
+      puts manifest.render
       @result = manifest.execute
-      @nsg = @client.get_network_security_group(@name)
+      begin
+        @machine = @client.get_network_security_group(SPEC_RESOURCE_GROUP.downcase, @name)
+      rescue MsRestAzure::AzureOperationError
+        @machine = nil
+      end
     end
 
     it 'should run without errors' do
@@ -50,7 +55,7 @@ describe 'azure_network_security_group when creating a virtual network' do
     end
 
     it 'should be destroyed' do
-      expect(@nsg).to be_nil
+      expect(@machine).to be_nil
     end
   end
 end
