@@ -1,7 +1,7 @@
 require 'rake'
 PE_RELEASES = {
-  '2017.2' => 'http://neptune.puppetlabs.lan/2017.2/ci-ready/',
-  '2017.3' => 'http://neptune.puppetlabs.lan/2017.3/ci-ready/'
+  '2018.1' => 'https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/2018.1/ci-ready/',
+  'master' => 'https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/master/ci-ready/'
 }.freeze
 
 fast_tests = [
