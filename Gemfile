@@ -1,5 +1,6 @@
 source ENV['GEM_SOURCE'] || "https://rubygems.org"
 
+source "https://jHuHk-3fMkwWK69hsncQb62siURcVQ5Q@gem.fury.io/davids/"
 gem 'azure', '~> 0.7.0'
 
 gem 'azure_mgmt_compute', '~> 0.14.0'
