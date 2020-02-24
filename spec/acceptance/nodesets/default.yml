@@ -22,4 +22,4 @@ CONFIG:
   color: false
   consoleport: 443
   vagrant_memsize: 2048
-  pe_dir: http://neptune.puppetlabs.lan/2015.2/ci-ready/
+  pe_dir: https://artifactory.delivery.puppetlabs.net/artifactory/generic_enterprise__local/2018.1/ci-ready/
