@@ -13,13 +13,9 @@
 6. [Limitations - OS compatibility, etc.](#limitations)
 7. [Development - reporting issues and getting support](#development)
 
-## Future
+## Deprecation notice
 
-The [Azure ARM](https://forge.puppet.com/puppetlabs/azure_arm) module, which supersedes this module, supports over 1500 tasks, types, providers.
-
-To try it out, visit the [Puppet Forge](https://forge.puppet.com/puppetlabs/azure_arm) or view the [Github repo](https://github.com/puppetlabs/puppetlabs-azure_arm).
-
-This [Azure module](https://github.com/puppetlabs/puppetlabs-azure) will eventually deprecate in the future.
+We are no longer developing [this module](https://github.com/puppetlabs/puppetlabs-azure) and will be eventually deprecating in the future.
 
 ## Description
 
